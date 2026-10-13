@@ -475,6 +475,9 @@
                     badgeLabel = currentLang === 'fr' ? 'Retourné' : 'مرتجع';
                 }
 
+                const codVal = Number(o.totalPrice != null ? o.totalPrice : (o.total_price != null ? o.total_price : (o.unitPrice || 21900))) || 21900;
+                const formattedCod = codVal.toLocaleString() + ' DZD';
+
                 return `
                     <div class="mobile-order-card">
                         <div class="card-top-row">
@@ -491,8 +494,8 @@
                         </div>
 
                         <div class="card-product-row">
-                            <span class="card-product-name"><i class="fa-solid fa-box text-primary"></i> ${o.productName || 'Pack 1'}</span>
-                            <span class="card-total-price">${o.grandTotal || (o.priceNum + ' DZD')}</span>
+                            <span class="card-product-name"><i class="fa-solid fa-box text-primary"></i> ${o.productName || 'عرض النخبة 5 في 1'}</span>
+                            <span class="card-total-price">${formattedCod}</span>
                         </div>
 
                         <div class="card-mobile-actions">
@@ -829,6 +832,18 @@
                 // Risk & Trust Badge (Risk Shield Paused by Admin)
                 const riskPill = `<div style="margin-top:4px;"><span class="status-badge badge-delivered" onclick="storeAdmin.viewRisk('${o.orderId}')" style="cursor:pointer; font-size:10px;" title="درع الأمان معطل مؤقتاً">🟢 ${currentLang === 'fr' ? 'Approuvé (Bouclier en pause)' : 'معتمد (الدرع معطل)'}</span></div>`;
 
+                const unitPrice = Number(o.unitPrice != null ? o.unitPrice : (o.unit_price != null ? o.unit_price : 21900)) || 21900;
+                const shippingFee = Number(o.shippingFee != null ? o.shippingFee : (o.shipping_fee != null ? o.shipping_fee : 0)) || 0;
+                let totalAmount = Number(o.totalPrice != null ? o.totalPrice : (o.total_price != null ? o.total_price : 0));
+                if (!totalAmount || isNaN(totalAmount)) {
+                    const rawGrand = String(o.grandTotal || o.grand_total || '').replace(/[^\d]/g, '');
+                    totalAmount = rawGrand ? parseInt(rawGrand, 10) : (unitPrice + shippingFee);
+                }
+                const formattedCod = totalAmount.toLocaleString() + ' DZD';
+                const codBreakdownHtml = shippingFee > 0
+                    ? `<br><small style="color:var(--text-muted); font-size:11px;">(${unitPrice.toLocaleString()} + ${shippingFee.toLocaleString()})</small>`
+                    : `<br><small style="color:var(--text-muted); font-size:11px;">(${unitPrice.toLocaleString()})</small>`;
+
                 tr.innerHTML = `
                     <td>
                         <strong style="font-family:'JetBrains Mono', monospace; color:var(--primary);">${o.orderId}</strong>
@@ -847,7 +862,8 @@
                         <br><small style="color:var(--text-muted);">${o.commune || 'Alger'} (${o.deliveryType || 'Domicile'})</small>
                     </td>
                     <td>
-                        <strong style="color:var(--emerald);">${o.grandTotal || (o.priceNum + ' DZD')}</strong>
+                        <strong style="color:var(--emerald); font-size:14px; font-weight:700;">${formattedCod}</strong>
+                        ${codBreakdownHtml}
                     </td>
                     <td>${carrierBadge}</td>
                     <td>
@@ -866,8 +882,10 @@
         updateKPIs: function () {
             const total = ordersList.length;
             const rev = ordersList.reduce((sum, o) => {
-                const raw = String(o.priceNum || o.grandTotal || 0).replace(/[^\d]/g, '');
-                return sum + (parseInt(raw, 10) || 4950);
+                const totalAmt = Number(o.totalPrice != null ? o.totalPrice : (o.total_price != null ? o.total_price : (o.unitPrice || 21900)));
+                if (totalAmt && !isNaN(totalAmt)) return sum + totalAmt;
+                const raw = String(o.grandTotal || o.priceNum || 0).replace(/[^\d]/g, '');
+                return sum + (parseInt(raw, 10) || 21900);
             }, 0);
             const pending = ordersList.filter(o => !o.in_redex && (o.status === 'pending' || o.status === 'قيد الانتظار')).length;
             const shipped = ordersList.filter(o => o.in_redex || o.status === 'shipped' || (o.status && o.status.includes('Redex'))).length;
@@ -1188,9 +1206,8 @@
             document.getElementById('formAddress').value = o.address || '';
             
             // Clean price parsing for modal prefill
-            const rawPrice = String(o.priceNum || o.grandTotal || '').replace(/[^\d]/g, '');
-            const isPack2 = String(o.productName || o.orderId || '').includes('13390') || String(o.productName || o.orderId || '').includes('12950') || String(o.productName || o.orderId || '').includes('pack2') || String(o.productName || '').includes('5');
-            const priceVal = parseInt(rawPrice, 10) || (isPack2 ? 13390 : 4950);
+            const rawPrice = String(o.totalPrice || o.total_price || o.unitPrice || o.priceNum || o.grandTotal || '').replace(/[^\d]/g, '');
+            const priceVal = parseInt(rawPrice, 10) || 21900;
             document.getElementById('formPrice').value = priceVal;
             document.getElementById('packageModal').classList.add('active');
         },
@@ -1693,7 +1710,10 @@
             }
 
             const lblAmountText = document.getElementById('lblAmountText');
-            if (lblAmountText) lblAmountText.textContent = o.grandTotal || (o.priceNum ? (o.priceNum + ' DZD') : '21,900 DZD');
+            if (lblAmountText) {
+                const total = Number(o.totalPrice != null ? o.totalPrice : (o.total_price != null ? o.total_price : (o.unitPrice || 21900))) || 21900;
+                lblAmountText.textContent = total.toLocaleString() + ' DZD';
+            }
 
             const lblProductNote = document.getElementById('lblProductNote');
             if (lblProductNote) lblProductNote.textContent = `📦 Contenu: ${o.productName || 'PACK HIGH-TECH 5 EN 1 SPEAR-DZ'}`;

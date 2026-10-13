@@ -115,6 +115,7 @@ export default function OrderForm({ locale = 'fr', onOrderSuccess, formRef }) {
 
   const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
+    if (isSubmitting) return;
     setErrorMsg('');
     setErrorField('');
 

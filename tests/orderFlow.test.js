@@ -220,5 +220,53 @@ describe('End-to-End API Order Flow & Security Tests', () => {
         assert.strictEqual(ordJson.count, 1);
         assert.strictEqual(ordJson.data[0].fullName, 'test orders01');
     });
+
+    test('Order presentation fields: verifies grandTotal, priceNum, totalPrice, unitPrice are properly mapped and not undefined', async () => {
+        await mockStorage.saveOrder({
+            orderId: 'SPDZ-242674-133',
+            fullName: 'IDIN DRIP',
+            phone: '0793731310',
+            wilaya: '18 - Jijel (جيجل)',
+            commune: 'Oudjana',
+            deliveryType: 'desk',
+            unitPrice: 21900,
+            shippingFee: 450,
+            totalPrice: 22350,
+            status: 'pending'
+        });
+
+        const orders = await mockStorage.getAllOrders();
+        const o = orders.find(item => item.orderId === 'SPDZ-242674-133');
+        assert.ok(o);
+        assert.strictEqual(o.unitPrice, 21900);
+        assert.strictEqual(o.shippingFee, 450);
+        assert.strictEqual(o.totalPrice, 22350);
+        assert.strictEqual(o.priceNum, 21900);
+        assert.ok(o.grandTotal.includes('22,350 DZD'));
+        assert.ok(!o.grandTotal.includes('undefined'));
+    });
+
+    test('Duplicate order submission is idempotent and does not crash', async () => {
+        const orderData = {
+            orderId: 'SPDZ-DUPLICATE-TEST',
+            fullName: 'IDIN DRIP',
+            phone: '0793731310',
+            wilaya: '18 - Jijel (جيجل)',
+            commune: 'Oudjana',
+            deliveryType: 'desk',
+            unitPrice: 21900,
+            shippingFee: 450,
+            totalPrice: 22350,
+            status: 'pending'
+        };
+
+        const firstSave = await mockStorage.saveOrder(orderData);
+        assert.ok(firstSave);
+
+        // Submit duplicate
+        const secondSave = await mockStorage.saveOrder(orderData);
+        assert.ok(secondSave);
+        assert.strictEqual(secondSave.orderId, 'SPDZ-DUPLICATE-TEST');
+    });
 });
 

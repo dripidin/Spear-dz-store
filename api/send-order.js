@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const https = require('https');
 const { getStorage } = require('../lib/storage');
 const { evaluateOrderRisk } = require('../lib/risk/riskEngine');
@@ -109,7 +110,8 @@ module.exports = async (req, res) => {
         const totalPrice = subtotal + shippingFee;
 
         // Unique Order ID
-        const orderId = body.orderId || ('SPDZ-' + Date.now().toString().slice(-6) + '-' + Math.floor(100 + Math.random() * 900));
+        const randSuffix = typeof crypto.randomInt === 'function' ? crypto.randomInt(1000, 9999) : Math.floor(1000 + Math.random() * 9000);
+        const orderId = body.orderId || ('SPDZ-' + Date.now().toString().slice(-8) + '-' + randSuffix);
 
         // Evaluate Risk
         const riskResult = await evaluateOrderRisk({
