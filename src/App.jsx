@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import CupertinoVideoHero from './components/CupertinoVideoHero';
 import OrderForm from './components/OrderForm';
 import StickyMobileBar from './components/StickyMobileBar';
@@ -87,6 +88,9 @@ export default function App() {
           onClose={() => setCompletedOrder(null)}
         />
       )}
+
+      {/* Vercel Web Analytics */}
+      <Analytics />
 
     </div>
   );
