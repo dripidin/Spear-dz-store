@@ -5,7 +5,7 @@ import shippingRates from '../../config/shippingRates.json';
 
 const BASE_BUNDLE_PRICE = 21900;
 
-export default function OrderForm({ locale = 'fr', onOrderSuccess, formRef }) {
+export default function OrderForm({ locale = 'fr', onOrderSuccess, onSubmittingChange, formRef }) {
   const isAr = locale === 'ar';
   const nameId = useId();
   const phoneId = useId();
@@ -115,15 +115,15 @@ export default function OrderForm({ locale = 'fr', onOrderSuccess, formRef }) {
 
   const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
-    if (isSubmitting) return;
+    if (isSubmitting) return; // Strictly block duplicate clicks
     setErrorMsg('');
     setErrorField('');
 
-    // Behavioral Form Validation Gate
+    // 1. Behavioral Form Validation Gate
     if (!deliveryType) {
       triggerAlert(
         'deliveryType',
-        'يرجى تحديد طريقة الاستلام أولاً (مكتب التوصيل أو التوصيل للمنزل)',
+        isAr ? 'يرجى تحديد طريقة الاستلام أولاً (مكتب التوصيل أو التوصيل للمنزل)' : 'Veuillez choisir un mode de livraison (À Domicile ou Stop-Desk)',
         'deliveryTypeContainer'
       );
       return;
@@ -132,7 +132,7 @@ export default function OrderForm({ locale = 'fr', onOrderSuccess, formRef }) {
     if (!fullName.trim() || fullName.trim().length < 3) {
       triggerAlert(
         'fullName',
-        'يرجى إدخال الاسم واللقب الكامل (3 أحرف على الأقل)',
+        isAr ? 'يرجى إدخال الاسم واللقب الكامل (3 أحرف على الأقل)' : 'Veuillez entrer votre nom complet (au moins 3 caractères)',
         nameId
       );
       return;
@@ -141,7 +141,7 @@ export default function OrderForm({ locale = 'fr', onOrderSuccess, formRef }) {
     if (!isPhoneValid) {
       triggerAlert(
         'phone',
-        'يرجى إدخال رقم هاتف جزائري صحيح (مثال: 0550123456 أو 0660123456 أو 0770123456)',
+        isAr ? 'يرجى إدخال رقم هاتف جزائري صحيح (مثال: 0550123456 أو 0660123456 أو 0770123456)' : 'Veuillez entrer un numéro de téléphone algérien valide (ex: 0550123456)',
         phoneId
       );
       return;
@@ -150,13 +150,17 @@ export default function OrderForm({ locale = 'fr', onOrderSuccess, formRef }) {
     if (!city || !city.trim()) {
       triggerAlert(
         'city',
-        'يرجى تحديد البلدية لتأكيد موقع التوصيل',
+        isAr ? 'يرجى تحديد البلدية لتأكيد موقع التوصيل' : 'Veuillez sélectionner votre commune',
         cityId
       );
       return;
     }
 
+    // 2. Set submission-in-progress state synchronously
     setIsSubmitting(true);
+    if (onSubmittingChange) onSubmittingChange(true);
+
+    const submitStartTime = Date.now();
 
     try {
       const payload = {
@@ -170,9 +174,11 @@ export default function OrderForm({ locale = 'fr', onOrderSuccess, formRef }) {
         totalPrice: grandTotal,
         notes: address.trim(),
         website_url: honeypot,
-        quantity: 1
+        quantity: 1,
+        clientSubmissionTime: submitStartTime
       };
 
+      // 7. Send the real order request immediately
       const res = await fetch('/api/send-order', {
         method: 'POST',
         headers: {
@@ -181,12 +187,30 @@ export default function OrderForm({ locale = 'fr', onOrderSuccess, formRef }) {
         body: JSON.stringify(payload)
       });
 
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Erreur lors de l\'enregistrement de votre commande.');
+      // 8. Wait for actual API response
+      let data;
+      try {
+        data = await res.json();
+      } catch (parseErr) {
+        throw new Error(isAr ? 'استجابة غير متوقعة من السيرفر. يرجى المحاولة مرة أخرى.' : 'Réponse serveur inattendue. Veuillez réessayer.');
       }
 
+      // 9. Reliability Verification: Explicit success AND persisted order ID
+      if (!res.ok || !data || data.success !== true || !data.orderId) {
+        const errorDetail = (data && data.error)
+          ? data.error
+          : (isAr ? 'تعذر حفظ وتأكيد الطلب. يرجى المحاولة مرة أخرى.' : 'Échec de l\'enregistrement de votre commande. Veuillez réessayer.');
+        throw new Error(errorDetail);
+      }
+
+      // 10. For fast responses, maintain visual processing state for ~600-800ms
+      const elapsed = Date.now() - submitStartTime;
+      const MIN_DISPLAY_MS = 700;
+      if (elapsed < MIN_DISPLAY_MS) {
+        await new Promise((resolve) => setTimeout(resolve, MIN_DISPLAY_MS - elapsed));
+      }
+
+      // 11. Transition to confirmed thank-you modal
       if (onOrderSuccess) {
         onOrderSuccess(data.order || {
           orderId: data.orderId,
@@ -195,13 +219,15 @@ export default function OrderForm({ locale = 'fr', onOrderSuccess, formRef }) {
           wilaya: payload.wilaya,
           commune: payload.commune,
           deliveryType: payload.deliveryType,
-          totalPrice: grandTotal
+          totalPrice: data.totalPrice || grandTotal
         });
       }
     } catch (err) {
-      setErrorMsg(err.message || 'Une erreur est survenue lors de la validation. Veuillez réessayer.');
+      // 12. Preserve customer form values and show understandable error with retry
+      setErrorMsg(err.message || (isAr ? 'حدث خطأ أثناء تأكيد الطلب. يرجى إعادة المحاولة.' : 'Une erreur est survenue lors de la validation. Veuillez réessayer.'));
     } finally {
       setIsSubmitting(false);
+      if (onSubmittingChange) onSubmittingChange(false);
     }
   };
 
@@ -519,6 +545,65 @@ export default function OrderForm({ locale = 'fr', onOrderSuccess, formRef }) {
             </span>
           </div>
         </div>
+
+        {/* Accessible Live Region for Screen Readers & Status Announcements */}
+        <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+          id="checkoutStatusRegion"
+        >
+          {isSubmitting
+            ? (isAr ? 'جارٍ تأكيد طلبك...' : 'Confirmation de votre commande...')
+            : (errorMsg || '')}
+        </div>
+
+        {/* Understandable Error Banner with Safe Retry */}
+        {errorMsg && (
+          <div
+            role="alert"
+            className="p-4 rounded-2xl bg-red-50/90 border border-red-200 text-red-800 flex flex-col gap-2 transition-all shadow-sm"
+          >
+            <div className="flex items-center gap-2 font-medium text-xs sm:text-sm">
+              <span className="text-red-600 font-bold text-base">⚠️</span>
+              <span>{errorMsg}</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="self-start text-xs font-bold text-red-700 hover:text-red-900 underline cursor-pointer py-1"
+            >
+              {isAr ? '↻ إعادة المحاولة الآن (مع الحفاظ على بياناتك)' : '↻ Réessayer maintenant (vos données sont conservées)'}
+            </button>
+          </div>
+        )}
+
+        {/* Primary Checkout Submit Button */}
+        <button
+          type="submit"
+          id="orderFormSubmitBtn"
+          disabled={isSubmitting}
+          className={`w-full h-12 rounded-full font-label-lg text-label-lg font-medium flex items-center justify-center gap-2 shadow-sm transition-all duration-200 cursor-pointer ${
+            isSubmitting
+              ? 'bg-neutral-800 text-white/90 cursor-wait'
+              : 'bg-primary text-on-primary hover:opacity-95 active:scale-[0.98]'
+          }`}
+        >
+          {isSubmitting ? (
+            <>
+              <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              <span>{isAr ? 'جارٍ تأكيد طلبك...' : 'Confirmation de votre commande...'}</span>
+            </>
+          ) : (
+            <>
+              <span>{isAr ? 'تأكيد الطلب الآن (الدفع عند الاستلام)' : 'Confirmer la commande (Paiement COD)'}</span>
+              <span className="material-symbols-outlined text-[18px] rotate-180">
+                arrow_forward
+              </span>
+            </>
+          )}
+        </button>
 
       </form>
 

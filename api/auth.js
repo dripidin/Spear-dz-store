@@ -27,9 +27,15 @@ module.exports = async (req, res) => {
 
     try {
         const body = req.body || {};
-        const inputPassword = (body.password || body.token || body.apiKey || '').toString().trim();
-
-        const configuredToken = (process.env.ADMIN_API_TOKEN || process.env.ADMIN_PASSWORD || 'L3abedstore2026').toString().trim();
+        const configuredToken = (process.env.ADMIN_API_TOKEN || process.env.ADMIN_PASSWORD || '').toString().trim();
+        if (!configuredToken) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+                success: false,
+                error: 'ADMIN_AUTH_MISCONFIGURED: ADMIN_API_TOKEN is not configured on this server'
+            }));
+            return;
+        }
 
         if (!inputPassword) {
             res.writeHead(400, { 'Content-Type': 'application/json' });

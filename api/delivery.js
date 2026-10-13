@@ -41,8 +41,13 @@ module.exports = async (req, res) => {
     const action = query.action || body.action;
 
     try {
-        // ── 0. Admin: Get All Orders (for YamahaSac admin.js compatibility) ────
+        // ── 0. Admin: Get All Orders (Authorized admin only) ─────────────────
         if (action === 'get_all_orders' || action === 'orders') {
+            if (!authenticateAdmin(req)) {
+                res.writeHead(401, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, error: 'UNAUTHORIZED: Valid ADMIN_API_TOKEN required' }));
+                return;
+            }
             const storage = getStorage();
             const orders = await storage.getAllOrders({ limit: 1000 });
             res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -50,10 +55,18 @@ module.exports = async (req, res) => {
             return;
         }
 
-        // ── 0b. Admin: Login (for YamahaSac admin.js fallback) ────────────────
+        // ── 0b. Admin: Login (Strict Fail-Closed) ────────────────────────────
         if (action === 'login' || action === 'auth') {
+            const configuredToken = (process.env.ADMIN_API_TOKEN || process.env.ADMIN_PASSWORD || '').trim();
+            if (!configuredToken) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: false,
+                    error: 'ADMIN_AUTH_MISCONFIGURED: ADMIN_API_TOKEN is not configured on this server'
+                }));
+                return;
+            }
             const pass = (body.password || body.token || '').toString().trim();
-            const configuredToken = (process.env.ADMIN_API_TOKEN || process.env.ADMIN_PASSWORD || 'L3abedstore2026').trim();
             if (timingSafeCompare(pass, configuredToken) || pass === configuredToken) {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ success: true, token: configuredToken, message: 'AUTHENTICATED' }));
@@ -64,8 +77,13 @@ module.exports = async (req, res) => {
             return;
         }
 
-        // ── 0c. Admin: Delete Order ──────────────────────────────────────────
+        // ── 0c. Admin: Delete Order (Authorized admin only) ───────────────────
         if (action === 'delete') {
+            if (!authenticateAdmin(req)) {
+                res.writeHead(401, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, error: 'UNAUTHORIZED: Valid ADMIN_API_TOKEN required' }));
+                return;
+            }
             const rawIds = body.ids || body.orderIds || query.id || query.orderId || body.id || body.orderId;
             const targetIds = Array.isArray(rawIds) ? rawIds : (rawIds ? [rawIds] : []);
             if (targetIds.length === 0) {
@@ -86,32 +104,19 @@ module.exports = async (req, res) => {
             return;
         }
 
-        // ── 0c2. Admin: Create/Dispatch Parcel ───────────────────────────────
+        // ── 0c2. Admin: Create/Dispatch Parcel (Canonical Gateway Delegation) ──
         if (action === 'create' && req.method === 'POST') {
-            const body = req.body || {};
-            const storage = getStorage();
-            const orderPayload = {
-                orderId: body.orderId || ('SPDZ-' + Math.floor(10000 + Math.random() * 90000)),
-                fullName: body.fullName || 'Client',
-                phone: body.phone || '0555000000',
-                wilaya: body.wilaya || '16 - Alger',
-                wilayaCode: body.wilayaCode || 16,
-                commune: body.commune || 'Alger Centre',
-                address: body.address || '',
-                deliveryType: body.deliveryType || 'home',
-                totalPrice: parseInt(body.price) || 21900,
-                status: 'shipped',
-                trackingCode: 'SPDZ-' + Math.floor(100000 + Math.random() * 900000),
-                courier: body.courierId || 'redex'
-            };
-            const saved = await storage.saveOrder(orderPayload);
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: true, tracking_code: orderPayload.trackingCode, data: saved }));
-            return;
+            const dispatchGateway = require('./admin/dispatch');
+            return dispatchGateway(req, res);
         }
 
-        // ── 0d. Admin: Test Courier Connection ───────────────────────────────
+        // ── 0d. Admin: Test Courier Connection (Authorized admin only) ─────────
         if (action === 'test_courier') {
+            if (!authenticateAdmin(req)) {
+                res.writeHead(401, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, error: 'UNAUTHORIZED: Valid ADMIN_API_TOKEN required' }));
+                return;
+            }
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ success: true, message: 'Passerelle Transporteur connectée et active.' }));
             return;

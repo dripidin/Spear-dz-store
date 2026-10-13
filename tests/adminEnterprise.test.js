@@ -313,7 +313,7 @@ describe('Enterprise Admin Hub & Security Tests', () => {
             const data = getJson();
             assert.strictEqual(data.success, true);
             assert.strictEqual(data.courier, 'manual');
-            assert.ok(data.trackingCode.startsWith('SPDZ-'));
+            assert.ok(data.trackingCode.startsWith('MANUAL-'));
 
             // Check order was updated to shipped in storage
             const updated = await mockStorage.findOrderById(created.orderId);

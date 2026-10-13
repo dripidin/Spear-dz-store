@@ -7,6 +7,7 @@ import ConfirmationModal from './components/ConfirmationModal';
 export default function App() {
   const [locale, setLocale] = useState('ar'); // Default Arabic or French
   const [completedOrder, setCompletedOrder] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef(null);
 
   const isAr = locale === 'ar';
@@ -17,6 +18,7 @@ export default function App() {
   }, [isAr]);
 
   const handleFloatingCta = () => {
+    if (isSubmitting) return; // Strictly ignore duplicate clicks
     if (formRef.current) {
       if (typeof formRef.current.requestSubmit === 'function') {
         formRef.current.requestSubmit();
@@ -62,6 +64,7 @@ export default function App() {
           <OrderForm
             locale={locale}
             formRef={formRef}
+            onSubmittingChange={setIsSubmitting}
             onOrderSuccess={(orderData) => setCompletedOrder(orderData)}
           />
 
@@ -72,6 +75,7 @@ export default function App() {
           locale={locale}
           price="21,900 DZD"
           bundleName="Pack High-Tech 5 en 1"
+          isSubmitting={isSubmitting}
           onSubmitOrder={handleFloatingCta}
         />
       </main>

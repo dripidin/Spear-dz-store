@@ -84,7 +84,7 @@ module.exports = async (req, res) => {
         if (req.method === 'POST') {
             const body = req.body || {};
             const orderId = sanitizeString(body.orderId, 50);
-            const courierId = sanitizeString(body.courierId || 'manual', 30);
+            const courierId = sanitizeString(body.courierId || 'manual', 30).toLowerCase();
             const operatorNotes = sanitizeString(body.notes || '', 200);
 
             if (!orderId) {
@@ -110,35 +110,113 @@ module.exports = async (req, res) => {
                 return;
             }
 
+            // Verify courier configuration / credentials
             const courier = getCourier(courierId);
-            const shipmentRes = await courier.createShipment({
-                ...order,
-                fullName: body.fullName || order.fullName,
-                phone: body.phone || order.phone,
-                wilaya: body.wilaya || order.wilaya,
-                commune: body.commune || order.commune,
-                address: body.address || order.address,
-                deliveryType: body.deliveryType || order.deliveryType,
-                totalPrice: body.totalPrice != null ? Number(body.totalPrice) : order.totalPrice
-            });
+            if (courierId !== 'manual') {
+                if (typeof courier.isConfigured === 'function' && !courier.isConfigured()) {
+                    res.writeHead(422, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
+                        success: false,
+                        error: `MISSING_CREDENTIALS: Le transporteur ${courier.name} n'est pas configuré. Veuillez vérifier les clés API d'intégration.`
+                    }));
+                    return;
+                }
+            }
 
-            if (!shipmentRes.success || !shipmentRes.trackingCode) {
+            // Authoritative recipient data validation
+            if (!order.fullName || !order.phone || !order.wilaya) {
                 res.writeHead(422, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({
                     success: false,
-                    error: shipmentRes.error || shipmentRes.message || 'Le transporteur a rejeté la création du colis'
+                    error: `Données destinataire incomplètes (nom, téléphone ou wilaya manquant) pour la commande ${orderId}`
                 }));
                 return;
             }
 
-            const trackingCode = shipmentRes.trackingCode;
+            // Authoritative COD calculation from persisted order
+            let codAmount = Number(order.totalPrice);
+            if (!codAmount || isNaN(codAmount) || codAmount <= 0) {
+                const uPrice = Number(order.unitPrice);
+                const sFee = Number(order.shippingFee);
+                if (uPrice && !isNaN(uPrice) && uPrice > 0 && !isNaN(sFee) && sFee >= 0) {
+                    codAmount = uPrice + sFee;
+                }
+            }
 
-            // 1. Update order status to shipped in Supabase
-            const updatedOrder = await storage.updateOrderStatus(orderId, 'shipped', {
-                trackingCode,
-                courier: courierId,
-                notes: operatorNotes || order.notes
-            });
+            if (!codAmount || isNaN(codAmount) || codAmount <= 0) {
+                res.writeHead(422, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: false,
+                    error: `Montant COD invalide ou manquant (${order.totalPrice}) pour la commande ${orderId}. Vérification financière requise.`
+                }));
+                return;
+            }
+
+            let wCode = parseInt(order.wilayaCode, 10);
+            if (!wCode || isNaN(wCode)) {
+                const m = String(order.wilaya || '').match(/^(\d{1,2})/);
+                wCode = m ? parseInt(m[1], 10) : 16;
+            }
+
+            // Construct payload using strictly authoritative order data
+            const shipmentPayload = {
+                orderId: order.orderId,
+                fullName: order.fullName,
+                phone: order.phone,
+                wilaya: order.wilaya,
+                wilayaCode: wCode,
+                commune: order.commune || 'Centre Ville',
+                address: order.address || order.commune || '',
+                deliveryType: order.deliveryType || body.deliveryType || 'home',
+                totalPrice: codAmount,
+                productName: order.productName || 'PACK HIGH-TECH 5 EN 1',
+                notes: operatorNotes || order.notes || ''
+            };
+
+            let shipmentRes;
+            try {
+                shipmentRes = await courier.createShipment(shipmentPayload);
+            } catch (courierErr) {
+                res.writeHead(422, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: false,
+                    error: `Erreur du transporteur: ${courierErr.message}`
+                }));
+                return;
+            }
+
+            if (!shipmentRes || !shipmentRes.success || !shipmentRes.trackingCode) {
+                res.writeHead(422, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: false,
+                    error: (shipmentRes && (shipmentRes.error || shipmentRes.message)) || 'Le transporteur a rejeté la création du colis'
+                }));
+                return;
+            }
+
+            const trackingCode = String(shipmentRes.trackingCode).trim();
+
+            // 1. Update order status to shipped in Supabase with reconciliation-required guarantee
+            let updatedOrder;
+            try {
+                updatedOrder = await storage.updateOrderStatus(orderId, 'shipped', {
+                    trackingCode,
+                    courier: courierId,
+                    notes: operatorNotes || order.notes
+                });
+            } catch (dbUpdateErr) {
+                console.error('[api/admin/dispatch] Carrier accepted shipment but Supabase update failed:', dbUpdateErr.message);
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: false,
+                    reconciliationRequired: true,
+                    error: `CARRIER_ACCEPTED_BUT_LOCAL_PERSISTENCE_FAILED: Le transporteur a accepté le colis (Code: ${trackingCode}), mais la mise à jour locale a échoué: ${dbUpdateErr.message}. Réconciliation requise.`,
+                    orderId,
+                    courier: courierId,
+                    trackingCode
+                }));
+                return;
+            }
 
             // 2. Record status history in Supabase
             if (typeof storage.getClient === 'function') {
@@ -149,7 +227,9 @@ module.exports = async (req, res) => {
                         from_status: order.status,
                         to_status: 'shipped',
                         changed_by: 'admin',
-                        notes: `Expédié via ${courier.name} [Tracking: ${trackingCode}]`
+                        notes: courierId === 'manual'
+                            ? `Expédition manuelle enregistrée [Réf: ${trackingCode}]`
+                            : `Expédié via ${courier.name} [Tracking: ${trackingCode}]`
                     }]);
 
                     // 3. Record courier tracking event
@@ -158,7 +238,9 @@ module.exports = async (req, res) => {
                         courier: courierId,
                         tracking_code: trackingCode,
                         status: 'dispatched',
-                        status_description: 'Colis créé et prêt pour expédition',
+                        status_description: courierId === 'manual'
+                            ? 'Expédition manuelle assignée'
+                            : 'Colis créé et accepté par le transporteur',
                         location: order.wilaya || 'Alger',
                         raw_payload: shipmentRes
                     }]);
@@ -172,14 +254,17 @@ module.exports = async (req, res) => {
                 await storage.recordAuditLog('DISPATCH_PARCEL', 'order', orderId, 'admin', {
                     courier: courierId,
                     trackingCode,
-                    amount: updatedOrder.totalPrice
+                    amount: codAmount
                 });
             } catch (_) {}
 
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({
                 success: true,
-                message: `Colis créé avec succès auprès de ${courier.name}`,
+                isManual: Boolean(shipmentRes.isManual || courierId === 'manual'),
+                message: shipmentRes.isManual || courierId === 'manual'
+                    ? 'Expédition manuelle enregistrée avec succès'
+                    : `Colis créé avec succès auprès de ${courier.name}`,
                 orderId,
                 courier: courierId,
                 trackingCode,

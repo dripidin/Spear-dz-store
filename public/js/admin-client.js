@@ -443,6 +443,98 @@
             }
         },
 
+        getAllowedStatusTransitions: function (currentStatus) {
+            const transitions = {
+                'pending': ['confirmed', 'preparing', 'shipped', 'delivered', 'review', 'cancelled'],
+                'review': ['confirmed', 'preparing', 'shipped', 'cancelled'],
+                'confirmed': ['preparing', 'shipped', 'delivered', 'cancelled', 'pending'],
+                'preparing': ['shipped', 'delivered', 'cancelled', 'confirmed'],
+                'shipped': ['delivered', 'returned', 'cancelled', 'preparing'],
+                'delivered': ['returned'],
+                'returned': ['confirmed', 'cancelled', 'shipped'],
+                'cancelled': ['pending', 'confirmed']
+            };
+            const norm = (currentStatus || 'pending').toLowerCase();
+            const allowed = transitions[norm] || ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+            return Array.from(new Set([norm, ...allowed]));
+        },
+
+        getStatusLabel: function (statusKey) {
+            const labelsFr = {
+                'pending': '⏳ En Attente',
+                'confirmed': '📞 Confirmé',
+                'preparing': '📦 En Préparation',
+                'shipped': '🚚 Expédié',
+                'delivered': '✅ Livré',
+                'returned': '⚠️ Retourné',
+                'cancelled': '❌ Annulé',
+                'review': '🔍 À Vérifier'
+            };
+            const labelsAr = {
+                'pending': '⏳ قيد الانتظار',
+                'confirmed': '📞 مؤكد هاتفياً',
+                'preparing': '📦 قيد التجهيز',
+                'shipped': '🚚 تم الشحن',
+                'delivered': '✅ تم التسليم',
+                'returned': '⚠️ مرتد / ملغى',
+                'cancelled': '❌ ملغى',
+                'review': '🔍 تدقيق ومراجعة'
+            };
+            const dict = currentLang === 'ar' ? labelsAr : labelsFr;
+            return dict[statusKey] || statusKey;
+        },
+
+        updateOrderStatus: async function (orderId, newStatus, selectEl) {
+            const previousStatus = selectEl ? (selectEl.getAttribute('data-current-status') || 'pending') : 'pending';
+            if (!newStatus || newStatus === previousStatus) return;
+
+            if (selectEl) {
+                selectEl.disabled = true;
+                selectEl.classList.add('loading-state');
+            }
+
+            try {
+                const res = await fetch('/api/orders', {
+                    method: 'PATCH',
+                    headers: this.getAuthHeaders(),
+                    body: JSON.stringify({
+                        orderId: orderId,
+                        status: newStatus
+                    })
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (res.ok && data.success) {
+                    if (selectEl) {
+                        selectEl.setAttribute('data-current-status', newStatus);
+                    }
+                    const target = ordersList.find(o => o.orderId === orderId);
+                    if (target) {
+                        target.status = newStatus;
+                    }
+                    this.renderTable();
+                    this.updateKPIs();
+                } else {
+                    const errorMsg = (data && data.error) ? data.error : (currentLang === 'ar' ? 'فشل تحديث حالة الطلب' : 'Échec de la mise à jour du statut');
+                    alert(`⚠️ ${errorMsg}`);
+                    if (selectEl) {
+                        selectEl.value = previousStatus;
+                    }
+                }
+            } catch (err) {
+                alert(`❌ Erreur réseau: ${err.message}`);
+                if (selectEl) {
+                    selectEl.value = previousStatus;
+                }
+            } finally {
+                if (selectEl) {
+                    selectEl.disabled = false;
+                    selectEl.classList.remove('loading-state');
+                }
+            }
+        },
+
         renderMobileOrders: function (orders) {
             const container = document.getElementById('mobileOrdersContainer');
             if (!container) return;
@@ -462,6 +554,15 @@
                 const waPhone = rawPhone.startsWith('0') ? '213' + rawPhone.slice(1) : (rawPhone.startsWith('213') ? rawPhone : '213' + rawPhone);
                 const waText = encodeURIComponent(`السلام عليكم ${o.fullName || 'أخي الكريم'}، نتصل بك من متجر SPEAR-DZ لتأكيد طلبيتك رقم ${o.orderId} (${o.productName || 'باقة الأدوات'}).`);
 
+                const currentStatus = (o.status || 'pending').toLowerCase();
+                const allowedStatuses = this.getAllowedStatusTransitions(currentStatus);
+                const statusOptionsHtml = allowedStatuses.map(st => {
+                    const isSelected = st === currentStatus ? 'selected' : '';
+                    return `<option value="${st}" ${isSelected}>${this.getStatusLabel(st)}</option>`;
+                }).join('');
+
+                const isInCourier = o.in_redex || (o.tracking_code && o.tracking_code.startsWith('ECE')) || o.trackingCode;
+
                 let badgeClass = 'badge-pending';
                 let badgeLabel = currentLang === 'fr' ? 'En Attente' : 'قيد الانتظار';
                 if (o.status === 'shipped' || o.in_redex) {
@@ -473,6 +574,9 @@
                 } else if (o.status === 'returned') {
                     badgeClass = 'badge-returned';
                     badgeLabel = currentLang === 'fr' ? 'Retourné' : 'مرتجع';
+                } else if (o.status === 'confirmed') {
+                    badgeClass = 'badge-delivered';
+                    badgeLabel = currentLang === 'fr' ? 'Confirmé' : 'مؤكد';
                 }
 
                 const codVal = Number(o.totalPrice != null ? o.totalPrice : (o.total_price != null ? o.total_price : (o.unitPrice || 21900))) || 21900;
@@ -498,27 +602,42 @@
                             <span class="card-total-price">${formattedCod}</span>
                         </div>
 
-                        <div class="card-mobile-actions">
-                            <a href="tel:${o.phone}" class="btn-mobile-call">
-                                <i class="fa-solid fa-phone"></i> <span>اتصال (${o.phone})</span>
+                        <!-- 2-Column Action Grid with Identical Geometry -->
+                        <div class="card-mobile-actions-grid">
+                            <a href="tel:${o.phone}" class="btn-action-tile btn-tile-call" title="${currentLang === 'fr' ? 'Appeler' : 'اتصال'}">
+                                <i class="fa-solid fa-phone"></i> <span>${currentLang === 'fr' ? 'Appeler' : 'اتصال'} (${o.phone})</span>
                             </a>
-                            <a href="https://wa.me/${waPhone}?text=${waText}" target="_blank" class="btn-mobile-whatsapp">
-                                <i class="fa-brands fa-whatsapp"></i> <span>واتساب</span>
+                            <a href="https://wa.me/${waPhone}?text=${waText}" target="_blank" class="btn-action-tile btn-tile-whatsapp" title="${currentLang === 'fr' ? 'WhatsApp' : 'واتساب'}">
+                                <i class="fa-brands fa-whatsapp"></i> <span>${currentLang === 'fr' ? 'WhatsApp' : 'واتساب'}</span>
                             </a>
+
+                            ${isInCourier ? `
+                                <button type="button" class="btn-action-tile btn-tile-track" onclick="storeAdmin.trackColis('${o.orderId}')">
+                                    <i class="fa-solid fa-route"></i> <span>${currentLang === 'fr' ? 'Suivre Colis' : 'تتبع الطرد'}</span>
+                                </button>
+                            ` : `
+                                <button type="button" class="btn-action-tile btn-tile-ship" onclick="storeAdmin.openAutoFillShipModal('${o.orderId}')">
+                                    <i class="fa-solid fa-truck-fast"></i> <span>${currentLang === 'fr' ? 'Expédier ⚡' : 'إرسال ⚡'}</span>
+                                </button>
+                            `}
+
+                            <select class="btn-action-tile select-tile-status" data-current-status="${currentStatus}" onchange="storeAdmin.updateOrderStatus('${o.orderId}', this.value, this)" title="${currentLang === 'fr' ? 'Changer statut' : 'تغيير الحالة'}">
+                                ${statusOptionsHtml}
+                            </select>
                         </div>
 
-                        <div class="card-secondary-actions">
-                            <div style="font-size:11px; color:var(--text-muted);">
-                                ${o.in_redex ? '🚚 ' + (o.redex_tracking_code || 'في التوصيل') : 'لم تشحن بعد'}
+                        <!-- Secondary Row with Carrier Status & Actions -->
+                        <div class="card-mobile-meta-row">
+                            <div class="card-carrier-indicator">
+                                ${isInCourier
+                                    ? `<span class="badge-mini badge-shipped"><i class="fa-solid fa-truck"></i> ${o.redex_tracking_code || o.trackingCode || o.tracking_code || 'En Transit'}</span>`
+                                    : `<span class="badge-mini badge-pending"><i class="fa-solid fa-clock"></i> ${currentLang === 'fr' ? 'Non expédié' : 'لم يُرسل'}</span>`}
                             </div>
-                            <div style="display:flex; gap:6px;">
-                                <button type="button" class="btn-action-sm btn-act-ship" onclick="storeAdmin.openAutoFillShipModal('${o.orderId}')" title="شحن">
-                                    <i class="fa-solid fa-truck-fast"></i>
+                            <div class="card-util-buttons">
+                                <button type="button" class="btn-util-sm" onclick="storeAdmin.printOfficialLabel('${o.orderId}')" title="${currentLang === 'fr' ? 'Étiquette' : 'ملصق'}">
+                                    <i class="fa-solid fa-print"></i> <span>${currentLang === 'fr' ? 'Étiquette' : 'ملصق'}</span>
                                 </button>
-                                <button type="button" class="btn-action-sm btn-act-print" onclick="storeAdmin.printOfficialLabel('${o.orderId}')" title="طباعة">
-                                    <i class="fa-solid fa-print"></i>
-                                </button>
-                                <button type="button" class="btn-action-sm btn-act-del" onclick="storeAdmin.deleteColis('${o.orderId}')" title="حذف">
+                                <button type="button" class="btn-util-sm btn-util-del" onclick="storeAdmin.deleteColis('${o.orderId}')" title="${currentLang === 'fr' ? 'Supprimer' : 'حذف'}">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             </div>
@@ -844,6 +963,13 @@
                     ? `<br><small style="color:var(--text-muted); font-size:11px;">(${unitPrice.toLocaleString()} + ${shippingFee.toLocaleString()})</small>`
                     : `<br><small style="color:var(--text-muted); font-size:11px;">(${unitPrice.toLocaleString()})</small>`;
 
+                const currentStatus = (o.status || 'pending').toLowerCase();
+                const allowedStatuses = this.getAllowedStatusTransitions(currentStatus);
+                const statusOptionsHtml = allowedStatuses.map(st => {
+                    const isSelected = st === currentStatus ? 'selected' : '';
+                    return `<option value="${st}" ${isSelected}>${this.getStatusLabel(st)}</option>`;
+                }).join('');
+
                 tr.innerHTML = `
                     <td>
                         <strong style="font-family:'JetBrains Mono', monospace; color:var(--primary);">${o.orderId}</strong>
@@ -867,8 +993,12 @@
                     </td>
                     <td>${carrierBadge}</td>
                     <td>
-                        <span class="status-badge ${badgeClass}">${badgeLabel}</span>
-                        ${riskPill}
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            <select class="table-status-select" data-current-status="${currentStatus}" onchange="storeAdmin.updateOrderStatus('${o.orderId}', this.value, this)" title="${currentLang === 'fr' ? 'Modifier statut' : 'تعديل الحالة'}">
+                                ${statusOptionsHtml}
+                            </select>
+                            ${riskPill}
+                        </div>
                     </td>
                     <td>${actionsHtml}</td>
                 `;
@@ -1284,58 +1414,65 @@
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Expédition en cours...';
             }
 
-            const orderId = document.getElementById('formOrderId').value;
-            const fullName = document.getElementById('formClientName').value;
-            const phone = document.getElementById('formClientPhone').value;
-            const wilayaCode = document.getElementById('formWilayaCode').value;
-            const commune = document.getElementById('formCommuneSelect').value;
-            const deliveryType = document.getElementById('formDeliveryType').value;
-            const price = document.getElementById('formPrice').value;
+            const orderId = document.getElementById('formOrderId')?.value;
+            const deliveryType = document.getElementById('formDeliveryType')?.value;
+            const notes = document.getElementById('formAddress')?.value || '';
 
-            const token = this.getStoredCarrierToken();
-            const baseUrl = this.getStoredCarrierBaseUrl();
-
-            const numPriceVal = parseInt(String(price).replace(/[^\d]/g, ''), 10) || 4950;
-            let resolvedPName = 'PACK HIGH-TECH 5 EN 1';
-            if (numPriceVal > 8000 || String(orderId).includes('pack2') || String(orderId).includes('13390') || String(orderId).includes('12950')) {
-                resolvedPName = 'PACK HIGH-TECH 5 EN 1 SPEAR-DZ';
+            if (!orderId) {
+                alert(currentLang === 'ar' ? '⚠️ يرجى تحديد طلبية صالحة' : '⚠️ Veuillez sélectionner une commande valide');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> ${I18N[currentLang].btnSendToCourier}`;
+                }
+                return;
             }
 
             const payload = {
-                courierId: activeCourierId,
-                token: token,
-                baseUrl: baseUrl,
-                orderId: orderId || ('SPDZ-' + Math.floor(10000 + Math.random() * 90000)),
-                fullName: fullName,
-                phone: phone,
-                wilaya: `${wilayaCode} - ${WILAYAS_MAP[wilayaCode]?.nameFr || ''}`,
-                wilayaCode: wilayaCode,
-                commune: commune,
+                orderId: orderId,
+                courierId: activeCourierId || 'redex',
                 deliveryType: deliveryType,
-                price: numPriceVal,
-                grandTotal: numPriceVal + ' DZD',
-                priceNum: numPriceVal,
-                productList: resolvedPName
+                notes: notes
             };
 
             try {
-                const res = await fetch('/api/delivery?action=create', {
+                const res = await fetch('/api/admin/dispatch', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: this.getAuthHeaders(),
                     body: JSON.stringify(payload)
                 });
-                const json = await res.json();
+                const json = await res.json().catch(() => ({}));
 
-                if (json.success) {
-                    const tracking = json.data?.tracking_code || json.tracking_code || payload.orderId;
-                    const successAlert = currentLang === 'ar'
-                        ? `✅ تم إرسال الطرد بنجاح إلى شركة التوصيل (Redex Delivery)!\nرقم التتبع الرسمي: ${tracking}`
-                        : `✅ Colis expédié avec succès vers Redex!\nCode de suivi officiel: ${tracking}`;
-                    alert(successAlert);
+                if (res.ok && json.success) {
+                    const tracking = json.trackingCode || json.order?.trackingCode;
+                    const courierName = json.courier === 'manual' ? 'Livraison Manuelle' : (json.courier === 'yalidine' ? 'Yalidine Express' : 'Redex / Ecotrack');
+
+                    if (json.isManual || json.courier === 'manual') {
+                        const manualMsg = currentLang === 'ar'
+                            ? `📋 تم تسجيل الإرسال اليدوي بنجاح!\nالرمز الداخلي: ${tracking}`
+                            : `📋 Expédition manuelle enregistrée avec succès!\nRéférence interne: ${tracking}`;
+                        alert(manualMsg);
+                    } else {
+                        const successAlert = currentLang === 'ar'
+                            ? `✅ تم قبول الطرد بنجاح لدى شركة التوصيل (${courierName})!\nرقم التتبع الرسمي: ${tracking}`
+                            : `✅ Colis accepté par le transporteur (${courierName})!\nCode de suivi officiel: ${tracking}`;
+                        alert(successAlert);
+                    }
                     this.closeModal('packageModal');
                     await this.fetchOrders(true);
+                } else if (json.reconciliationRequired) {
+                    const reconcilMsg = currentLang === 'ar'
+                        ? `⚠️ انتباه: قبلت شركة التوصيل الطرد (${json.trackingCode || ''})، لكن تعذر حفظ الحالة محلياً.\nالتسوية مطلوبة — لا تقم بإعادة الإرسال تلقائياً.`
+                        : `⚠️ ATTENTION: Le transporteur a accepté le colis (${json.trackingCode || ''}), mais la sauvegarde locale a échoué.\nRéconciliation requise — NE PAS réexpédier à l'aveugle.`;
+                    alert(reconcilMsg);
+                    await this.fetchOrders(true);
+                } else if (json.error && json.error.includes('MISSING_CREDENTIALS')) {
+                    const credMsg = currentLang === 'ar'
+                        ? `❌ خطأ في الإعدادات: بيانات اعتماد شركة التوصيل مفقودة أو غير صالحة.`
+                        : `❌ Configuration manquante: Les identifiants API du transporteur sont manquants ou invalides.`;
+                    alert(credMsg);
                 } else {
-                    alert(`⚠️ ${json.error || 'Impossible d\'expédier le colis'}`);
+                    const errMsg = json.error || (currentLang === 'ar' ? 'رفضت شركة التوصيل إنشاء الطرد' : 'Le transporteur a rejeté la création du colis');
+                    alert(`⚠️ ${errMsg}`);
                 }
             } catch (err) {
                 alert(`❌ Erreur: ${err.message}`);
@@ -1411,8 +1548,32 @@
         },
 
         handleSearch: function (val) {
-            searchQuery = val;
+            searchQuery = val || '';
+            const globalInput = document.getElementById('globalSearchInput');
+            const mobileInput = document.getElementById('mobileSearchInput');
+            if (globalInput && globalInput.value !== searchQuery) globalInput.value = searchQuery;
+            if (mobileInput && mobileInput.value !== searchQuery) mobileInput.value = searchQuery;
             this.renderTable();
+        },
+
+        toggleMobileSearch: function (forceState) {
+            const navbar = document.getElementById('appNavbar') || document.querySelector('.app-navbar');
+            if (!navbar) return;
+            const isOpen = typeof forceState === 'boolean' ? forceState : !navbar.classList.contains('search-open');
+            if (isOpen) {
+                navbar.classList.add('search-open');
+                const mobileInput = document.getElementById('mobileSearchInput');
+                if (mobileInput) {
+                    mobileInput.focus();
+                    if (searchQuery) mobileInput.value = searchQuery;
+                }
+            } else {
+                navbar.classList.remove('search-open');
+            }
+        },
+
+        clearSearch: function () {
+            this.handleSearch('');
         },
 
         switchTab: function (tab) {

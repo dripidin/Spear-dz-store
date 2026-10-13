@@ -97,7 +97,7 @@ function serveFile(req, res, filePath) {
     fs.createReadStream(filePath).pipe(res);
 }
 
-const server = http.createServer((req, res) => {
+function appHandler(req, res) {
     const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost:3000'}`);
     const pathname = parsedUrl.pathname;
 
@@ -172,12 +172,25 @@ const server = http.createServer((req, res) => {
     // 404
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('404 Not Found');
-});
+}
 
-server.listen(PORT, () => {
-    console.log(`[ServerStarted] Spear-dz Algerian High-Tech Store running on http://localhost:${PORT}`);
-    console.log(`[StoreReady] Admin Portal available at http://localhost:${PORT}/admin`);
-    console.log(`[StoreReady] Storage Provider: ${backend.toUpperCase()}`);
-});
+function createServer() {
+    return http.createServer(appHandler);
+}
+
+const server = createServer();
+
+if (require.main === module) {
+    server.listen(PORT, () => {
+        console.log(`[ServerStarted] Spear-dz Algerian High-Tech Store running on http://localhost:${PORT}`);
+        console.log(`[StoreReady] Admin Portal available at http://localhost:${PORT}/admin`);
+        console.log(`[StoreReady] Storage Provider: ${backend.toUpperCase()}`);
+    });
+}
 
 module.exports = server;
+module.exports.createServer = createServer;
+module.exports.appHandler = appHandler;
+module.exports.serveFile = serveFile;
+module.exports.MIME_TYPES = MIME_TYPES;
+module.exports.routes = routes;

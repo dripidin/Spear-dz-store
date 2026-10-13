@@ -1,11 +1,24 @@
 'use strict';
 
-const { describe, it } = require('node:test');
+const { describe, it, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
+const { createManagedTestServer } = require('./testServerHelper');
 
 describe('ProductDemoVideo Component & Asset Verification Tests', () => {
+
+    let fixture;
+
+    before(async () => {
+        fixture = await createManagedTestServer();
+    });
+
+    after(async () => {
+        if (fixture) {
+            await fixture.close();
+        }
+    });
 
     const PUBLIC_DIR = path.join(__dirname, '..', 'public');
     const VIDEO_FILE = path.join(PUBLIC_DIR, 'videos', 'pack-high-tech-demo.mp4');
@@ -24,7 +37,7 @@ describe('ProductDemoVideo Component & Asset Verification Tests', () => {
     });
 
     it('HTTP Server streams MP4 video with HTTP 206 Partial Content range requests', async () => {
-        const res = await fetch('http://localhost:3000/videos/pack-high-tech-demo.mp4', {
+        const res = await fixture.fetch('/videos/pack-high-tech-demo.mp4', {
             headers: {
                 'Range': 'bytes=0-1023'
             }
@@ -53,7 +66,7 @@ describe('ProductDemoVideo Component & Asset Verification Tests', () => {
     });
 
     it('Storefront bundle serves React index.html containing app mounting point', async () => {
-        const res = await fetch('http://localhost:3000/');
+        const res = await fixture.fetch('/');
         assert.equal(res.status, 200);
         const html = await res.text();
         assert.ok(html.includes('<div id="root"></div>') || html.includes('id="root"'), 'Must contain React root mount point');

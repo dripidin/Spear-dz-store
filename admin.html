@@ -45,7 +45,10 @@
         <!-- ===================================================================== -->
         <!-- TOP NAVBAR                                                            -->
         <!-- ===================================================================== -->
-        <header class="app-navbar">
+        <!-- ===================================================================== -->
+        <!-- TOP NAVBAR                                                            -->
+        <!-- ===================================================================== -->
+        <header class="app-navbar" id="appNavbar">
             <div class="navbar-top-row">
                 <div class="navbar-brand-wrapper">
                     <button class="navbar-toggler-btn" id="sidebarToggleBtn" type="button" title="Menu Navigation" onclick="storeAdmin.toggleMobileNav()">
@@ -62,9 +65,22 @@
                     </a>
                 </div>
 
+                <!-- Desktop / Tablet Store Quick Links (inline flex, non-overlapping) -->
+                <nav class="store-quick-nav hide-on-tablet" aria-label="Liens rapides boutique">
+                    <a href="/" target="_blank" class="store-nav-pill" title="زيارة المتجر الرئيسي">
+                        <i class="fa-solid fa-house"></i> <span>المتجر الرئيسي</span>
+                    </a>
+                    <a href="/#orderForm" target="_blank" class="store-nav-pill" title="استمارة الطلب">
+                        <i class="fa-solid fa-bag-shopping"></i> <span>طلب العرض (21,900 دج)</span>
+                    </a>
+                    <a href="#orders" class="store-nav-pill" onclick="storeAdmin.switchTab('orders')" title="إدارة الطلبيات">
+                        <i class="fa-solid fa-boxes-packing"></i> <span>سجل الطلبيات</span>
+                    </a>
+                </nav>
+
                 <div class="navbar-menu-wrapper">
-                    <!-- Search bar -->
-                    <div class="navbar-search-box">
+                    <!-- Global Search bar (desktop / tablet) -->
+                    <div class="navbar-search-box hide-on-mobile">
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
                         <input type="text" id="globalSearchInput" placeholder="Rechercher par commande, nom, téléphone, wilaya..." onkeyup="storeAdmin.handleSearch(this.value)" data-i18n-placeholder="searchPlaceholder">
                     </div>
@@ -72,7 +88,7 @@
                     <!-- Right Toolbar Elements -->
                     <ul class="navbar-actions-list">
                         <!-- Courier Live Status Pill -->
-                        <li class="action-item hide-on-sm">
+                        <li class="action-item hide-on-tablet">
                             <div class="status-pill courier-pill" onclick="storeAdmin.openSettingsModal()" title="Passerelle Logistique Algérie">
                                 <span class="live-dot pulse-green"></span>
                                 <span class="pill-text"><i class="fa-solid fa-truck-fast"></i> <span id="navCourierName">Yalidine / Redex</span>: <strong data-i18n="statusConnected">Connecté</strong></span>
@@ -80,11 +96,18 @@
                         </li>
 
                         <!-- Excel DB Status Pill -->
-                        <li class="action-item hide-on-sm">
+                        <li class="action-item hide-on-tablet">
                             <div class="status-pill excel-pill" onclick="storeAdmin.exportExcel()" title="Base de données Excel & Google Sheets">
                                 <i class="fa-solid fa-file-excel text-emerald"></i>
                                 <span class="pill-text">Supabase: <strong data-i18n="statusSync">Synchronisé ✅</strong></span>
                             </div>
+                        </li>
+
+                        <!-- Mobile Search Toggle Button -->
+                        <li class="action-item show-on-mobile">
+                            <button class="icon-circle-btn" id="mobileSearchToggleBtn" onclick="storeAdmin.toggleMobileSearch()" type="button" title="Rechercher une commande">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </button>
                         </li>
 
                         <!-- Refresh Button -->
@@ -139,17 +162,15 @@
                 </div>
             </div>
 
-            <!-- Quick Store Pages Navigation -->
-            <div class="store-quick-nav">
-                <a href="/" target="_blank" class="store-nav-pill" title="زيارة المتجر الرئيسي">
-                    <i class="fa-solid fa-house"></i> <span>المتجر الرئيسي</span>
-                </a>
-                <a href="/#orderForm" target="_blank" class="store-nav-pill" title="استمارة الطلب">
-                    <i class="fa-solid fa-bag-shopping"></i> <span>طلب العرض (21,900 دج)</span>
-                </a>
-                <a href="#orders" class="store-nav-pill" onclick="storeAdmin.switchTab('orders')" title="إدارة الطلبيات">
-                    <i class="fa-solid fa-boxes-packing"></i> <span>سجل الطلبيات</span>
-                </a>
+            <!-- Compact & Accessible Mobile Search Row (Expandable or always ready on mobile) -->
+            <div class="navbar-mobile-search-row" id="navbarMobileSearchRow">
+                <div class="navbar-search-box mobile-search-box">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="mobileSearchInput" placeholder="Rechercher commande, nom, tél..." onkeyup="storeAdmin.handleSearch(this.value)" data-i18n-placeholder="searchPlaceholder">
+                    <button class="mobile-search-clear-btn" type="button" onclick="storeAdmin.clearSearch()" title="Effacer">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -168,6 +189,28 @@
             </div>
 
             <div class="mobile-nav-scroll-container">
+                <!-- Storefront Quick Access Section in Mobile Drawer -->
+                <div class="mobile-nav-section-title">
+                    <i class="fa-solid fa-store text-primary"></i> <span>Boutique & Liens Rapides</span>
+                </div>
+                <div class="mobile-storefront-links">
+                    <a href="/" target="_blank" class="mobile-nav-item">
+                        <div class="m-nav-icon text-primary"><i class="fa-solid fa-house"></i></div>
+                        <span>المتجر الرئيسي (Boutique)</span>
+                    </a>
+                    <a href="/#orderForm" target="_blank" class="mobile-nav-item">
+                        <div class="m-nav-icon text-amber"><i class="fa-solid fa-bag-shopping"></i></div>
+                        <span>طلب العرض (21,900 دج)</span>
+                    </a>
+                    <a href="#orders" class="mobile-nav-item" onclick="storeAdmin.switchTab('orders'); storeAdmin.closeMobileNav();">
+                        <div class="m-nav-icon text-emerald"><i class="fa-solid fa-boxes-packing"></i></div>
+                        <span>سجل الطلبيات</span>
+                    </a>
+                </div>
+
+                <div class="mobile-nav-section-title">
+                    <i class="fa-solid fa-compass text-secondary"></i> <span>Navigation Tableau de bord</span>
+                </div>
                 <nav class="mobile-nav-links-centered">
                     <a href="#dashboard" class="mobile-nav-item active" onclick="storeAdmin.switchTab('dashboard'); storeAdmin.closeMobileNav();">
                         <div class="m-nav-icon"><i class="fa-solid fa-chart-pie"></i></div>

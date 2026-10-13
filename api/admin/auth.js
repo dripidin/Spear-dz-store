@@ -53,7 +53,16 @@ module.exports = async (req, res) => {
         return;
     }
 
-    const configuredToken = (process.env.ADMIN_API_TOKEN || process.env.ADMIN_PASSWORD || 'L3abedstore2026').trim();
+    const configuredToken = (process.env.ADMIN_API_TOKEN || process.env.ADMIN_PASSWORD || '').trim();
+    if (!configuredToken) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+            success: false,
+            authenticated: false,
+            error: 'ADMIN_AUTH_MISCONFIGURED: ADMIN_API_TOKEN is not configured on this server'
+        }));
+        return;
+    }
 
     try {
         // ── GET: Check session validity ──────────────────────────────────────

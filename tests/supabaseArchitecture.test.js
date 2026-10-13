@@ -72,17 +72,23 @@ describe('Supabase-First Architecture & Persistence Tests', () => {
             courier: 'manual'
         };
 
-        // 1. Save
-        const saved = await storage.saveOrder(orderData, { score: 10, level: 'LOW', decision: 'ALLOW' });
-        assert.equal(saved.orderId, testOrderId);
+        try {
+            // 1. Save
+            const saved = await storage.saveOrder(orderData, { score: 10, level: 'LOW', decision: 'ALLOW' });
+            assert.equal(saved.orderId, testOrderId);
 
-        // 2. Fetch
-        const fetched = await storage.findOrderById(testOrderId);
-        assert.ok(fetched, 'Must be retrievable from Supabase');
-        assert.equal(fetched.orderId, testOrderId);
-        assert.equal(fetched.totalPrice, 22400);
-        assert.equal(fetched.unitPrice, 21900);
-        assert.equal(fetched.phone, '0555998877');
+            // 2. Fetch
+            const fetched = await storage.findOrderById(testOrderId);
+            assert.ok(fetched, 'Must be retrievable from Supabase');
+            assert.equal(fetched.orderId, testOrderId);
+            assert.equal(fetched.totalPrice, 22400);
+            assert.equal(fetched.unitPrice, 21900);
+            assert.equal(fetched.phone, '0555998877');
+        } finally {
+            try {
+                await storage.deleteOrders([testOrderId]);
+            } catch (_) {}
+        }
     });
 
     it('Version-controlled SQL migrations exist and contain all required tables and RLS', () => {

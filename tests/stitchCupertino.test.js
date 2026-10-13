@@ -1,11 +1,24 @@
 'use strict';
 
-const { describe, it } = require('node:test');
+const { describe, it, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
+const { createManagedTestServer } = require('./testServerHelper');
 
 describe('Stitch Cupertino Pure & Clean Video Transition Tests', () => {
+
+    let fixture;
+
+    before(async () => {
+        fixture = await createManagedTestServer();
+    });
+
+    after(async () => {
+        if (fixture) {
+            await fixture.close();
+        }
+    });
 
     const PUBLIC_DIR = path.join(__dirname, '..', 'public');
     const VIDEO_FILE = path.join(PUBLIC_DIR, 'videos', 'video-products-bundl.mp4');
@@ -85,7 +98,7 @@ describe('Stitch Cupertino Pure & Clean Video Transition Tests', () => {
     });
 
     it('HTTP Server streams video-products-bundl.mp4 with 206 Partial Content', async () => {
-        const res = await fetch('http://localhost:3000/videos/video-products-bundl.mp4', {
+        const res = await fixture.fetch('/videos/video-products-bundl.mp4', {
             headers: {
                 'Range': 'bytes=0-1023'
             }
@@ -97,7 +110,7 @@ describe('Stitch Cupertino Pure & Clean Video Transition Tests', () => {
     });
 
     it('HTTP Server serves last-frame-16-9.jpg with image/jpeg MIME type', async () => {
-        const res = await fetch('http://localhost:3000/images/last-frame-16-9.jpg');
+        const res = await fixture.fetch('/images/last-frame-16-9.jpg');
         assert.equal(res.status, 200);
         assert.equal(res.headers.get('content-type'), 'image/jpeg');
     });

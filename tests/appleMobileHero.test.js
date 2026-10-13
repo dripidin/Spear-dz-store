@@ -1,11 +1,24 @@
 'use strict';
 
-const { describe, it } = require('node:test');
+const { describe, it, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
+const { createManagedTestServer } = require('./testServerHelper');
 
 describe('Apple Redesign & Mobile 3:4 Video Player Tests', () => {
+
+    let fixture;
+
+    before(async () => {
+        fixture = await createManagedTestServer();
+    });
+
+    after(async () => {
+        if (fixture) {
+            await fixture.close();
+        }
+    });
 
     const PUBLIC_DIR = path.join(__dirname, '..', 'public');
     const VIDEO_LAYER_2 = path.join(PUBLIC_DIR, 'videos', 'video-layer-2.mp4');
@@ -70,7 +83,7 @@ describe('Apple Redesign & Mobile 3:4 Video Player Tests', () => {
     });
 
     it('HTTP server successfully serves video-layer-2.mp4 with 206 Partial Content streaming', async () => {
-        const res = await fetch('http://localhost:3000/videos/video-layer-2.mp4', {
+        const res = await fixture.fetch('/videos/video-layer-2.mp4', {
             headers: {
                 'Range': 'bytes=0-1023'
             }
@@ -82,7 +95,7 @@ describe('Apple Redesign & Mobile 3:4 Video Player Tests', () => {
     });
 
     it('HTTP server successfully serves last-frame-video.png with image/png MIME type', async () => {
-        const res = await fetch('http://localhost:3000/images/last-frame-video.png');
+        const res = await fixture.fetch('/images/last-frame-video.png');
         assert.equal(res.status, 200, 'Should return 200 OK for last-frame-video.png');
         assert.equal(res.headers.get('content-type'), 'image/png');
     });
