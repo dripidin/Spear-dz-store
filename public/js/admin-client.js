@@ -281,20 +281,22 @@
         },
 
         getStoredCarrierToken: function () {
-            return localStorage.getItem('orva_carrier_token') || '';
+            return localStorage.getItem('spdz_carrier_token') || localStorage.getItem('orva_carrier_token') || '';
         },
 
         getStoredCarrierBaseUrl: function () {
-            return localStorage.getItem('orva_carrier_base_url') || 'https://redex.ecotrack.dz';
+            return localStorage.getItem('spdz_carrier_base_url') || localStorage.getItem('orva_carrier_base_url') || 'https://redex.ecotrack.dz';
         },
 
         saveCarrierSettings: function () {
             const tokenInput = document.getElementById('settingsApiToken');
             const urlInput = document.getElementById('settingsBaseUrl');
             if (tokenInput) {
+                localStorage.setItem('spdz_carrier_token', tokenInput.value.trim());
                 localStorage.setItem('orva_carrier_token', tokenInput.value.trim());
             }
             if (urlInput) {
+                localStorage.setItem('spdz_carrier_base_url', urlInput.value.trim() || 'https://redex.ecotrack.dz');
                 localStorage.setItem('orva_carrier_base_url', urlInput.value.trim() || 'https://redex.ecotrack.dz');
             }
         },
@@ -457,7 +459,7 @@
             container.innerHTML = orders.map(o => {
                 const rawPhone = String(o.phone || '').replace(/\D/g, '');
                 const waPhone = rawPhone.startsWith('0') ? '213' + rawPhone.slice(1) : (rawPhone.startsWith('213') ? rawPhone : '213' + rawPhone);
-                const waText = encodeURIComponent(`السلام عليكم ${o.fullName || 'أخي الكريم'}، نتصل بك من متجر ORVA Store لتأكيد طلبيتك رقم ${o.orderId} (${o.productName || 'باقة الأدوات'}).`);
+                const waText = encodeURIComponent(`السلام عليكم ${o.fullName || 'أخي الكريم'}، نتصل بك من متجر SPEAR-DZ لتأكيد طلبيتك رقم ${o.orderId} (${o.productName || 'باقة الأدوات'}).`);
 
                 let badgeClass = 'badge-pending';
                 let badgeLabel = currentLang === 'fr' ? 'En Attente' : 'قيد الانتظار';
@@ -1278,14 +1280,14 @@
             const numPriceVal = parseInt(String(price).replace(/[^\d]/g, ''), 10) || 4950;
             let resolvedPName = 'PACK HIGH-TECH 5 EN 1';
             if (numPriceVal > 8000 || String(orderId).includes('pack2') || String(orderId).includes('13390') || String(orderId).includes('12950')) {
-                resolvedPName = 'PACK 5EN1 13390';
+                resolvedPName = 'PACK HIGH-TECH 5 EN 1 SPEAR-DZ';
             }
 
             const payload = {
                 courierId: activeCourierId,
                 token: token,
                 baseUrl: baseUrl,
-                orderId: orderId || ('ORVA-' + Math.floor(10000 + Math.random() * 90000)),
+                orderId: orderId || ('SPDZ-' + Math.floor(10000 + Math.random() * 90000)),
                 fullName: fullName,
                 phone: phone,
                 wilaya: `${wilayaCode} - ${WILAYAS_MAP[wilayaCode]?.nameFr || ''}`,
@@ -1560,7 +1562,7 @@
             if (lblOrderRefTag) lblOrderRefTag.textContent = `Réf: ${o.orderId}`;
 
             const lblClientNameText = document.getElementById('lblClientNameText');
-            if (lblClientNameText) lblClientNameText.textContent = o.fullName || 'Client ORVA';
+            if (lblClientNameText) lblClientNameText.textContent = o.fullName || 'Client SPEAR-DZ';
 
             const lblClientPhoneText = document.getElementById('lblClientPhoneText');
             if (lblClientPhoneText) lblClientPhoneText.textContent = o.phone || '0550000000';
@@ -1578,10 +1580,10 @@
             }
 
             const lblAmountText = document.getElementById('lblAmountText');
-            if (lblAmountText) lblAmountText.textContent = o.grandTotal || (o.priceNum ? (o.priceNum + ' DZD') : '4,900 DZD');
+            if (lblAmountText) lblAmountText.textContent = o.grandTotal || (o.priceNum ? (o.priceNum + ' DZD') : '21,900 DZD');
 
             const lblProductNote = document.getElementById('lblProductNote');
-            if (lblProductNote) lblProductNote.textContent = `📦 Contenu: ${o.productName || 'Sac Banane Moto Yamaha (كرطابل يماها)'}`;
+            if (lblProductNote) lblProductNote.textContent = `📦 Contenu: ${o.productName || 'PACK HIGH-TECH 5 EN 1 SPEAR-DZ'}`;
 
             const btnPortal = document.getElementById('btnCarrierPortalLink');
             if (btnPortal) btnPortal.href = carrierPortals[activeCourierId] || 'https://redex.ecotrack.dz';
@@ -1693,10 +1695,7 @@
             try {
                 const res = await fetch('/api/risk', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer orva-admin-2026-secure'
-                    },
+                    headers: this.getAuthHeaders(),
                     body: JSON.stringify({ orderId, action })
                 });
                 const json = await res.json();
