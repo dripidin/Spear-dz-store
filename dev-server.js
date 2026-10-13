@@ -36,6 +36,7 @@ const routes = {
     '/api/orders': require('./api/orders'),
     '/api/delivery': require('./api/delivery'),
     '/api/risk': require('./api/risk'),
+    '/api/auth': require('./api/auth'),
     '/api/admin/auth': require('./api/admin/auth'),
     '/api/admin/analytics': require('./api/admin/analytics'),
     '/api/admin/tariffs': require('./api/admin/tariffs'),
@@ -147,17 +148,17 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    // Check public directory for media & assets (e.g. /css/..., /js/..., /videos/..., /images/...)
+    let publicPath = path.join(PUBLIC_DIR, pathname);
+    if (fs.existsSync(publicPath) && fs.statSync(publicPath).isFile()) {
+        serveFile(req, res, publicPath);
+        return;
+    }
+
     // Check dist directory for built React bundles (e.g. /assets/...)
     let distPath = path.join(DIST_DIR, pathname);
     if (fs.existsSync(distPath) && fs.statSync(distPath).isFile()) {
         serveFile(req, res, distPath);
-        return;
-    }
-
-    // Check public directory for media & assets (e.g. /videos/..., /images/...)
-    let publicPath = path.join(PUBLIC_DIR, pathname);
-    if (fs.existsSync(publicPath) && fs.statSync(publicPath).isFile()) {
-        serveFile(req, res, publicPath);
         return;
     }
 

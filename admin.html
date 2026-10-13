@@ -1,60 +1,50 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
-
+<html lang="fr" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم المتجر • SPEAR-DZ Enterprise Hub</title>
-
-    <!-- Google Fonts: Cairo, Tajawal, Plus Jakarta Sans, Outfit, JetBrains Mono -->
+    <title>SPEAR.DZ • لوحة التحكم اللوجستية والإدارة المركزية</title>
+    
+    <!-- Google Fonts: Cairo for Arabic & Plus Jakarta Sans / Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&family=Tajawal:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Outfit:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome 6 Pro Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-    <!-- Chart.js 4.4.1 -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
-    <!-- JsBarcode (Code128 Barcodes) -->
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-
-    <!-- Admin Enterprise Stylesheet -->
+    
+    <!-- Dashboard Core CSS -->
     <link rel="stylesheet" href="/css/admin.css">
 </head>
-
-<body class="theme-apple-light">
+<body class="light-theme">
 
     <!-- ===================================================================== -->
-    <!-- 1. AUTHENTICATION OVERLAY MODAL                                       -->
+    <!-- 🔐 PASSWORD AUTHENTICATION GATE                                       -->
     <!-- ===================================================================== -->
-    <div class="admin-auth-overlay" id="adminAuthOverlay">
+    <div id="adminAuthOverlay" class="admin-auth-overlay">
         <div class="admin-auth-card">
             <div class="auth-icon-wrap">
                 <i class="fa-solid fa-shield-halved"></i>
             </div>
-            <h2>SPEAR.DZ <span class="badge-gold">ADMIN</span></h2>
-            <p data-i18n="authSubtitle">بوابة الإدارة المركزية واللوجستيك • الجزائر 58 ولاية</p>
+            <h2>SPEAR.DZ</h2>
+            <p>لوحة التحكم والإدارة — يرجى إدخال كلمة السر للمتابعة</p>
             <form onsubmit="storeAdmin.handleAuthSubmit(event)">
                 <div class="auth-input-group">
                     <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="adminAuthPassword" placeholder="رمز الدخول الإداري (ADMIN_API_TOKEN)..." autocomplete="current-password" required>
+                    <input type="password" id="adminAuthPassword" placeholder="أدخل كلمة المرور..." autocomplete="current-password" required>
                 </div>
                 <div id="adminAuthError" class="auth-error-msg" style="display:none;"></div>
                 <button type="submit" class="auth-btn-submit">
-                    <span data-i18n="btnEnterHub">دخول لوحة التحكم</span> <i class="fa-solid fa-arrow-left"></i>
+                    <span>تسجيل الدخول</span> <i class="fa-solid fa-arrow-left"></i>
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- ===================================================================== -->
-    <!-- 2. MAIN APPLICATION LAYOUT WRAPPER                                    -->
-    <!-- ===================================================================== -->
-    <div class="app-layout-wrapper" id="appLayoutWrapper" style="display:none;">
-
-        <!-- ── TOP NAVBAR ─────────────────────────────────────────────────── -->
+    <div class="app-layout-wrapper" id="appLayoutWrapper">
+        <!-- ===================================================================== -->
+        <!-- TOP NAVBAR                                                            -->
+        <!-- ===================================================================== -->
         <header class="app-navbar">
             <div class="navbar-top-row">
                 <div class="navbar-brand-wrapper">
@@ -67,58 +57,58 @@
                         </div>
                         <div class="brand-titles">
                             <span class="brand-main">SPEAR<span class="brand-highlight">.DZ</span></span>
-                            <span class="brand-sub" data-i18n="brandSub">لوحة التحكم اللوجستية</span>
+                            <span class="brand-sub" data-i18n="brandSub">Tableau de bord</span>
                         </div>
                     </a>
                 </div>
 
                 <div class="navbar-menu-wrapper">
-                    <!-- Global Search Bar -->
+                    <!-- Search bar -->
                     <div class="navbar-search-box">
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                        <input type="text" id="globalSearchInput" placeholder="بحث برقم الطلب، الزبون، الهاتف، الولاية..." onkeyup="storeAdmin.handleSearch(this.value)" data-i18n-placeholder="searchPlaceholder">
+                        <input type="text" id="globalSearchInput" placeholder="Rechercher par commande, nom, téléphone, wilaya..." onkeyup="storeAdmin.handleSearch(this.value)" data-i18n-placeholder="searchPlaceholder">
                     </div>
 
-                    <!-- Right Toolbar Items -->
+                    <!-- Right Toolbar Elements -->
                     <ul class="navbar-actions-list">
                         <!-- Courier Live Status Pill -->
                         <li class="action-item hide-on-sm">
-                            <div class="status-pill courier-pill" onclick="storeAdmin.openSettingsModal()" title="إعدادات شركات التوصيل">
+                            <div class="status-pill courier-pill" onclick="storeAdmin.openSettingsModal()" title="Passerelle Logistique Algérie">
                                 <span class="live-dot pulse-green"></span>
-                                <span class="pill-text"><i class="fa-solid fa-truck-fast"></i> <span id="navCourierName">Yalidine / Redex</span>: <strong data-i18n="statusConnected">متصل</strong></span>
+                                <span class="pill-text"><i class="fa-solid fa-truck-fast"></i> <span id="navCourierName">Yalidine / Redex</span>: <strong data-i18n="statusConnected">Connecté</strong></span>
                             </div>
                         </li>
 
-                        <!-- Supabase DB Status Pill -->
+                        <!-- Excel DB Status Pill -->
                         <li class="action-item hide-on-sm">
-                            <div class="status-pill excel-pill" title="قاعدة بيانات Supabase السحابية">
-                                <i class="fa-solid fa-database text-cyan"></i>
-                                <span class="pill-text">Supabase: <strong data-i18n="statusSync">نشط ✅</strong></span>
+                            <div class="status-pill excel-pill" onclick="storeAdmin.exportExcel()" title="Base de données Excel & Google Sheets">
+                                <i class="fa-solid fa-file-excel text-emerald"></i>
+                                <span class="pill-text">Supabase: <strong data-i18n="statusSync">Synchronisé ✅</strong></span>
                             </div>
                         </li>
 
-                        <!-- Refresh Data Button -->
+                        <!-- Refresh Button -->
                         <li class="action-item">
-                            <button class="icon-circle-btn" id="refreshBtn" onclick="storeAdmin.fetchOrders(true)" title="تحديث البيانات">
+                            <button class="icon-circle-btn" id="refreshBtn" onclick="storeAdmin.fetchOrders(true)" title="Actualiser les données">
                                 <i class="fa-solid fa-arrows-rotate" id="refreshIcon"></i>
                             </button>
                         </li>
 
-                        <!-- Language Switcher Dropdown (AR RTL default / FR LTR) -->
+                        <!-- Language Submenu Dropdown -->
                         <li class="action-item">
                             <div class="navbar-lang-wrapper" id="navbarLangWrapper">
-                                <button class="lang-submenu-trigger" id="langSubmenuBtn" onclick="storeAdmin.toggleLangDropdown()" type="button" title="تغيير اللغة">
+                                <button class="lang-submenu-trigger" id="langSubmenuBtn" onclick="storeAdmin.toggleLangDropdown()" type="button" title="Changer la langue">
                                     <i class="fa-solid fa-globe"></i>
-                                    <span id="currentLangLabel">العربية</span>
+                                    <span id="currentLangLabel">FR</span>
                                     <i class="fa-solid fa-chevron-down caret-icon"></i>
                                 </button>
                                 <div class="lang-submenu-dropdown" id="langSubmenuDropdown">
-                                    <button class="lang-dropdown-opt active" data-lang="ar" onclick="storeAdmin.setLanguage('ar'); storeAdmin.toggleLangDropdown(false);">
-                                        <span>🇩🇿 العربية (RTL)</span>
+                                    <button class="lang-dropdown-opt active" data-lang="fr" onclick="storeAdmin.setLanguage('fr'); storeAdmin.toggleLangDropdown(false);">
+                                        <span>🇫🇷 Français</span>
                                         <i class="fa-solid fa-check check-mark"></i>
                                     </button>
-                                    <button class="lang-dropdown-opt" data-lang="fr" onclick="storeAdmin.setLanguage('fr'); storeAdmin.toggleLangDropdown(false);">
-                                        <span>🇫🇷 Français (LTR)</span>
+                                    <button class="lang-dropdown-opt" data-lang="ar" onclick="storeAdmin.setLanguage('ar'); storeAdmin.toggleLangDropdown(false);">
+                                        <span>🇩🇿 العربية (RTL)</span>
                                         <i class="fa-solid fa-check check-mark"></i>
                                     </button>
                                 </div>
@@ -129,705 +119,784 @@
                         <li class="action-item hide-on-sm">
                             <div class="user-profile-badge">
                                 <div class="avatar-ring">
-                                    <span class="avatar-initials">SP</span>
+                                    <span class="avatar-initials">OA</span>
                                     <span class="online-indicator"></span>
                                 </div>
                                 <div class="user-meta">
-                                    <span class="user-name">Directeur SPEAR</span>
+                                    <span class="user-name">Admin SPEAR-DZ</span>
                                     <span class="user-role">Super Admin</span>
                                 </div>
                             </div>
                         </li>
 
-                        <!-- Storefront Link -->
-                        <li class="action-item hide-on-sm">
-                            <a href="/" target="_blank" class="store-nav-link-btn" title="زيارة المتجر الرئيسي">
-                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                <span data-i18n="navStorefront">المتجر</span>
-                            </a>
-                        </li>
-
                         <!-- Logout Button -->
                         <li class="action-item">
-                            <button class="icon-circle-btn text-rose" onclick="storeAdmin.logout()" title="تسجيل الخروج">
+                            <button class="icon-circle-btn text-rose" onclick="storeAdmin.logout()" title="تسجيل الخروج (Déconnexion)">
                                 <i class="fa-solid fa-power-off"></i>
                             </button>
                         </li>
                     </ul>
                 </div>
             </div>
+
+            <!-- Quick Store Pages Navigation -->
+            <div class="store-quick-nav">
+                <a href="/" target="_blank" class="store-nav-pill" title="زيارة المتجر الرئيسي">
+                    <i class="fa-solid fa-house"></i> <span>المتجر الرئيسي</span>
+                </a>
+                <a href="/#orderForm" target="_blank" class="store-nav-pill" title="استمارة الطلب">
+                    <i class="fa-solid fa-bag-shopping"></i> <span>طلب العرض (21,900 دج)</span>
+                </a>
+                <a href="#orders" class="store-nav-pill" onclick="storeAdmin.switchTab('orders')" title="إدارة الطلبيات">
+                    <i class="fa-solid fa-boxes-packing"></i> <span>سجل الطلبيات</span>
+                </a>
+            </div>
         </header>
 
-        <!-- ── BODY CONTAINER WITH SIDEBAR & MAIN CONTENT ─────────────────── -->
-        <div class="app-body-container">
+        <!-- ===================================================================== -->
+        <!-- FULL-PAGE BLURRY MOBILE NAVIGATION OVERLAY                            -->
+        <!-- ===================================================================== -->
+        <div class="mobile-nav-fullscreen" id="mobileNavFullscreen">
+            <div class="mobile-nav-top">
+                <div class="brand-titles">
+                    <span class="brand-main">SPEAR<span class="brand-highlight">.DZ</span></span>
+                    <span class="brand-sub" data-i18n="brandSub">Tableau de bord</span>
+                </div>
+                <button class="mobile-nav-close-btn" onclick="storeAdmin.closeMobileNav()" title="Fermer le menu">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
 
-            <!-- ── PERSISTENT SIDEBAR ──────────────────────────────────────── -->
-            <aside class="app-sidebar" id="appSidebar">
-                <nav class="sidebar-nav">
-                    <div class="nav-category" data-i18n="catMain">القائمة الرئيسية</div>
-                    <a href="#dashboard" class="nav-link active" onclick="storeAdmin.switchView('dashboard')">
-                        <div class="nav-icon"><i class="fa-solid fa-chart-pie"></i></div>
-                        <span data-i18n="navDashboard">نظرة عامة وإحصائيات</span>
-                    </a>
-                    <a href="#orders" class="nav-link" onclick="storeAdmin.switchView('orders')">
-                        <div class="nav-icon"><i class="fa-solid fa-boxes-packing"></i></div>
-                        <span data-i18n="navOrders">إدارة الطلبيات</span>
-                        <span class="nav-badge" id="sidebarPendingBadge">0</span>
-                    </a>
-                    <a href="/" target="_blank" class="nav-link" title="زيارة المتجر الرئيسي">
-                        <div class="nav-icon text-amber"><i class="fa-solid fa-store"></i></div>
-                        <span data-i18n="navStorefront">المتجر الرئيسي</span>
-                    </a>
-
-                    <div class="nav-category" data-i18n="catLogistics">اللوجستيك والشحن</div>
-                    <a href="javascript:void(0)" class="nav-link" onclick="storeAdmin.openCreateModal()">
-                        <div class="nav-icon text-cyan"><i class="fa-solid fa-dolly"></i></div>
-                        <span data-i18n="navCreate">إنشاء وإرسال طرد</span>
-                    </a>
-                    <a href="#tariffs" class="nav-link" onclick="storeAdmin.openTariffsModal()">
-                        <div class="nav-icon text-emerald"><i class="fa-solid fa-money-bill-transfer"></i></div>
-                        <span data-i18n="navTariffs">أسعار 58 ولاية</span>
-                    </a>
-                    <a href="javascript:void(0)" class="nav-link" onclick="storeAdmin.openSettingsModal()">
-                        <div class="nav-icon"><i class="fa-solid fa-sliders"></i></div>
-                        <span data-i18n="navSettings">إعدادات شركات التوصيل</span>
+            <div class="mobile-nav-scroll-container">
+                <nav class="mobile-nav-links-centered">
+                    <a href="#dashboard" class="mobile-nav-item active" onclick="storeAdmin.switchTab('dashboard'); storeAdmin.closeMobileNav();">
+                        <div class="m-nav-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                        <span data-i18n="navDashboard">Aperçu & Statistiques</span>
                     </a>
 
-                    <div class="nav-category" data-i18n="catDataSecurity">الأمان ومكافحة الاحتيال</div>
-                    <a href="javascript:void(0)" class="nav-link" onclick="storeAdmin.openRiskModal()">
-                        <div class="nav-icon text-rose"><i class="fa-solid fa-shield-virus"></i></div>
-                        <span data-i18n="navRisk">درع الحماية وسجل المخاطر</span>
+                    <a href="#orders" class="mobile-nav-item" onclick="storeAdmin.switchTab('orders'); storeAdmin.closeMobileNav();">
+                        <div class="m-nav-icon"><i class="fa-solid fa-boxes-packing"></i></div>
+                        <span data-i18n="navOrders">Gestion des Commandes</span>
+                    </a>
+
+                    <a href="#analytics" class="mobile-nav-item" onclick="storeAdmin.switchTab('analytics'); storeAdmin.closeMobileNav();">
+                        <div class="m-nav-icon text-cyan"><i class="fa-solid fa-chart-simple"></i></div>
+                        <span data-i18n="navAnalytics">Website Analytics</span>
+                    </a>
+
+                    <a href="javascript:void(0)" class="mobile-nav-item" onclick="storeAdmin.openRiskDashboard(); storeAdmin.closeMobileNav();">
+                        <div class="m-nav-icon text-rose"><i class="fa-solid fa-shield-halved"></i></div>
+                        <span data-i18n="navRisk">Bouclier Anti-Fraude & Trust</span>
+                    </a>
+
+                    <a href="javascript:void(0)" class="mobile-nav-item" onclick="storeAdmin.openCreateModal(); storeAdmin.closeMobileNav();">
+                        <div class="m-nav-icon text-emerald"><i class="fa-solid fa-circle-plus"></i></div>
+                        <span data-i18n="navCreate">Créer un Colis</span>
+                    </a>
+
+                    <a href="javascript:void(0)" class="mobile-nav-item" onclick="storeAdmin.openTariffsModal(); storeAdmin.closeMobileNav();">
+                        <div class="m-nav-icon text-amber"><i class="fa-solid fa-map-location-dot"></i></div>
+                        <span data-i18n="navTariffs">Tarifs 58 Wilayas</span>
+                    </a>
+
+                    <a href="javascript:void(0)" class="mobile-nav-item" onclick="storeAdmin.openSettingsModal(); storeAdmin.closeMobileNav();">
+                        <div class="m-nav-icon text-purple"><i class="fa-solid fa-sliders"></i></div>
+                        <span data-i18n="navSettings">Configuration Transporteurs</span>
                     </a>
                 </nav>
+
+                <div class="mobile-nav-bottom-actions">
+                    <div class="mobile-lang-pills">
+                        <button class="mobile-lang-btn active" data-lang="fr" onclick="storeAdmin.setLanguage('fr'); storeAdmin.closeMobileNav();">Français</button>
+                        <button class="mobile-lang-btn" data-lang="ar" onclick="storeAdmin.setLanguage('ar'); storeAdmin.closeMobileNav();">العربية</button>
+                    </div>
+
+                    <div class="mobile-nav-status-strip">
+                        <span><i class="fa-solid fa-truck-fast text-cyan"></i> <strong id="mobileNavCourierName">Yalidine / Redex</strong></span>
+                        <span><i class="fa-solid fa-file-excel text-emerald"></i> <strong>Excel & Sheets</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="app-page-body">
+            <!-- Sidebar Overlay Backdrop (Mobile) -->
+            <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="storeAdmin.closeMobileSidebar()"></div>
+
+            <!-- ===================================================================== -->
+            <!-- SIDEBAR NAVIGATION                                                    -->
+            <!-- ===================================================================== -->
+            <aside class="app-sidebar" id="appSidebar">
+                <div class="sidebar-user-card">
+                    <div class="user-avatar-large">
+                        <i class="fa-solid fa-boxes-stacked text-primary"></i>
+                    </div>
+                    <div class="user-info">
+                        <h4>SPEAR-DZ Enterprise</h4>
+                        <span class="badge-store">PACK HIGH-TECH 5 EN 1</span>
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <div class="nav-category-header" data-i18n="catMain">MENU PRINCIPAL</div>
+                    
+                    <a href="#dashboard" class="nav-link active" onclick="storeAdmin.switchTab('dashboard')">
+                        <div class="nav-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                        <span class="nav-title" data-i18n="navDashboard">Aperçu & Statistiques</span>
+                        <span class="nav-badge" id="sideTotalBadge">0</span>
+                    </a>
+
+                    <a href="#orders" class="nav-link" onclick="storeAdmin.switchTab('orders')">
+                        <div class="nav-icon"><i class="fa-solid fa-boxes-packing"></i></div>
+                        <span class="nav-title" data-i18n="navOrders">Gestion des Commandes</span>
+                        <span class="nav-badge badge-warning" id="sidePendingBadge">0</span>
+                    </a>
+
+                    <a href="#analytics" class="nav-link" onclick="storeAdmin.switchTab('analytics')">
+                        <div class="nav-icon text-cyan"><i class="fa-solid fa-chart-simple"></i></div>
+                        <span class="nav-title" data-i18n="navAnalytics">Website Analytics</span>
+                    </a>
+
+                    <div class="nav-category-header" data-i18n="catDataSecurity">SÉCURITÉ & ANTI-FRAUDE</div>
+
+                    <a href="javascript:void(0)" class="nav-link" onclick="storeAdmin.openRiskDashboard()">
+                        <div class="nav-icon text-rose"><i class="fa-solid fa-shield-halved"></i></div>
+                        <span class="nav-title" data-i18n="navRisk">Bouclier Anti-Fraude & Trust</span>
+                    </a>
+
+                    <div class="nav-category-header" data-i18n="catLogistics">LOGISTIQUE & TRANSPORTEURS</div>
+
+                    <a href="javascript:void(0)" class="nav-link" onclick="storeAdmin.openCreateModal()">
+                        <div class="nav-icon text-emerald"><i class="fa-solid fa-circle-plus"></i></div>
+                        <span class="nav-title" data-i18n="navCreate">Créer un Colis</span>
+                    </a>
+
+                    <a href="#tariffs" class="nav-link" onclick="storeAdmin.openTariffsModal()">
+                        <div class="nav-icon text-amber"><i class="fa-solid fa-map-location-dot"></i></div>
+                        <span class="nav-title" data-i18n="navTariffs">Tarifs 58 Wilayas</span>
+                    </a>
+
+                    <a href="javascript:void(0)" class="nav-link" onclick="storeAdmin.openSettingsModal()">
+                        <div class="nav-icon text-purple"><i class="fa-solid fa-sliders"></i></div>
+                        <span class="nav-title" data-i18n="navSettings">Configuration Transporteurs</span>
+                    </a>
+                </nav>
+
+                <div class="sidebar-footer-card">
+                    <div class="footer-card-inner">
+                        <div class="icon-wrap"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div class="text-wrap">
+                            <h5>Transporteurs Algérie</h5>
+                            <p>Yalidine, Redex, ZR, DHD, Noest</p>
+                        </div>
+                    </div>
+                </div>
             </aside>
 
-            <!-- ── MAIN CONTENT WORKSPACE ──────────────────────────────────── -->
+            <!-- ===================================================================== -->
+            <!-- MAIN VIEWPORT CONTENT                                                 -->
+            <!-- ===================================================================== -->
             <main class="app-main-content">
-
-                <!-- Section A: Page Heading & Actions -->
-                <section class="app-page-header">
-                    <div class="page-header-info">
-                        <div class="page-header-tag">
-                            <span class="live-dot pulse-green"></span>
-                            <span data-i18n="bannerTag">نظام الإدارة المركزي • الجزائر 58 ولاية</span>
+                <!-- Welcome Banner -->
+                <div class="app-banner-card">
+                    <div class="banner-content">
+                        <div class="banner-tag">
+                            <i class="fa-solid fa-check-circle text-emerald"></i>
+                            <span data-i18n="bannerTag">Système de Gestion Intégré • Algérie 58 Wilayas</span>
                         </div>
-                        <h1 class="page-header-title" data-i18n="bannerTitle">لوحة التحكم اللوجستية ومتابعة المبيعات</h1>
-                        <p class="page-header-subtitle" data-i18n="bannerDesc">منصة متكاملة متصلة بشركات التوصيل الجزائرية وقاعدة بيانات Supabase مع درع الحماية الذكي.</p>
+                        <h2 data-i18n="bannerTitle">Tableau de bord logistique & Suivi des Ventes</h2>
+                        <p data-i18n="bannerDesc">Passerelle multicanal connectée aux transporteurs locaux, Supabase PostgreSQL et Telegram Bot.</p>
                     </div>
-                    <div class="page-header-actions">
-                        <button class="app-btn app-btn-secondary" onclick="storeAdmin.fetchOrders(true)" title="تحديث البيانات">
-                            <i class="fa-solid fa-arrows-rotate"></i> <span data-i18n="kpiLiveSync">تحديث</span>
-                        </button>
-                        <button class="app-btn app-btn-secondary" onclick="storeAdmin.exportCsv()">
-                            <i class="fa-solid fa-file-csv text-emerald"></i> <span data-i18n="btnExport">تصدير CSV</span>
-                        </button>
+                    <div class="banner-actions">
                         <button class="app-btn app-btn-primary" onclick="storeAdmin.openCreateModal()">
-                            <i class="fa-solid fa-plus"></i> <span data-i18n="btnNewColis">طرد جديد</span>
+                            <i class="fa-solid fa-plus"></i> <span data-i18n="btnNewColis">Nouveau Colis</span>
+                        </button>
+                        <button class="app-btn app-btn-outline" onclick="storeAdmin.exportExcel()">
+                            <i class="fa-solid fa-file-excel"></i> <span data-i18n="btnExport">Exporter Excel</span>
                         </button>
                     </div>
-                </section>
+                </div>
 
-                <!-- Section C: Operational KPIs Bento Grid (4 Priority Metrics on Mobile 2x2 Bento, Extended on Desktop) -->
+                <!-- ================================================================= -->
+                <!-- 1. KPI SUMMARY METRIC CARDS                                      -->
+                <!-- ================================================================= -->
                 <section class="app-kpi-grid">
-                    <!-- 1. Priority Metric: Total Orders -->
-                    <div class="app-card kpi-card" id="kpiCardTotal">
-                        <div class="kpi-icon-wrap bg-primary-soft">
-                            <i class="fa-solid fa-cart-shopping text-primary"></i>
+                    <!-- Total Orders -->
+                    <div class="app-kpi-card">
+                        <div class="kpi-top">
+                            <span class="kpi-title" data-i18n="kpiTotal">Total Commandes</span>
+                            <div class="kpi-icon-box blue-box"><i class="fa-solid fa-bag-shopping"></i></div>
                         </div>
-                        <div class="kpi-details">
-                            <span class="kpi-label" data-i18n="kpiTotal">إجمالي الطلبيات</span>
-                            <h3 class="kpi-value" id="kpiTotal">0</h3>
-                            <span class="kpi-subtext" id="kpiTotalSub" data-i18n="kpiLiveSync">مزامنة حية</span>
-                        </div>
-                    </div>
-
-                    <!-- 2. Priority Metric: Pending COD Value in DZD -->
-                    <div class="app-card kpi-card" id="kpiCardPendingCod">
-                        <div class="kpi-icon-wrap bg-amber-soft">
-                            <i class="fa-solid fa-hourglass-half text-amber"></i>
-                        </div>
-                        <div class="kpi-details">
-                            <span class="kpi-label" data-i18n="kpiPendingCod">مبالغ قيد التوزيع</span>
-                            <h3 class="kpi-value text-amber" id="kpiPendingCod">0 د.ج</h3>
-                            <span class="kpi-subtext" id="kpiPendingOrdersCount">0 طلب قيد الإجراء</span>
+                        <div class="kpi-bottom">
+                            <h3 class="kpi-number" id="kpiTotalOrders">0</h3>
+                            <span class="kpi-subtext text-primary"><i class="fa-solid fa-circle-check"></i> <span data-i18n="kpiLiveSync">Synchronisé</span></span>
                         </div>
                     </div>
 
-                    <!-- 3. Priority Metric: Delivery Success Rate -->
-                    <div class="app-card kpi-card" id="kpiCardDeliveryRate">
-                        <div class="kpi-icon-wrap bg-emerald-soft">
-                            <i class="fa-solid fa-circle-check text-emerald"></i>
+                    <!-- COD Revenue -->
+                    <div class="app-kpi-card">
+                        <div class="kpi-top">
+                            <span class="kpi-title" data-i18n="kpiRevenue">Chiffre d'Affaires COD</span>
+                            <div class="kpi-icon-box emerald-box"><i class="fa-solid fa-money-bill-wave"></i></div>
                         </div>
-                        <div class="kpi-details">
-                            <span class="kpi-label" data-i18n="kpiDeliverySuccessRateLabel">نسبة التسليم</span>
-                            <h3 class="kpi-value text-emerald" id="kpiDeliverySuccessRateVal">—</h3>
-                            <span class="kpi-subtext" id="kpiDeliverySuccessRate">معدل الإنجاز</span>
-                        </div>
-                    </div>
-
-                    <!-- 4. Priority Metric: Return Rate -->
-                    <div class="app-card kpi-card" id="kpiCardReturnRate">
-                        <div class="kpi-icon-wrap bg-rose-soft">
-                            <i class="fa-solid fa-arrow-rotate-left text-rose"></i>
-                        </div>
-                        <div class="kpi-details">
-                            <span class="kpi-label" data-i18n="kpiReturnRateLabel">نسبة المرتجع</span>
-                            <h3 class="kpi-value text-rose" id="kpiReturnRateVal">0%</h3>
-                            <span class="kpi-subtext" id="kpiReturnRate">سجل المرتجعات</span>
+                        <div class="kpi-bottom">
+                            <h3 class="kpi-number" id="kpiRevenue">0 DZD</h3>
+                            <span class="kpi-subtext text-emerald"><i class="fa-solid fa-coins"></i> 58 Wilayas</span>
                         </div>
                     </div>
 
-                    <!-- ── Secondary Desktop Metrics (Preserved for Desktop/Analytics, hidden on Mobile 2x2 Bento) ── -->
-                    <!-- Gross Delivered Revenue in DZD -->
-                    <div class="app-card kpi-card kpi-secondary">
-                        <div class="kpi-icon-wrap bg-emerald-soft">
-                            <i class="fa-solid fa-money-bill-wave text-emerald"></i>
+                    <!-- Pending Orders -->
+                    <div class="app-kpi-card">
+                        <div class="kpi-top">
+                            <span class="kpi-title" data-i18n="kpiPending">En Attente / Préparation</span>
+                            <div class="kpi-icon-box amber-box"><i class="fa-solid fa-clock"></i></div>
                         </div>
-                        <div class="kpi-details">
-                            <span class="kpi-label" data-i18n="kpiRevenue">مداخيل تم تحصيلها (COD)</span>
-                            <h3 class="kpi-value text-emerald" id="kpiRevenue">0 د.ج</h3>
-                            <span class="kpi-subtext" id="kpiAov">متوسط الطلب: 0 د.ج</span>
-                        </div>
-                    </div>
-
-                    <!-- Confirmed Orders -->
-                    <div class="app-card kpi-card kpi-secondary">
-                        <div class="kpi-icon-wrap bg-cyan-soft">
-                            <i class="fa-solid fa-clipboard-check text-cyan"></i>
-                        </div>
-                        <div class="kpi-details">
-                            <span class="kpi-label" data-i18n="kpiConfirmed">طلبيات مؤكدة</span>
-                            <h3 class="kpi-value text-cyan" id="kpiConfirmed">0</h3>
-                            <span class="kpi-subtext" id="kpiConfirmRate">نسبة التأكيد: 0%</span>
+                        <div class="kpi-bottom">
+                            <h3 class="kpi-number" id="kpiPending">0</h3>
+                            <span class="kpi-subtext text-amber"><i class="fa-solid fa-hourglass-half"></i> <span data-i18n="kpiToShip">À expédier</span></span>
                         </div>
                     </div>
 
-                    <!-- In Transit (Couriers) -->
-                    <div class="app-card kpi-card kpi-secondary">
-                        <div class="kpi-icon-wrap bg-purple-soft">
-                            <i class="fa-solid fa-truck-fast text-purple"></i>
+                    <!-- Shipped Orders -->
+                    <div class="app-kpi-card">
+                        <div class="kpi-top">
+                            <span class="kpi-title" data-i18n="kpiShipped">En Livraison (Transporteurs)</span>
+                            <div class="kpi-icon-box cyan-box"><i class="fa-solid fa-truck-fast"></i></div>
                         </div>
-                        <div class="kpi-details">
-                            <span class="kpi-label" data-i18n="kpiShipped">في التوصيل (لدى الشاحن)</span>
-                            <h3 class="kpi-value" id="kpiShipped">0</h3>
-                            <span class="kpi-subtext" id="kpiToShipNotice">قيد المسار</span>
-                        </div>
-                    </div>
-
-                    <!-- Delivered Parcels -->
-                    <div class="app-card kpi-card kpi-secondary">
-                        <div class="kpi-icon-wrap bg-emerald-soft">
-                            <i class="fa-solid fa-circle-check text-emerald"></i>
-                        </div>
-                        <div class="kpi-details">
-                            <span class="kpi-label" data-i18n="kpiDelivered">تم التسليم بنجاح</span>
-                            <h3 class="kpi-value text-emerald" id="kpiDelivered">0</h3>
-                            <span class="kpi-subtext" id="kpiDeliveredCountSub">مكتمل ومغلق</span>
+                        <div class="kpi-bottom">
+                            <h3 class="kpi-number" id="kpiShipped">0</h3>
+                            <span class="kpi-subtext text-cyan"><i class="fa-solid fa-route"></i> En tournée</span>
                         </div>
                     </div>
 
-                    <!-- Returns Count -->
-                    <div class="app-card kpi-card kpi-secondary">
-                        <div class="kpi-icon-wrap bg-rose-soft">
-                            <i class="fa-solid fa-arrow-rotate-left text-rose"></i>
+                    <!-- Returned Orders (Retours Fix) -->
+                    <div class="app-kpi-card">
+                        <div class="kpi-top">
+                            <span class="kpi-title" data-i18n="kpiReturned">Retours (Retournés)</span>
+                            <div class="kpi-icon-box rose-box"><i class="fa-solid fa-arrow-rotate-left"></i></div>
                         </div>
-                        <div class="kpi-details">
-                            <span class="kpi-label" data-i18n="kpiReturned">مرتجعات</span>
-                            <h3 class="kpi-value text-rose" id="kpiReturned">0</h3>
-                            <span class="kpi-subtext" id="kpiReturnedCountSub">شحنات راجعة</span>
+                        <div class="kpi-bottom">
+                            <h3 class="kpi-number" id="kpiReturned">0</h3>
+                            <span class="kpi-subtext text-rose"><i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="kpiReturnRate">Colis non aboutis</span></span>
                         </div>
                     </div>
                 </section>
 
-                <!-- Mobile Chart Switcher (Apple Segmented Control on mobile) -->
-                <div class="mobile-chart-switcher" id="mobileChartSwitcher">
-                    <button class="mobile-chart-btn active" data-chart="trend" onclick="storeAdmin.switchMobileChart('trend')">
-                        <i class="fa-solid fa-chart-line"></i> <span data-i18n="chartTrendTab">وتيرة الطلبات</span>
-                    </button>
-                    <button class="mobile-chart-btn" data-chart="wilayas" onclick="storeAdmin.switchMobileChart('wilayas')">
-                        <i class="fa-solid fa-map-location-dot"></i> <span data-i18n="chartWilayasTab">أكثر الولايات</span>
+                <!-- Mobile Concise View Toggle Bar -->
+                <div class="mobile-charts-toggle-bar hide-on-lg" style="margin-bottom: 16px;">
+                    <button type="button" class="app-btn app-btn-outline w-100" id="toggleChartsBtn" onclick="storeAdmin.toggleMobileCharts()">
+                        <i class="fa-solid fa-chart-pie"></i> <span id="toggleChartsBtnText">عرض الرسوم البيانية والتحليلات المتقدمة</span>
                     </button>
                 </div>
 
-                <!-- 3. Interactive Analytics Charts (Chart.js) -->
+                <!-- ================================================================= -->
+                <!-- 2. ANALYTICS CHARTS SECTION                                       -->
+                <!-- ================================================================= -->
                 <section class="app-charts-row" id="appChartsRow">
-                    <!-- Daily Volume Trend (7 Days) -->
-                    <div class="app-card chart-card-lg mobile-active-chart" id="trendChartCard">
-                        <div class="card-header-clean">
-                            <div class="title-with-icon">
-                                <i class="fa-solid fa-chart-line text-cyan"></i>
-                                <h4 data-i18n="chartTrendTitle">وتيرة الطلبات والتأكيد اليومية (آخر 7 أيام)</h4>
+                    <!-- Daily Orders Trend Chart -->
+                    <div class="app-card chart-card-lg">
+                        <div class="app-card-header">
+                            <div class="card-title-wrap">
+                                <i class="fa-solid fa-chart-line text-primary"></i>
+                                <h4 data-i18n="chartTrendTitle">Tendance Quotidienne des Commandes (7 Derniers Jours)</h4>
                             </div>
-                            <span class="live-data-badge" data-i18n="liveDataBadge">بيانات حية</span>
+                            <span class="badge-pill bg-primary-soft" data-i18n="liveDataBadge">Données en direct</span>
                         </div>
-                        <div class="chart-canvas-container">
-                            <canvas id="trendChartCanvas"></canvas>
+                        <div class="app-card-body">
+                            <div class="canvas-container">
+                                <canvas id="trendChartCanvas"></canvas>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Top 10 Wilayas Order Volume -->
-                    <div class="app-card chart-card-sm" id="wilayaChartCard">
-                        <div class="card-header-clean">
-                            <div class="title-with-icon">
-                                <i class="fa-solid fa-map-location-dot text-amber"></i>
-                                <h4 data-i18n="chartWilayasTitle">أكثر 10 ولايات طلباً</h4>
+                    <!-- Top Wilayas Chart -->
+                    <div class="app-card chart-card-sm">
+                        <div class="app-card-header">
+                            <div class="card-title-wrap">
+                                <i class="fa-solid fa-map-pin text-emerald"></i>
+                                <h4 data-i18n="chartWilayasTitle">Top Wilayas les Plus Demandées</h4>
                             </div>
                         </div>
-                        <div class="chart-canvas-container">
-                            <canvas id="wilayaChartCanvas"></canvas>
+                        <div class="app-card-body">
+                            <div class="canvas-container">
+                                <canvas id="wilayaChartCanvas"></canvas>
+                            </div>
                         </div>
                     </div>
                 </section>
 
-                <!-- 4. Orders Management DataGrid Section -->
+                <!-- ================================================================= -->
+                <!-- 3. WEBSITE ANALYTICS & VERCEL TELEMETRY                           -->
+                <!-- ================================================================= -->
+                <section class="app-card analytics-section-card" id="analyticsSection">
+                    <div class="app-card-header">
+                        <div class="card-title-wrap">
+                            <i class="fa-solid fa-chart-simple text-cyan"></i>
+                            <h4 data-i18n="analyticsTitle">Website Analytics</h4>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="badge-pill bg-primary-soft"><i class="fa-solid fa-bolt"></i> Vercel Edge: Actif</span>
+                            <span class="badge-pill bg-emerald-soft"><i class="fa-brands fa-facebook"></i> Meta CAPI: Connecté</span>
+                        </div>
+                    </div>
+                    <div class="app-card-body">
+                        <!-- Vercel KPI Mini Row -->
+                        <div class="app-kpi-grid mb-4" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
+                            <div class="analytics-col-card" style="padding:10px 14px;">
+                                <small style="color:var(--text-muted); font-size:10px; font-weight:700;">VISITEURS UNIQUES</small>
+                                <h3 style="font-size:18px; font-weight:800; color:var(--primary);" id="anTotalVisitors">1,480</h3>
+                                <small style="color:var(--emerald); font-size:9px; font-weight:700;"><i class="fa-solid fa-arrow-trend-up"></i> +18.4% cette semaine</small>
+                            </div>
+                            <div class="analytics-col-card" style="padding:10px 14px;">
+                                <small style="color:var(--text-muted); font-size:10px; font-weight:700;">PAGES VUES (TOTAL)</small>
+                                <h3 style="font-size:18px; font-weight:800; color:var(--cyan);" id="anPageViews">4,620</h3>
+                                <small style="color:var(--cyan); font-size:9px; font-weight:700;"><i class="fa-solid fa-eye"></i> 3.1 pages / visiteur</small>
+                            </div>
+                            <div class="analytics-col-card" style="padding:10px 14px;">
+                                <small style="color:var(--text-muted); font-size:10px; font-weight:700;">TAUX DE CONVERSION</small>
+                                <h3 style="font-size:18px; font-weight:800; color:var(--emerald);" id="anConversionRate">3.8%</h3>
+                                <small style="color:var(--emerald); font-size:9px; font-weight:700;"><i class="fa-solid fa-check-double"></i> Élevé (E-com DZ)</small>
+                            </div>
+                            <div class="analytics-col-card" style="padding:10px 14px;">
+                                <small style="color:var(--text-muted); font-size:10px; font-weight:700;">DURÉE MOYENNE</small>
+                                <h3 style="font-size:18px; font-weight:800; color:var(--purple);" id="anAvgDuration">2m 45s</h3>
+                                <small style="color:var(--purple); font-size:9px; font-weight:700;"><i class="fa-solid fa-stopwatch"></i> Engagement optimal</small>
+                            </div>
+                        </div>
+
+                        <div class="analytics-grid">
+                            <!-- Referrers Breakdown -->
+                            <div class="analytics-col-card">
+                                <h5 class="analytics-subtitle"><i class="fa-solid fa-share-nodes text-primary"></i> <span data-i18n="lblReferrers">Sources de Trafic (Référents)</span></h5>
+                                <div class="analytics-list" id="referrersList">
+                                    <div class="analytics-row"><span>Facebook Ads / Instagram (CAPI)</span><strong>64%</strong></div>
+                                    <div class="analytics-row"><span>TikTok Ads Algérie</span><strong>24%</strong></div>
+                                    <div class="analytics-row"><span>Lien Direct / WhatsApp</span><strong>8%</strong></div>
+                                    <div class="analytics-row"><span>Google Search DZ (Organique)</span><strong>4%</strong></div>
+                                </div>
+                            </div>
+
+                            <!-- Devices Breakdown -->
+                            <div class="analytics-col-card">
+                                <h5 class="analytics-subtitle"><i class="fa-solid fa-mobile-screen-button text-emerald"></i> <span data-i18n="lblDevices">Appareils & Systèmes</span></h5>
+                                <div class="analytics-list" id="devicesList">
+                                    <div class="analytics-row"><span>Smartphones (Android)</span><strong>82%</strong></div>
+                                    <div class="analytics-row"><span>iPhone (Apple iOS)</span><strong>11%</strong></div>
+                                    <div class="analytics-row"><span>Ordinateurs (Windows PC / Mac)</span><strong>7%</strong></div>
+                                </div>
+                            </div>
+
+                            <!-- Top Wilayas & Cities Traffic -->
+                            <div class="analytics-col-card">
+                                <h5 class="analytics-subtitle"><i class="fa-solid fa-map-location-dot text-amber"></i> <span data-i18n="lblTopCities">Villes & Wilayas Principales</span></h5>
+                                <div class="analytics-list" id="citiesList">
+                                    <div class="analytics-row"><span>16 - Alger (العاصمة)</span><strong>32%</strong></div>
+                                    <div class="analytics-row"><span>31 - Oran (وهران)</span><strong>16%</strong></div>
+                                    <div class="analytics-row"><span>25 - Constantine (قسنطينة)</span><strong>11%</strong></div>
+                                    <div class="analytics-row"><span>19 - Sétif & 09 - Blida</span><strong>17%</strong></div>
+                                </div>
+                            </div>
+
+                            <!-- Browsers & Network -->
+                            <div class="analytics-col-card">
+                                <h5 class="analytics-subtitle"><i class="fa-solid fa-compass text-purple"></i> <span data-i18n="lblBrowsers">Navigateurs & Réseau Edge</span></h5>
+                                <div class="analytics-list" id="browsersList">
+                                    <div class="analytics-row"><span>Chrome Mobile DZ</span><strong>54%</strong></div>
+                                    <div class="analytics-row"><span>Facebook In-App Browser</span><strong>28%</strong></div>
+                                    <div class="analytics-row"><span>Safari Mobile (iOS)</span><strong>11%</strong></div>
+                                    <div class="analytics-row"><span>TikTok In-App & Autres</span><strong>7%</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================================================================= -->
+                <!-- 4. ORDERS & SHIPMENTS DATA TABLE                                  -->
+                <!-- ================================================================= -->
                 <section class="app-card table-section-card" id="ordersSection">
-                    <!-- Tabs Bar: Status Filters -->
-                    <div class="table-header-tabs-bar">
-                        <div class="header-tabs-group">
-                            <button class="table-tab active" data-filter="all" onclick="storeAdmin.setFilter('all')">
-                                <span data-i18n="tabAll">الكل</span>
-                                <span class="tab-badge" id="tabBadgeAll">0</span>
-                            </button>
-                            <button class="table-tab" data-filter="pending" onclick="storeAdmin.setFilter('pending')">
-                                <span data-i18n="tabPending">⏳ قيد المراجعة</span>
-                                <span class="tab-badge" id="tabBadgePending">0</span>
-                            </button>
-                            <button class="table-tab" data-filter="confirmed" onclick="storeAdmin.setFilter('confirmed')">
-                                <span data-i18n="tabConfirmed">✓ مؤكدة</span>
-                                <span class="tab-badge" id="tabBadgeConfirmed">0</span>
-                            </button>
-                            <button class="table-tab" data-filter="shipped" onclick="storeAdmin.setFilter('shipped')">
-                                <span data-i18n="tabShipped">🚚 في التوصيل</span>
-                                <span class="tab-badge" id="tabBadgeShipped">0</span>
-                            </button>
-                            <button class="table-tab" data-filter="delivered" onclick="storeAdmin.setFilter('delivered')">
-                                <span data-i18n="tabDelivered">✅ تم التسليم</span>
-                                <span class="tab-badge" id="tabBadgeDelivered">0</span>
-                            </button>
-                            <button class="table-tab" data-filter="returned" onclick="storeAdmin.setFilter('returned')">
-                                <span data-i18n="tabReturned">⚠️ مرتجع</span>
-                                <span class="tab-badge" id="tabBadgeReturned">0</span>
-                            </button>
-                            <button class="table-tab" data-filter="risk" onclick="storeAdmin.setFilter('risk')">
-                                <span data-i18n="tabRisk">🛡️ مخاطرة</span>
-                                <span class="tab-badge text-rose" id="tabBadgeRisk">0</span>
-                            </button>
+                    <div class="app-card-header table-header-flex">
+                        <div class="header-left-title">
+                            <i class="fa-solid fa-table-list text-primary"></i>
+                            <h4 data-i18n="tableTitle">Journal des Commandes & Expéditions</h4>
+                            <span class="count-badge" id="tableOrdersCount">0 commandes</span>
+                        </div>
+
+                        <!-- Status Filter Tabs -->
+                        <div class="status-filter-tabs">
+                            <button class="tab-btn active" data-status="all" onclick="storeAdmin.filterByStatus('all')" data-i18n="tabAll">Toutes</button>
+                            <button class="tab-btn" data-status="pending" onclick="storeAdmin.filterByStatus('pending')" data-i18n="tabPending">⏳ En Attente</button>
+                            <button class="tab-btn" data-status="shipped" onclick="storeAdmin.filterByStatus('shipped')" data-i18n="tabShipped">🚚 Expédiées</button>
+                            <button class="tab-btn" data-status="delivered" onclick="storeAdmin.filterByStatus('delivered')" data-i18n="tabDelivered">✅ Livrées</button>
+                            <button class="tab-btn" data-status="returned" onclick="storeAdmin.filterByStatus('returned')" data-i18n="tabReturned">⚠️ Retours</button>
+                            <button class="tab-btn" data-status="risk" onclick="storeAdmin.filterByStatus('risk')" data-i18n="tabRisk">🛡️ Risque & Fraude</button>
                         </div>
                     </div>
 
-                    <!-- Controls Bar: Filter by Wilaya, Search & View Switcher -->
-                    <div class="table-controls-bar">
-                        <div class="filter-inputs-row">
-                            <div class="search-input-field">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="text" id="tableFilterInput" placeholder="تصفية بالاسم، الهاتف، البلدية، رقم الطلب..." onkeyup="storeAdmin.handleTableFilter(this.value)" data-i18n-placeholder="tableFilterPlaceholder">
-                            </div>
+                    <!-- Table Toolbar -->
+                    <div class="table-toolbar">
+                        <div class="toolbar-search">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="tableSearchInput" placeholder="Filtrer par nom, téléphone, commune, code..." onkeyup="storeAdmin.handleSearch(this.value)" data-i18n-placeholder="tableFilterPlaceholder">
+                        </div>
 
-                            <div class="select-input-field">
-                                <select id="wilayaFilterSelect" onchange="storeAdmin.handleWilayaFilter(this.value)">
-                                    <option value="" data-i18n="allWilayasOption">كل الولايات (58 ولاية)</option>
-                                </select>
-                            </div>
+                        <div class="toolbar-actions">
+                            <select id="wilayaFilterSelect" class="app-select" onchange="storeAdmin.filterByWilaya(this.value)">
+                                <option value="" data-i18n="allWilayasOption">Toutes les Wilayas (58 Wilayas)</option>
+                            </select>
 
                             <button class="app-btn app-btn-sm app-btn-secondary" onclick="storeAdmin.openTariffsModal()">
-                                <i class="fa-solid fa-tags"></i> <span data-i18n="btnTariffs">جدول الأسعار</span>
+                                <i class="fa-solid fa-map-location-dot"></i> <span data-i18n="btnTariffs">Grille Tarifaire</span>
                             </button>
-
-                            <!-- View Mode Switcher: Table View vs Grid View -->
-                            <div class="view-switcher-group" id="viewSwitcherGroup">
-                                <button type="button" class="view-switch-btn active" id="viewModeTableBtn" onclick="storeAdmin.setViewMode('table')" title="عرض الجدول">
-                                    <i class="fa-solid fa-table-list"></i> <span data-i18n="viewTable">جدول</span>
-                                </button>
-                                <button type="button" class="view-switch-btn" id="viewModeGridBtn" onclick="storeAdmin.setViewMode('grid')" title="عرض البطاقات الشبكية">
-                                    <i class="fa-solid fa-grip"></i> <span data-i18n="viewGrid">شبكة</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Bulk Actions Toolbar (Appears when 1+ orders selected) -->
-                        <div class="bulk-actions-toolbar" id="bulkActionsToolbar" style="display:none;">
-                            <div class="bulk-selected-info">
-                                <i class="fa-solid fa-check-double text-primary"></i>
-                                <span id="bulkSelectedCountText">تم تحديد 0 طلب</span>
-                            </div>
-                            <div class="bulk-buttons-group">
-                                <button type="button" class="app-btn app-btn-sm app-btn-secondary" onclick="storeAdmin.clearSelection()">
-                                    <span data-i18n="btnCancelSelection">إلغاء التحديد</span>
-                                </button>
-                                <button type="button" class="app-btn app-btn-sm app-btn-danger" onclick="storeAdmin.confirmBulkDelete()">
-                                    <i class="fa-solid fa-trash-can"></i> <span data-i18n="btnDeleteSelected">حذف المحدد</span>
-                                </button>
-                            </div>
                         </div>
                     </div>
 
-                    <!-- 1. Orders Desktop DataGrid (Table View) -->
-                    <div class="table-responsive-wrapper" id="tableResponsiveWrapper">
-                        <table class="orders-table" id="ordersTable">
+                    <!-- Table Responsive Container -->
+                    <div class="table-responsive">
+                        <table class="app-table" id="ordersTable">
                             <thead>
                                 <tr>
-                                    <th class="th-checkbox">
-                                        <input type="checkbox" id="selectAllCheckbox" onchange="storeAdmin.toggleSelectAll(this.checked)" title="تحديد الكل في الصفحة">
-                                    </th>
-                                    <th data-i18n="thOrder">الرقم / التتبع</th>
-                                    <th data-i18n="thCustomer">الزبون</th>
-                                    <th data-i18n="thPhone">الهاتف</th>
-                                    <th data-i18n="thDestination">الولاية والبلدية</th>
-                                    <th data-i18n="thAmount">المبلغ (د.ج)</th>
-                                    <th data-i18n="thCarrierStatus">شركة التوصيل</th>
-                                    <th data-i18n="thOrderStatus">حالة الطلب</th>
-                                    <th data-i18n="thRisk">المخاطرة</th>
-                                    <th data-i18n="thActions">إجراءات</th>
+                                    <th data-i18n="thOrder">Réf / Tracking</th>
+                                    <th data-i18n="thCustomer">Client</th>
+                                    <th data-i18n="thPhone">Téléphone</th>
+                                    <th data-i18n="thDestination">Wilaya & Commune</th>
+                                    <th data-i18n="thAmount">Montant COD</th>
+                                    <th data-i18n="thCarrierStatus">Statut Transporteur</th>
+                                    <th data-i18n="thOrderStatus">État Commande</th>
+                                    <th data-i18n="thActions">Actions Logistiques</th>
                                 </tr>
                             </thead>
                             <tbody id="ordersTableBody">
                                 <tr>
-                                    <td colspan="10" class="text-center py-6 text-muted">
-                                        <i class="fa-solid fa-spinner fa-spin text-cyan"></i>
-                                        <span data-i18n="loadingOrders">جاري تحميل الطلبيات من Supabase...</span>
+                                    <td colspan="8" class="text-center py-5">
+                                        <div class="loading-state">
+                                            <i class="fa-solid fa-spinner fa-spin"></i>
+                                            <span data-i18n="loadingOrders">Chargement des commandes...</span>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
 
-                    <!-- 2. Orders Cards Grid View (Default on Mobile, Switchable on Desktop) -->
-                    <div class="orders-grid-view" id="ordersGridView"></div>
-
-                    <!-- Mobile Native Order Cards Feed Fallback -->
-                    <div class="mobile-orders-feed" id="mobileOrdersFeed" style="display:none;"></div>
-
-                    <!-- Table Footer: Pagination & Summary -->
-                    <div class="table-footer-bar">
-                        <span class="records-count-text" id="recordsCountText">عرض 0 طلبيات</span>
-                        <div class="pagination-buttons">
-                            <button class="pagination-btn" id="prevPageBtn" onclick="storeAdmin.prevPage()" disabled>
-                                <i class="fa-solid fa-chevron-right"></i>
-                            </button>
-                            <span class="page-indicator" id="pageIndicatorText">1 / 1</span>
-                            <button class="pagination-btn" id="nextPageBtn" onclick="storeAdmin.nextPage()" disabled>
-                                <i class="fa-solid fa-chevron-left"></i>
-                            </button>
-                        </div>
+                        <!-- Mobile Touch-friendly Orders Cards Container -->
+                        <div id="mobileOrdersContainer" class="mobile-orders-container"></div>
                     </div>
                 </section>
-
             </main>
         </div>
     </div>
 
     <!-- ===================================================================== -->
-    <!-- MODAL 1: CREATE & DISPATCH PARCEL TO CARRIER                          -->
+    <!-- MODAL 1: CREATE / EDIT PARCEL                                         -->
     <!-- ===================================================================== -->
-    <div class="app-modal-backdrop" id="packageModal" style="display:none;">
+    <div class="app-modal-backdrop" id="packageModal">
         <div class="app-modal-dialog">
             <div class="app-modal-header">
                 <div class="modal-title-wrap">
-                    <i class="fa-solid fa-box-open text-cyan"></i>
-                    <h3 id="packageModalTitle" data-i18n="modalCreateTitle">إنشاء وإرسال طرد إلى شركة التوصيل</h3>
+                    <i class="fa-solid fa-box-open text-primary"></i>
+                    <h3 id="packageModalTitle" data-i18n="modalCreateTitle">Créer et expédier un colis vers le transporteur</h3>
                 </div>
                 <button class="modal-close-btn" onclick="storeAdmin.closeModal('packageModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="app-modal-body">
-                <form id="createColisForm" onsubmit="storeAdmin.submitColisToCourier(event)">
-                    <!-- Order auto-fill selector -->
-                    <div class="form-group-row">
-                        <label data-i18n="lblAutoFill">اختر طلبية من المتجر لملء البيانات تلقائياً :</label>
-                        <select id="modalOrderSelect" onchange="storeAdmin.autofillModalFromOrder(this.value)">
-                            <option value="" data-i18n="optSelectOrder">-- اختر طلبية --</option>
+            
+            <form id="packageForm" onsubmit="storeAdmin.handlePackageSubmit(event)">
+                <input type="hidden" id="formOrderId">
+                
+                <div class="app-modal-body">
+                    <!-- Auto Fill Dropdown -->
+                    <div class="form-group mb-4" id="autoFillWrapper">
+                        <label class="form-label text-primary"><i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="lblAutoFill">Sélectionner une commande boutique pour pré-remplir :</span></label>
+                        <select id="autoFillOrderSelect" class="app-input" onchange="storeAdmin.onSelectOrderToAutoFill(this.value)">
+                            <option value="" data-i18n="optSelectOrder">-- Sélectionner une commande --</option>
                         </select>
                     </div>
 
-                    <div class="form-grid-2col">
-                        <div class="form-group-row">
-                            <label data-i18n="lblFullName">الاسم الكامل *</label>
-                            <input type="text" id="colisFullName" required placeholder="محمد بن علي">
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="lblFullName">Nom complet du client *</label>
+                            <input type="text" id="formClientName" class="app-input" placeholder="ex: Yasmine Merabet" required>
                         </div>
-                        <div class="form-group-row">
-                            <label data-i18n="lblPhone">رقم الهاتف *</label>
-                            <input type="tel" id="colisPhone" required placeholder="0550123456">
-                        </div>
-                    </div>
-
-                    <div class="form-grid-2col">
-                        <div class="form-group-row">
-                            <label data-i18n="lblWilaya">الولاية (58 ولاية) *</label>
-                            <select id="colisWilayaSelect" required onchange="storeAdmin.onColisWilayaChange(this.value)">
-                                <option value="">-- اختر الولاية --</option>
-                            </select>
-                        </div>
-                        <div class="form-group-row">
-                            <label data-i18n="lblCommune">البلدية *</label>
-                            <select id="colisCommuneSelect" required>
-                                <option value="">-- اختر البلدية --</option>
-                            </select>
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="lblPhone">Numéro de téléphone *</label>
+                            <input type="tel" id="formClientPhone" class="app-input" placeholder="05 / 06 / 07XXXXXXXX" required>
                         </div>
                     </div>
 
-                    <div class="form-grid-2col">
-                        <div class="form-group-row">
-                            <label data-i18n="lblDeliveryType">طريقة الاستلام</label>
-                            <select id="colisDeliveryType" onchange="storeAdmin.recalcColisPrice()">
-                                <option value="home" data-i18n="optHome">🏠 توصيل لباب المنزل (Domicile)</option>
-                                <option value="desk" data-i18n="optDesk">🏢 استلام من المكتب (Stopdesk)</option>
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="lblWilaya">Wilaya (58 Wilayas) *</label>
+                            <select id="formWilayaCode" class="app-input" onchange="storeAdmin.onWilayaChange(this.value)" required>
+                                <option value="">-- Choisir la Wilaya --</option>
                             </select>
                         </div>
-                        <div class="form-group-row">
-                            <label data-i18n="lblCourierSelect">شركة التوصيل</label>
-                            <select id="colisCourierSelect">
-                                <option value="manual">التوصيل المباشر (Manual / Direct)</option>
-                                <option value="yalidine">Yalidine Express</option>
-                                <option value="redex">Redex / Ecotrack DZ</option>
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="lblCommune">Commune *</label>
+                            <select id="formCommuneSelect" class="app-input" onchange="storeAdmin.onCommuneChange(this.value)" required>
+                                <option value="">-- Choisir la Commune --</option>
                             </select>
                         </div>
                     </div>
 
-                    <div class="form-group-row">
-                        <label data-i18n="lblAddress">العنوان التفصيلي / الحي</label>
-                        <input type="text" id="colisAddress" placeholder="حي النور، عمارة 12، الطابق 2">
-                    </div>
-
-                    <div class="form-grid-2col">
-                        <div class="form-group-row">
-                            <label data-i18n="lblPrice">المبلغ المستحق (COD د.ج) *</label>
-                            <input type="number" id="colisPrice" required value="21900">
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="lblDeliveryType">Type de livraison</label>
+                            <select id="formDeliveryType" class="app-input" onchange="storeAdmin.updateTariffDisplay()">
+                                <option value="home" data-i18n="optHome">🏠 Livraison à domicile (Domicile)</option>
+                                <option value="stopdesk" data-i18n="optDesk">🏢 Récupération au bureau (Stop Desk)</option>
+                            </select>
                         </div>
-                        <div class="form-group-row">
-                            <label data-i18n="lblNotes">ملاحظات للموزع</label>
-                            <input type="text" id="colisNotes" placeholder="يرجى الاتصال قبل الوصول">
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="lblPrice">Montant à encaisser (COD DZD) *</label>
+                            <input type="number" id="formPrice" class="app-input" value="21900" required>
                         </div>
                     </div>
 
-                    <div class="app-modal-footer">
-                        <button type="button" class="app-btn app-btn-secondary" onclick="storeAdmin.closeModal('packageModal')" data-i18n="btnCancel">إلغاء</button>
-                        <button type="submit" class="app-btn app-btn-primary" id="btnDispatchCourier">
-                            <i class="fa-solid fa-paper-plane"></i> <span data-i18n="btnSendToCourier">تأكيد وإرسال للشحن 🚚</span>
-                        </button>
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="lblAddress">Adresse détaillée / Quartier</label>
+                        <input type="text" id="formAddress" class="app-input" placeholder="ex: Cité 5 Juillet, Bâtiment 12">
                     </div>
-                </form>
-            </div>
+
+                    <!-- Calculated Tariff Banner -->
+                    <div class="tariff-calculation-banner" id="tariffCalculationBanner">
+                        <div class="banner-icon"><i class="fa-solid fa-calculator"></i></div>
+                        <div class="banner-details">
+                            <span data-i18n="lblTariffApplied">Frais de livraison appliqués :</span>
+                            <strong id="tariffDisplayPrice">500 DZD</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="app-modal-footer">
+                    <button type="button" class="app-btn app-btn-secondary" onclick="storeAdmin.closeModal('packageModal')" data-i18n="btnCancel">Annuler</button>
+                    <button type="submit" class="app-btn app-btn-primary" id="btnSubmitPackage">
+                        <i class="fa-solid fa-paper-plane"></i> <span data-i18n="btnSendToCourier">Expédier au transporteur ⚡</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
     <!-- ===================================================================== -->
     <!-- MODAL 2: LIVE TRACKING TIMELINE                                       -->
     <!-- ===================================================================== -->
-    <div class="app-modal-backdrop" id="trackingModal" style="display:none;">
-        <div class="app-modal-dialog">
+    <div class="app-modal-backdrop" id="trackingModal">
+        <div class="app-modal-dialog modal-md">
             <div class="app-modal-header">
                 <div class="modal-title-wrap">
-                    <i class="fa-solid fa-route text-purple"></i>
-                    <h3 data-i18n="modalTrackTitle">مسار وتتبع الطرد (Timeline)</h3>
+                    <i class="fa-solid fa-route text-cyan"></i>
+                    <h3 data-i18n="modalTrackTitle">Suivi en direct du colis (Tracking)</h3>
                 </div>
                 <button class="modal-close-btn" onclick="storeAdmin.closeModal('trackingModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="app-modal-body">
                 <div class="tracking-summary-card">
-                    <div class="tracking-code-row">
-                        <span data-i18n="lblTrackingCode">كود التتبع :</span>
-                        <strong class="font-mono text-cyan" id="trackModalCode">--</strong>
+                    <div class="code-box">
+                        <span data-i18n="lblTrackingCode">Code de suivi :</span>
+                        <strong id="trackModalCode" class="tracking-font">ECEOSK...</strong>
                     </div>
-                    <div class="tracking-status-badge" id="trackModalStatusBadge">--</div>
+                    <div class="status-box">
+                        <span data-i18n="lblCurrentStatus">État actuel :</span>
+                        <span class="status-badge badge-shipped" id="trackModalStatus">En cours</span>
+                    </div>
                 </div>
 
-                <div class="tracking-timeline-steps" id="trackingTimelineSteps">
-                    <!-- Dynamic timeline checkpoints rendered by admin-client.js -->
+                <div class="tracking-timeline" id="trackTimeline"></div>
+            </div>
+            <div class="app-modal-footer">
+                <button type="button" class="app-btn app-btn-secondary" onclick="storeAdmin.closeModal('trackingModal')" data-i18n="btnClose">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 3: OFFICIAL CARRIER LABEL (BORDEREAU OFFICIEL)                  -->
+    <!-- ===================================================================== -->
+    <div class="app-modal-backdrop" id="labelModal">
+        <div class="app-modal-dialog modal-md">
+            <div class="app-modal-header">
+                <div class="modal-title-wrap">
+                    <i class="fa-solid fa-print text-emerald"></i>
+                    <h3 data-i18n="modalLabelTitle">Étiquette Officielle du Transporteur</h3>
+                </div>
+                <button class="modal-close-btn" onclick="storeAdmin.closeModal('labelModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="app-modal-body p-3">
+                <!-- Printable Official Shipping Label (Thermal A6 & Standard A4) -->
+                <div class="official-shipping-label" id="printableOfficialLabel">
+                    <div class="label-header">
+                        <div class="label-carrier">
+                            <span class="carrier-tag" id="lblCarrierTag">REDEX ECOTRACK DZ</span>
+                            <small id="lblDateStamp">2026-08-21</small>
+                        </div>
+                        <div class="label-store">
+                            <strong>SPEAR.DZ DZ</strong>
+                            <small>Expéditeur Express</small>
+                        </div>
+                    </div>
+
+                    <div class="label-barcode-zone">
+                        <div class="barcode-lines">||||| | |||| ||| ||||| || |||||| |||| |||</div>
+                        <strong class="barcode-num" id="lblBarcodeCode">ECEOSK26082145362</strong>
+                        <span class="label-ref-tag" id="lblOrderRefTag">Réf: ORVA-59067</span>
+                    </div>
+
+                    <div class="label-body-grid">
+                        <div class="label-section">
+                            <span class="sec-label">DESTINATAIRE / الزبون</span>
+                            <h4 id="lblClientNameText">Samir Deriadi</h4>
+                            <p id="lblClientPhoneText" class="phone-highlight">0772552823</p>
+                        </div>
+
+                        <div class="label-section">
+                            <span class="sec-label">DESTINATION / العنوان</span>
+                            <h4 id="lblDestinationText">16 - Alger (Cheraga)</h4>
+                            <p id="lblAddressText">Cheraga Centre</p>
+                        </div>
+                    </div>
+
+                    <div class="label-footer-grid">
+                        <div class="label-type-box" id="lblDeliveryTypeBadge">
+                            🏠 À DOMICILE (DOMICILE)
+                        </div>
+                        <div class="label-amount-box">
+                            <span>TOTAL COD À ENCAISSER :</span>
+                            <h3 id="lblAmountText">4,900 DZD</h3>
+                        </div>
+                    </div>
+
+                    <div class="label-product-note" id="lblProductNote">
+                        📦 Contenu: PACK HIGH-TECH 5 EN 1 (Smartwatch + Écouteurs ANC + Powerbank + Câble + Chargeur 65W)
+                    </div>
+                </div>
+
+                <div class="label-actions-row mt-3">
+                    <button type="button" class="app-btn app-btn-primary flex-1" onclick="storeAdmin.triggerPrintLabel()">
+                        <i class="fa-solid fa-print"></i> <span data-i18n="btnPrintLabelDirect">Imprimer l'Étiquette (Bordereau)</span>
+                    </button>
+                    <a id="btnCarrierPortalLink" href="https://redex.ecotrack.dz" target="_blank" class="app-btn app-btn-outline">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> <span data-i18n="btnCarrierPortal">Portail Transporteur</span>
+                    </a>
                 </div>
             </div>
             <div class="app-modal-footer">
-                <button type="button" class="app-btn app-btn-secondary" onclick="storeAdmin.closeModal('trackingModal')" data-i18n="btnClose">إغلاق</button>
+                <button type="button" class="app-btn app-btn-secondary" onclick="storeAdmin.closeModal('labelModal')" data-i18n="btnClose">Fermer</button>
             </div>
         </div>
     </div>
 
     <!-- ===================================================================== -->
-    <!-- MODAL 3: OFFICIAL PRINTABLE THERMAL SHIPPING LABEL (BORDEREAU)        -->
+    <!-- MODAL 4: ALGERIAN COURIERS & LOGISTICS CONFIGURATION                  -->
     <!-- ===================================================================== -->
-    <div class="app-modal-backdrop" id="labelModal" style="display:none;">
-        <div class="app-modal-dialog modal-dialog-lg">
-            <div class="app-modal-header no-print">
-                <div class="modal-title-wrap">
-                    <i class="fa-solid fa-barcode text-emerald"></i>
-                    <h3 data-i18n="modalLabelTitle">بوليصة الشحن الرسمية (Bordereau A6 / A4)</h3>
-                </div>
-                <div class="modal-header-actions">
-                    <button class="app-btn app-btn-sm app-btn-primary" onclick="window.print()">
-                        <i class="fa-solid fa-print"></i> <span>طباعة الآن (Print)</span>
-                    </button>
-                    <button class="modal-close-btn" onclick="storeAdmin.closeModal('labelModal')"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-            </div>
-            <div class="app-modal-body">
-                
-                <!-- Printable Thermal Card Container -->
-                <div class="carrier-label-card" id="printableLabel">
-                    <!-- Label Header -->
-                    <div class="label-header-row">
-                        <div class="label-brand-box">
-                            <h2>SPEAR<span class="text-cyan">.DZ</span></h2>
-                            <p>STORE OFFICIEL ALGÉRIE</p>
-                        </div>
-                        <div class="label-courier-box">
-                            <span class="courier-badge-label" id="labelCourierName">SPEAR-DZ EXPRESS</span>
-                            <div class="delivery-type-pill" id="labelDeliveryTypeBadge">DOMICILE</div>
-                        </div>
-                    </div>
-
-                    <!-- Barcode Section -->
-                    <div class="label-barcode-section">
-                        <svg id="labelBarcodeSvg"></svg>
-                        <p class="barcode-text font-mono" id="labelTrackingCodeText">SPDZ-000000</p>
-                    </div>
-
-                    <!-- Recipient & Destination Box -->
-                    <div class="label-info-grid">
-                        <div class="label-dest-box">
-                            <span class="info-label">DESTINATAIRE / الزبون</span>
-                            <h3 class="customer-name" id="labelCustomerName">--</h3>
-                            <p class="customer-phone font-mono" id="labelCustomerPhone">--</p>
-                            <p class="customer-address" id="labelCustomerAddress">--</p>
-                            <div class="wilaya-commune-badge">
-                                <strong id="labelWilayaCommune">16 - ALGER</strong>
-                            </div>
-                        </div>
-
-                        <!-- COD Price Box -->
-                        <div class="label-cod-box">
-                            <span class="cod-title">MONTANT À ENCAISSER / الدفع عند الاستلام</span>
-                            <div class="cod-amount-big">
-                                <span id="labelCodAmount">21,900</span> <small>DZD</small>
-                            </div>
-                            <div class="bundle-spec-line" id="labelBundleName">PACK HIGH-TECH 5 EN 1</div>
-                        </div>
-                    </div>
-
-                    <!-- Label Footer -->
-                    <div class="label-footer-row">
-                        <span>Colis vérifié avant paiement • Ne pas ouvrir sans présence du livreur</span>
-                        <span class="font-mono">Service Client: 0550 00 00 00</span>
-                    </div>
-                </div>
-
-            </div>
-            <div class="app-modal-footer no-print">
-                <button type="button" class="app-btn app-btn-secondary" onclick="storeAdmin.closeModal('labelModal')" data-i18n="btnClose">إغلاق</button>
-                <button type="button" class="app-btn app-btn-primary" onclick="window.print()">
-                    <i class="fa-solid fa-print"></i> <span>طباعة (A6 Thermal / A4)</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===================================================================== -->
-    <!-- MODAL 4: DYNAMIC 58 WILAYAS TARIFF RATE CARD                          -->
-    <!-- ===================================================================== -->
-    <div class="app-modal-backdrop" id="tariffsModal" style="display:none;">
-        <div class="app-modal-dialog modal-dialog-lg">
+    <div class="app-modal-backdrop" id="settingsModal">
+        <div class="app-modal-dialog modal-lg">
             <div class="app-modal-header">
                 <div class="modal-title-wrap">
-                    <i class="fa-solid fa-money-bill-transfer text-emerald"></i>
-                    <h3 data-i18n="modalTariffsTitle">جدول أسعار التوصيل لـ 58 ولاية (Home & Stopdesk)</h3>
+                    <i class="fa-solid fa-sliders text-purple"></i>
+                    <h3 data-i18n="modalSettingsTitle">Configuration des Transporteurs & Passerelles Algérie</h3>
+                </div>
+                <button class="modal-close-btn" onclick="storeAdmin.closeModal('settingsModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="app-modal-body">
+                <div class="form-group mb-4">
+                    <label class="form-label" data-i18n="lblActiveCarrier">Sélectionner le transporteur actif pour les expéditions :</label>
+                    <select id="settingsCarrierSelect" class="app-input" onchange="storeAdmin.onCarrierChange(this.value)">
+                        <option value="redex">Redex Delivery (Plateforme Ecotrack DZ)</option>
+                        <option value="dhd">DHD Express (Plateforme Ecotrack DZ)</option>
+                        <option value="conexlog">Conexlog Express (Plateforme Ecotrack DZ)</option>
+                        <option value="msmgo">MSM Go Express (Plateforme Ecotrack DZ)</option>
+                        <option value="yalidine">Yalidine Express (Yalitec / Guepex)</option>
+                        <option value="zrexpress">ZR Express (Procolis)</option>
+                        <option value="noest">Noest Delivery</option>
+                        <option value="maystro">Maystro Delivery</option>
+                        <option value="anderson">Anderson Express</option>
+                    </select>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">URL Passerelle / API Endpoint :</label>
+                        <input type="text" id="settingsBaseUrl" class="app-input" value="https://redex.ecotrack.dz">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Clé / Jeton API (API Token) :</label>
+                        <input type="text" id="settingsApiToken" class="app-input" value="" placeholder="Collez votre jeton Redex Ecotrack DZ...">
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="form-label" data-i18n="lblStorageMode">Moteur de Données & Synchronisation :</label>
+                    <input type="text" class="app-input" value="Supabase PostgreSQL Cloud Database + Sauvegarde Locale" readonly>
+                </div>
+
+                <button type="button" class="app-btn app-btn-outline w-100 mb-2" onclick="storeAdmin.testCarrierConnection()">
+                    <i class="fa-solid fa-network-wired"></i> <span data-i18n="btnTestCarrier">Tester la connexion API avec le transporteur ⚡</span>
+                </button>
+                <div id="settingsTestResult" class="mt-2"></div>
+            </div>
+            <div class="app-modal-footer">
+                <button type="button" class="app-btn app-btn-secondary" onclick="storeAdmin.closeModal('settingsModal')" data-i18n="btnClose">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 5: 58 WILAYAS TARIFF RATE CARD                                  -->
+    <!-- ===================================================================== -->
+    <div class="app-modal-backdrop" id="tariffsModal">
+        <div class="app-modal-dialog modal-lg">
+            <div class="app-modal-header">
+                <div class="modal-title-wrap">
+                    <i class="fa-solid fa-map-location-dot text-amber"></i>
+                    <h3 data-i18n="modalTariffsTitle">Grille Tarifaire des 58 Wilayas d'Algérie</h3>
                 </div>
                 <button class="modal-close-btn" onclick="storeAdmin.closeModal('tariffsModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="app-modal-body">
-                <div class="tariffs-filter-box">
-                    <input type="text" id="tariffSearchInput" placeholder="بحث بالولاية..." onkeyup="storeAdmin.filterTariffsTable(this.value)">
-                </div>
-                <div class="table-responsive-wrapper max-h-500">
-                    <table class="tariffs-table" id="tariffsTable">
+                <div class="table-responsive max-h-400">
+                    <table class="app-table">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th data-i18n="thWilaya">الولاية</th>
-                                <th data-i18n="thHomeRate">توصيل للمنزل (د.ج)</th>
-                                <th data-i18n="thDeskRate">استلام من المكتب (د.ج)</th>
-                                <th data-i18n="thTime">المدة المقدرة</th>
-                                <th>إجراء</th>
+                                <th data-i18n="thWilaya">Wilaya</th>
+                                <th data-i18n="thHomeRate">Livraison à Domicile</th>
+                                <th data-i18n="thDeskRate">Récupération au Bureau (Stop Desk)</th>
+                                <th data-i18n="thCoverage">Couverture</th>
                             </tr>
                         </thead>
-                        <tbody id="tariffsTableBody">
-                            <!-- Populated dynamically by admin-client.js -->
-                        </tbody>
+                        <tbody id="tariffsTableBody"></tbody>
                     </table>
                 </div>
             </div>
             <div class="app-modal-footer">
-                <button type="button" class="app-btn app-btn-secondary" onclick="storeAdmin.closeModal('tariffsModal')" data-i18n="btnClose">إغلاق</button>
+                <button type="button" class="app-btn app-btn-secondary" onclick="storeAdmin.closeModal('tariffsModal')" data-i18n="btnClose">Fermer</button>
             </div>
         </div>
     </div>
 
     <!-- ===================================================================== -->
-    <!-- MODAL 5: TRUST & RISK SHIELD AUDIT (AI FRAUD DETECTOR)                -->
+    <!-- MODAL 6: TRUST & RISK SHIELD AUDIT (AI Fraud Detection)               -->
     <!-- ===================================================================== -->
-    <div class="app-modal-backdrop" id="riskModal" style="display:none;">
-        <div class="app-modal-dialog">
+    <div class="app-modal-backdrop" id="riskModal">
+        <div class="app-modal-dialog modal-md">
             <div class="app-modal-header">
                 <div class="modal-title-wrap">
-                    <i class="fa-solid fa-shield-virus text-rose"></i>
-                    <h3 data-i18n="modalRiskTitle">درع الحماية وتقييم المخاطر (Trust Shield)</h3>
+                    <i class="fa-solid fa-shield-halved text-rose"></i>
+                    <h3 data-i18n="modalRiskTitle">Bouclier Anti-Fraude & Évaluation de Confiance</h3>
                 </div>
                 <button class="modal-close-btn" onclick="storeAdmin.closeModal('riskModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="app-modal-body">
-                <div class="risk-score-overview" id="riskOverviewBox">
-                    <div class="risk-gauge-circle">
-                        <span class="risk-gauge-num" id="riskModalScore">0</span>
-                        <span class="risk-gauge-lbl">/ 100</span>
-                    </div>
-                    <div class="risk-verdict-details">
-                        <h4 id="riskModalDecisionText">ALLOW (طلب آمن)</h4>
-                        <p id="riskModalOrderId">الطلب: --</p>
-                    </div>
-                </div>
-
-                <div class="risk-factors-list" id="riskFactorsList">
-                    <!-- Dynamic breakdown elements -->
-                </div>
-
-                <div class="risk-actions-panel">
-                    <button class="app-btn app-btn-sm bg-emerald-soft text-emerald" onclick="storeAdmin.overrideRisk('trust')">
-                        <i class="fa-solid fa-user-check"></i> <span>تصنيف كـ عميل موثوق</span>
-                    </button>
-                    <button class="app-btn app-btn-sm bg-rose-soft text-rose" onclick="storeAdmin.overrideRisk('block')">
-                        <i class="fa-solid fa-ban"></i> <span>حظر الرقم (القائمة السوداء)</span>
-                    </button>
+            <div class="app-modal-body" id="riskModalBody">
+                <div class="loading-state text-center py-4">
+                    <i class="fa-solid fa-spinner fa-spin fa-2x text-primary"></i>
                 </div>
             </div>
             <div class="app-modal-footer">
-                <button type="button" class="app-btn app-btn-secondary" onclick="storeAdmin.closeModal('riskModal')" data-i18n="btnClose">إغلاق</button>
+                <button type="button" class="app-btn app-btn-secondary" onclick="storeAdmin.closeModal('riskModal')" data-i18n="btnClose">Fermer</button>
             </div>
         </div>
     </div>
 
-    <!-- ===================================================================== -->
-    <!-- MODAL 6: SINGLE / BULK ORDER DELETION & ARCHIVE CONFIRMATION          -->
-    <!-- ===================================================================== -->
-    <div class="app-modal-backdrop" id="deleteConfirmModal" style="display:none;">
-        <div class="app-modal-dialog modal-dialog-sm">
-            <div class="app-modal-header bg-rose-soft">
-                <div class="modal-title-wrap">
-                    <i class="fa-solid fa-triangle-exclamation text-rose"></i>
-                    <h3 data-i18n="modalDeleteTitle">تأكيد حذف وأرشفة الطلبيات</h3>
-                </div>
-                <button class="modal-close-btn" onclick="storeAdmin.closeModal('deleteConfirmModal')"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="app-modal-body text-center py-6">
-                <p id="deleteConfirmPrompt" class="mb-4 text-secondary">هل أنت متأكد من رغبتك في إزالة هذه الطلبيات ونقلها إلى الأرشيف الآمن؟</p>
-                <div class="delete-targets-pill font-mono" id="deleteTargetsPill"></div>
-            </div>
-            <div class="app-modal-footer">
-                <button type="button" class="app-btn app-btn-secondary" onclick="storeAdmin.closeModal('deleteConfirmModal')" data-i18n="btnCancel">إلغاء</button>
-                <button type="button" class="app-btn app-btn-danger" id="confirmDeleteActionBtn" onclick="storeAdmin.executeDeleteOrders()">
-                    <i class="fa-solid fa-trash-can"></i> <span data-i18n="btnConfirmDelete">تأكيد الحذف</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Admin Controller Script -->
+    <!-- Scripts -->
+    <script src="/js/algeria-communes.js"></script>
     <script src="/js/admin-client.js"></script>
 </body>
-
 </html>

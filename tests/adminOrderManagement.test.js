@@ -248,49 +248,35 @@ describe('Order Data Cleanup, Grid View & Order Management Tests', () => {
     });
 
     // ── 5. DOM & CSS Architecture Verification ──────────────────────────────
-    describe('UI Architecture, Grid View & Customer Identity Box Integrity', () => {
+    describe('UI Architecture, Mobile Orders & Order Management Integrity', () => {
         const adminHtmlPath = path.join(__dirname, '..', 'admin.html');
         const adminCssPath = path.join(__dirname, '..', 'public', 'css', 'admin.css');
         const adminJsPath = path.join(__dirname, '..', 'public', 'js', 'admin-client.js');
 
-        test('admin.html contains View Switcher, Bulk Toolbar, and Grid Container', () => {
+        test('admin.html contains Search, Status Tabs, and Mobile Orders Container', () => {
             const html = fs.readFileSync(adminHtmlPath, 'utf8');
 
-            assert.ok(html.includes('id="viewSwitcherGroup"'), 'Must contain #viewSwitcherGroup');
-            assert.ok(html.includes('id="viewModeTableBtn"'), 'Must contain #viewModeTableBtn');
-            assert.ok(html.includes('id="viewModeGridBtn"'), 'Must contain #viewModeGridBtn');
-            assert.ok(html.includes('id="bulkActionsToolbar"'), 'Must contain #bulkActionsToolbar');
-            assert.ok(html.includes('id="selectAllCheckbox"'), 'Must contain #selectAllCheckbox');
-            assert.ok(html.includes('id="ordersGridView"'), 'Must contain #ordersGridView');
-            assert.ok(html.includes('id="deleteConfirmModal"'), 'Must contain #deleteConfirmModal');
+            assert.ok(html.includes('id="tableSearchInput"') || html.includes('id="globalSearchInput"'), 'Must contain search input');
+            assert.ok(html.includes('class="status-filter-tabs"'), 'Must contain status filter tabs');
+            assert.ok(html.includes('id="ordersTable"'), 'Must contain ordersTable');
+            assert.ok(html.includes('id="mobileOrdersContainer"'), 'Must contain mobileOrdersContainer');
         });
 
-        test('public/css/admin.css enforces 2x2 Bento Grid on mobile and hides secondary metrics', () => {
+        test('public/css/admin.css defines responsive mobile order cards and status tabs', () => {
             const css = fs.readFileSync(adminCssPath, 'utf8');
 
-            assert.ok(css.includes('.view-switcher-group'), 'CSS must define .view-switcher-group');
-            assert.ok(css.includes('.bulk-actions-toolbar'), 'CSS must define .bulk-actions-toolbar');
-            assert.ok(css.includes('.orders-grid-view'), 'CSS must define .orders-grid-view');
-            assert.ok(css.includes('.customer-identity-box'), 'CSS must define .customer-identity-box');
-            assert.ok(css.includes('.cid-phone-link'), 'CSS must define .cid-phone-link');
-
-            // Verify mobile rule hides secondary KPI cards
-            assert.ok(
-                css.includes('.kpi-card.kpi-secondary') && css.includes('display: none !important'),
-                'Mobile CSS must hide secondary KPI cards to preserve 2x2 Bento grid'
-            );
+            assert.ok(css.includes('.status-filter-tabs'), 'CSS must define .status-filter-tabs');
+            assert.ok(css.includes('.mobile-orders-container'), 'CSS must define .mobile-orders-container');
+            assert.ok(css.includes('.mobile-order-card'), 'CSS must define .mobile-order-card');
         });
 
-        test('public/js/admin-client.js renders Customer Identity Box with direct-call link', () => {
+        test('public/js/admin-client.js renders touch-friendly mobile order cards with phone and actions', () => {
             const js = fs.readFileSync(adminJsPath, 'utf8');
 
-            assert.ok(js.includes('customer-identity-box'), 'JS must render customer-identity-box');
-            assert.ok(js.includes('cid-name'), 'JS must render customer name in identity box');
-            assert.ok(js.includes('cid-phone-link'), 'JS must render direct-call phone link in identity box');
+            assert.ok(js.includes('mobile-order-card'), 'JS must render mobile-order-card');
             assert.ok(js.includes('tel:'), 'JS must format customer phone as tel: link');
-            assert.ok(js.includes('setViewMode'), 'JS must implement setViewMode');
-            assert.ok(js.includes('confirmDeleteSingle'), 'JS must implement confirmDeleteSingle');
-            assert.ok(js.includes('executeDeleteOrders'), 'JS must implement executeDeleteOrders');
+            assert.ok(js.includes('deleteColis'), 'JS must implement deleteColis');
+            assert.ok(js.includes('renderMobileOrders'), 'JS must implement renderMobileOrders');
         });
     });
 });

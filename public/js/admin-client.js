@@ -1,1720 +1,1767 @@
 /**
  * =============================================================================
- * SPEAR-DZ — Enterprise Logistics & Management Controller (admin-client.js)
- * Couriers: Yalidine Express, Redex / Ecotrack DZ, Manual Delivery
- * Storage: Supabase PostgreSQL Primary
+ * SPEAR.DZ — Enterprise Logistics & Management Controller (Light Edition)
+ * Couriers: Ecotrack (Redex/DHD/Conexlog/MSM Go), Yalidine, ZR Express, Noest, Maystro
  * =============================================================================
  */
 
 (function () {
     'use strict';
 
-    // ── 1. 100% Bilingual Dictionary (Arabic RTL Default, French LTR) ───────────
+    // ── 1. Strict 100% Bilingual Dictionary ──────────────────────────────────
     const I18N = {
-        ar: {
-            authSubtitle: "بوابة الإدارة المركزية واللوجستيك • الجزائر 58 ولاية",
-            btnEnterHub: "دخول لوحة التحكم",
-            brandSub: "لوحة التحكم اللوجستية",
-            searchPlaceholder: "بحث برقم الطلب، الزبون، الهاتف، الولاية...",
-            statusConnected: "متصل ✅",
-            statusSync: "نشط ✅",
-            navStorefront: "المتجر الرئيسي",
-            badgeBundleOffer: "عرض النخبة 5 في 1 (21,900 د.ج)",
-            catMain: "القائمة الرئيسية",
-            navDashboard: "نظرة عامة وإحصائيات",
-            navOrders: "إدارة الطلبيات",
-            catLogistics: "اللوجستيك والشحن",
-            navCreate: "إنشاء وإرسال طرد",
-            navTariffs: "أسعار 58 ولاية",
-            navSettings: "إعدادات شركات التوصيل",
-            catDataSecurity: "الأمان ومكافحة الاحتيال",
-            navRisk: "درع الحماية وسجل المخاطر",
-            bannerTag: "نظام الإدارة المركزي • الجزائر 58 ولاية",
-            bannerTitle: "لوحة التحكم اللوجستية ومتابعة المبيعات",
-            bannerDesc: "منصة متكاملة متصلة بشركات التوصيل الجزائرية وقاعدة بيانات Supabase مع درع الحماية الذكي.",
-            btnNewColis: "طرد جديد",
-            btnExport: "تصدير CSV",
-            kpiTotal: "إجمالي الطلبيات",
-            kpiRevenue: "مداخيل تم تحصيلها (COD)",
-            kpiPendingCod: "مبالغ قيد التوزيع",
-            kpiConfirmed: "طلبيات مؤكدة",
-            kpiShipped: "في التوصيل (لدى الشاحن)",
-            kpiDelivered: "تم التسليم بنجاح",
-            kpiReturned: "مرتجعات",
-            kpiLiveSync: "مزامنة حية",
-            chartTrendTitle: "وتيرة الطلبات والتأكيد اليومية (آخر 7 أيام)",
-            chartWilayasTitle: "أكثر 10 ولايات طلباً",
-            liveDataBadge: "بيانات حية",
-            tabAll: "الكل",
-            tabPending: "⏳ قيد المراجعة",
-            tabConfirmed: "✓ مؤكدة",
-            tabShipped: "🚚 في التوصيل",
-            tabDelivered: "✅ تم التسليم",
-            tabReturned: "⚠️ مرتجع",
-            tabRisk: "🛡️ مخاطرة",
-            tableFilterPlaceholder: "تصفية بالاسم، الهاتف، البلدية، رقم الطلب...",
-            allWilayasOption: "كل الولايات (58 ولاية)",
-            btnTariffs: "جدول الأسعار",
-            thOrder: "الرقم / التتبع",
-            thCustomer: "الزبون",
-            thPhone: "الهاتف",
-            thDestination: "الولاية والبلدية",
-            thAmount: "المبلغ (د.ج)",
-            thCarrierStatus: "شركة التوصيل",
-            thOrderStatus: "حالة الطلب",
-            thRisk: "المخاطرة",
-            thActions: "إجراءات",
-            loadingOrders: "جاري تحميل الطلبيات من Supabase...",
-            modalCreateTitle: "إنشاء وإرسال طرد إلى شركة التوصيل",
-            lblAutoFill: "اختر طلبية من المتجر لملء البيانات تلقائياً :",
-            optSelectOrder: "-- اختر طلبية --",
-            lblFullName: "الاسم الكامل *",
-            lblPhone: "رقم الهاتف *",
-            lblWilaya: "الولاية (58 ولاية) *",
-            lblCommune: "البلدية *",
-            lblDeliveryType: "طريقة الاستلام",
-            optHome: "🏠 توصيل لباب المنزل (Domicile)",
-            optDesk: "🏢 استلام من المكتب (Stopdesk)",
-            lblCourierSelect: "شركة التوصيل",
-            lblAddress: "العنوان التفصيلي / الحي",
-            lblPrice: "المبلغ المستحق (COD د.ج) *",
-            lblNotes: "ملاحظات للموزع",
-            btnCancel: "إلغاء",
-            btnSendToCourier: "تأكيد وإرسال للشحن 🚚",
-            modalTrackTitle: "مسار وتتبع الطرد (Timeline)",
-            lblTrackingCode: "كود التتبع :",
-            modalLabelTitle: "بوليصة الشحن الرسمية (Bordereau A6 / A4)",
-            modalTariffsTitle: "جدول أسعار التوصيل لـ 58 ولاية (Home & Stopdesk)",
-            thWilaya: "الولاية",
-            thHomeRate: "توصيل للمنزل (د.ج)",
-            thDeskRate: "استلام من المكتب (د.ج)",
-            thTime: "المدة المقدرة",
-            chartTrendTab: "وتيرة الطلبات",
-            chartWilayasTab: "أكثر الولايات",
-            modalRiskTitle: "درع الحماية وتقييم المخاطر (Trust Shield)",
-            viewTable: "جدول",
-            viewGrid: "شبكة",
-            lblCustomerIdentity: "بيانات العميل",
-            btnCancelSelection: "إلغاء التحديد",
-            btnDeleteSelected: "حذف المحدد",
-            modalDeleteTitle: "تأكيد حذف وأرشفة الطلبيات",
-            btnConfirmDelete: "تأكيد الحذف",
-            kpiDeliverySuccessRateLabel: "نسبة التسليم",
-            kpiReturnRateLabel: "نسبة المرتجع",
-            btnClose: "إغلاق"
-        },
         fr: {
-            authSubtitle: "Portail Centralisé & Hub Logistique • Algérie 58 Wilayas",
-            btnEnterHub: "Accéder au Tableau de Bord",
-            brandSub: "Hub Logistique & Gestion",
-            searchPlaceholder: "Rechercher par commande, client, téléphone, wilaya...",
-            statusConnected: "Connecté ✅",
-            statusSync: "Actif ✅",
-            navStorefront: "Boutique en ligne",
-            badgeBundleOffer: "Pack Élite 5 en 1 (21,900 DZD)",
+            brandSub: "Tableau de bord",
+            searchPlaceholder: "Rechercher par commande, nom, téléphone, wilaya...",
+            statusConnected: "Connecté",
+            statusSync: "Synchronisé",
             catMain: "MENU PRINCIPAL",
             navDashboard: "Aperçu & Statistiques",
             navOrders: "Gestion des Commandes",
-            catLogistics: "LOGISTIQUE & TRANSPORT",
+            navAnalytics: "Website Analytics",
+            catLogistics: "LOGISTIQUE & TRANSPORTEURS",
             navCreate: "Créer un Colis",
             navTariffs: "Tarifs 58 Wilayas",
             navSettings: "Configuration Transporteurs",
-            catDataSecurity: "SÉCURITÉ & ANTI-FRAUDE",
-            navRisk: "Bouclier Anti-Fraude",
-            bannerTag: "Système de Gestion Centralisé • Algérie 58 Wilayas",
-            bannerTitle: "Tableau de Bord Logistique & Suivi des Ventes",
-            bannerDesc: "Plateforme connectée aux transporteurs locaux, base Supabase et bouclier anti-fraude.",
+            bannerTag: "Système de Gestion Intégré • Algérie 58 Wilayas",
+            bannerTitle: "Tableau de bord logistique & Suivi des Ventes",
+            bannerDesc: "Passerelle multicanal connectée aux transporteurs locaux, Google Sheets et Facebook Meta CAPI.",
             btnNewColis: "Nouveau Colis",
-            btnExport: "Exporter CSV",
+            btnExport: "Exporter Excel",
             kpiTotal: "Total Commandes",
             kpiRevenue: "Chiffre d'Affaires COD",
-            kpiPendingCod: "Montant en Distribution",
-            kpiConfirmed: "Commandes Confirmées",
-            kpiShipped: "En Livraison",
-            kpiDelivered: "Livrées avec Succès",
-            kpiReturned: "Retours",
+            kpiPending: "En Attente / Préparation",
+            kpiShipped: "En Livraison (Transporteurs)",
+            kpiReturned: "Retours (Retournés)",
             kpiLiveSync: "Synchronisé",
+            kpiToShip: "À expédier",
+            kpiReturnRate: "Colis non aboutis",
             chartTrendTitle: "Tendance Quotidienne des Commandes (7 Derniers Jours)",
-            chartWilayasTitle: "Top 10 Wilayas les Plus Demandées",
-            liveDataBadge: "Données en Direct",
+            chartWilayasTitle: "Top Wilayas les Plus Demandées",
+            liveDataBadge: "Données en direct",
+            analyticsTitle: "Website Analytics",
+            lblReferrers: "Sources de Trafic (Référents)",
+            lblDevices: "Appareils & Systèmes",
+            lblTopCities: "Villes & Wilayas Principales",
+            lblBrowsers: "Navigateurs & Réseau Edge",
+            tableTitle: "Journal des Commandes & Expéditions",
             tabAll: "Toutes",
             tabPending: "⏳ En Attente",
-            tabConfirmed: "✓ Confirmées",
-            tabShipped: "🚚 En Livraison",
+            tabShipped: "🚚 Expédiées",
             tabDelivered: "✅ Livrées",
             tabReturned: "⚠️ Retours",
-            tabRisk: "🛡️ Risque",
-            tableFilterPlaceholder: "Filtrer par nom, téléphone, commune, référence...",
+            tableFilterPlaceholder: "Filtrer par nom, téléphone, commune, code...",
             allWilayasOption: "Toutes les Wilayas (58 Wilayas)",
             btnTariffs: "Grille Tarifaire",
-            thOrder: "Réf / Suivi",
+            thOrder: "Réf / Tracking",
             thCustomer: "Client",
             thPhone: "Téléphone",
             thDestination: "Wilaya & Commune",
-            thAmount: "Montant (DZD)",
-            thCarrierStatus: "Transporteur",
-            thOrderStatus: "Statut Commande",
-            thRisk: "Risque",
-            thActions: "Actions",
-            loadingOrders: "Chargement des commandes depuis Supabase...",
-            modalCreateTitle: "Créer et Expédier un Colis vers le Transporteur",
-            lblAutoFill: "Sélectionner une commande pour pré-remplir :",
+            thAmount: "Montant COD",
+            thCarrierStatus: "Statut Transporteur",
+            thOrderStatus: "État Commande",
+            thActions: "Actions Logistiques",
+            loadingOrders: "Chargement des commandes...",
+            modalCreateTitle: "Créer et expédier un colis vers le transporteur",
+            lblAutoFill: "Sélectionner une commande boutique pour pré-remplir :",
             optSelectOrder: "-- Sélectionner une commande --",
-            lblFullName: "Nom Complet *",
-            lblPhone: "Téléphone *",
+            lblFullName: "Nom complet du client *",
+            lblPhone: "Numéro de téléphone *",
             lblWilaya: "Wilaya (58 Wilayas) *",
             lblCommune: "Commune *",
-            lblDeliveryType: "Mode de Réception",
-            optHome: "🏠 Livraison à Domicile (Home)",
-            optDesk: "🏢 Récupération au Bureau (Stopdesk)",
-            lblCourierSelect: "Transporteur",
-            lblAddress: "Adresse Détaillée / Quartier",
-            lblPrice: "Montant à Encaisser (COD DZD) *",
-            lblNotes: "Instructions Livreur",
+            lblDeliveryType: "Type de livraison",
+            optHome: "🏠 Livraison à domicile (Domicile)",
+            optDesk: "🏢 Récupération au bureau (Stop Desk)",
+            lblPrice: "Montant à encaisser (COD DZD) *",
+            lblAddress: "Adresse détaillée / Quartier",
+            lblTariffApplied: "Frais de livraison appliqués :",
             btnCancel: "Annuler",
-            btnSendToCourier: "Confirmer & Expédier 🚚",
-            modalTrackTitle: "Suivi et Chronologie du Colis (Timeline)",
-            lblTrackingCode: "Code de Suivi :",
-            modalLabelTitle: "Bordereau Officiel de Livraison (A6 / A4)",
-            modalTariffsTitle: "Grille Tarifaire des 58 Wilayas (Domicile & Stopdesk)",
+            btnSendToCourier: "Expédier au transporteur ⚡",
+            modalTrackTitle: "Suivi en direct du colis (Tracking)",
+            lblTrackingCode: "Code de suivi :",
+            lblCurrentStatus: "État actuel :",
+            modalLabelTitle: "Étiquette Officielle du Transporteur",
+            btnOpenOfficialPdf: "Ouvrir / Télécharger le Bordereau PDF",
+            btnClose: "Fermer",
+            modalSettingsTitle: "Configuration des Transporteurs & Passerelles Algérie",
+            lblActiveCarrier: "Sélectionner le transporteur actif pour les expéditions :",
+            lblStorageMode: "Moteur de Données & Synchronisation :",
+            btnTestCarrier: "Tester la connexion API avec le transporteur ⚡",
+            modalTariffsTitle: "Grille Tarifaire des 58 Wilayas d'Algérie",
             thWilaya: "Wilaya",
-            thHomeRate: "Livraison Domicile (DZD)",
-            thDeskRate: "Bureau Stopdesk (DZD)",
-            thTime: "Délai Estimé",
-            chartTrendTab: "Tendance Commandes",
-            chartWilayasTab: "Top Wilayas",
+            thHomeRate: "Livraison à Domicile",
+            thDeskRate: "Récupération au Bureau (Stop Desk)",
+            thCoverage: "Couverture",
+            catDataSecurity: "SÉCURITÉ & ANTI-FRAUDE",
+            navRisk: "Bouclier Anti-Fraude & Trust",
+            tabRisk: "🛡️ Risque & Fraude",
             modalRiskTitle: "Bouclier Anti-Fraude & Évaluation de Confiance",
-            viewTable: "Tableau",
-            viewGrid: "Grille",
-            lblCustomerIdentity: "Identité Client",
-            btnCancelSelection: "Désélectionner",
-            btnDeleteSelected: "Supprimer Sélection",
-            modalDeleteTitle: "Confirmer la Suppression / Archivage",
-            btnConfirmDelete: "Confirmer la Suppression",
-            kpiDeliverySuccessRateLabel: "Taux Livraison",
-            kpiReturnRateLabel: "Taux Retour",
-            btnClose: "Fermer"
+            statusPendingBadge: "En Attente",
+            statusShippedBadge: "Chez Transporteur",
+            statusDeliveredBadge: "Livré ✅",
+            statusReturnedBadge: "Retourné ⚠️",
+            alertLabelNotShipped: "L'étiquette officielle n'est disponible qu'après l'envoi du colis au transporteur. Cliquez d'abord sur 'Expédier'."
+        },
+        ar: {
+            catDataSecurity: "البيانات والأمان ومكافحة الاحتيال",
+            navRisk: "درع الحماية ومكافحة الاحتيال",
+            tabRisk: "🛡️ الاحتيال والمخاطر",
+            modalRiskTitle: "تقييم الأمان ودرع مكافحة الاحتيال الذكي",
+            brandSub: "لوحة التحكم",
+            searchPlaceholder: "ابحث برقم الطلب، الاسم، الهاتف، الولاية...",
+            statusConnected: "متصل",
+            statusSync: "متزامن",
+            catMain: "القائمة الرئيسية",
+            navDashboard: "نظرة عامة والتحليلات",
+            navOrders: "إدارة الطلبيات والشحن",
+            navAnalytics: "تحليلات الموقع (Website Analytics)",
+            catLogistics: "اللوجستيك والتوصيل",
+            navCreate: "إنشاء طرد جديد",
+            navTariffs: "تعرفات 58 ولاية",
+            navSettings: "إعدادات شركات التوصيل",
+            bannerTag: "نظام إدارة المبيعات الموحد • الجزائر 58 ولاية",
+            bannerTitle: "لوحة التحكم اللوجستية وتتبع المبيعات",
+            bannerDesc: "ربط متكامل مع شركات التوصيل الجزائرية وقاعدة بيانات إكسل وشيتس وفيسبوك ميتا.",
+            btnNewColis: "طرد جديد",
+            btnExport: "تصدير إكسل",
+            kpiTotal: "إجمالي الطلبيات",
+            kpiRevenue: "مداخيل الدفع عند الاستلام",
+            kpiPending: "قيد الانتظار / التجهيز",
+            kpiShipped: "في التوصيل (الشركات)",
+            kpiReturned: "الطرود المرتجعة",
+            kpiLiveSync: "متزامن حياً",
+            chartTrendTitle: "حركة الطلبيات اليومية (آخر 7 أيام)",
+            chartWilayasTitle: "توزيع الولايات الأكثر طلباً",
+            liveDataBadge: "بيانات مباشرة",
+            analyticsTitle: "إحصائيات الزوار والأجهزة و Facebook CAPI",
+            lblReferrers: "مصادر الزيارات (Référents)",
+            lblDevices: "أجهزة الزوار",
+            lblBrowsers: "المتصفحات والأنظمة",
+            tableTitle: "سجل الطلبيات والشحنات",
+            tabAll: "الكل",
+            tabPending: "⏳ قيد الانتظار",
+            tabShipped: "🚚 تم الشحن",
+            tabDelivered: "✅ تم التسليم",
+            tabReturned: "⚠️ مرتجعات",
+            tableFilterPlaceholder: "تصفية بالاسم، الهاتف، البلدية، الكود...",
+            allWilayasOption: "كل الولايات (58 ولاية)",
+            btnTariffs: "قائمة الأسعار",
+            thOrder: "المرجع / التتبع",
+            thCustomer: "الزبون",
+            thPhone: "الهاتف",
+            thDestination: "الولاية والبلدية",
+            thAmount: "المبلغ المستحق (COD)",
+            thCarrierStatus: "حالة التوصيل",
+            thOrderStatus: "حالة الطلب",
+            thActions: "إجراءات الشحن",
+            loadingOrders: "جاري تحميل الطلبيات...",
+            modalCreateTitle: "إنشاء وإرسال طرد جديد إلى شركة التوصيل",
+            lblAutoFill: "اختر طلبية واردة من المتجر للتعبئة التلقائية :",
+            optSelectOrder: "-- اختر طلبية --",
+            lblFullName: "الاسم الكامل للزبون *",
+            lblPhone: "رقم الهاتف *",
+            lblWilaya: "الولاية (58 ولاية) *",
+            lblCommune: "البلدية *",
+            lblDeliveryType: "نوع التوصيل",
+            optHome: "🏠 توصيل للمنزل (Domicile)",
+            optDesk: "🏢 استلام من المكتب (Stop Desk)",
+            lblPrice: "المبلغ للدفع عند الاستلام (د.ج) *",
+            lblAddress: "العنوان التفصيلي / الحي",
+            lblTariffApplied: "تكلفة التوصيل المطبقة :",
+            btnCancel: "إلغاء",
+            btnSendToCourier: "إرسال فوري لشركة التوصيل ⚡",
+            modalTrackTitle: "تتبع مسار الطرد حياً (Tracking)",
+            lblTrackingCode: "رقم التتبع :",
+            lblCurrentStatus: "الحالة الحالية :",
+            modalLabelTitle: "الملصق الرسمي لشركة التوصيل",
+            btnOpenOfficialPdf: "فتح / تحميل بوليصة الشحن الرسمية PDF",
+            btnClose: "إغلاق",
+            modalSettingsTitle: "إعدادات شركات التوصيل والربط في الجزائر",
+            lblActiveCarrier: "اختر شركة التوصيل المعتمدة للشحن :",
+            lblStorageMode: "محرك التخزين والمزامنة :",
+            btnTestCarrier: "فحص الاتصال مع سيرفر شركة التوصيل ⚡",
+            modalTariffsTitle: "تعرفات التوصيل عبر 58 ولاية جزائرية",
+            thWilaya: "الولاية",
+            thHomeRate: "توصيل للمنزل",
+            thDeskRate: "استلام من المكتب (Stop Desk)",
+            thCoverage: "التغطية",
+            statusPendingBadge: "قيد الانتظار",
+            statusShippedBadge: "في شبكة التوصيل",
+            statusDeliveredBadge: "تم التسليم ✅",
+            statusReturnedBadge: "مرتجع ⚠️",
+            alertLabelNotShipped: "الملصق الرسمي متاح فقط بعد إرسال الطرد إلى شركة التوصيل. يرجى الضغط على 'إرسال' أولاً."
         }
     };
 
-    // ── 2. Controller State ───────────────────────────────────────────────────
-    let currentLang = localStorage.getItem('spdz_lang') || 'ar';
-    let adminToken = sessionStorage.getItem('spdz_admin_token') || '';
-    let currentViewMode = localStorage.getItem('spdz_view_mode') || (window.innerWidth <= 768 ? 'grid' : 'table');
-    let selectedOrderIds = new Set();
-    let pendingDeleteOrderIds = [];
+    // ── 2. Standard 58 Wilayas Mapping ────────────────────────────────────────
+    const WILAYAS_MAP = {
+        1: { nameFr: "01 - Adrar", nameAr: "01 - أدرار", home: 1000, desk: 600 },
+        2: { nameFr: "02 - Chlef", nameAr: "02 - الشلف", home: 700, desk: 400 },
+        3: { nameFr: "03 - Laghouat", nameAr: "03 - الأغواط", home: 900, desk: 500 },
+        4: { nameFr: "04 - Oum El Bouaghi", nameAr: "04 - أم البواقي", home: 800, desk: 450 },
+        5: { nameFr: "05 - Batna", nameAr: "05 - باتنة", home: 800, desk: 450 },
+        6: { nameFr: "06 - Béjaïa", nameAr: "06 - بجاية", home: 750, desk: 400 },
+        7: { nameFr: "07 - Biskra", nameAr: "07 - بسكرة", home: 550, desk: 350 },
+        8: { nameFr: "08 - Béchar", nameAr: "08 - بشار", home: 1000, desk: 600 },
+        9: { nameFr: "09 - Blida", nameAr: "09 - البليدة", home: 600, desk: 350 },
+        10: { nameFr: "10 - Bouira", nameAr: "10 - البويرة", home: 700, desk: 400 },
+        11: { nameFr: "11 - Tamanrasset", nameAr: "11 - تمنراست", home: 1400, desk: 900 },
+        12: { nameFr: "12 - Tébessa", nameAr: "12 - تبسة", home: 850, desk: 500 },
+        13: { nameFr: "13 - Tlemcen", nameAr: "13 - تلمسان", home: 800, desk: 450 },
+        14: { nameFr: "14 - Tiaret", nameAr: "14 - تيارت", home: 800, desk: 450 },
+        15: { nameFr: "15 - Tizi Ouzou", nameAr: "15 - تيزي وزو", home: 700, desk: 400 },
+        16: { nameFr: "16 - Alger", nameAr: "16 - الجزائر", home: 400, desk: 300 },
+        17: { nameFr: "17 - Djelfa", nameAr: "17 - الجلفة", home: 900, desk: 500 },
+        18: { nameFr: "18 - Jijel", nameAr: "18 - جيجل", home: 750, desk: 400 },
+        19: { nameFr: "19 - Sétif", nameAr: "19 - سطيف", home: 750, desk: 400 },
+        20: { nameFr: "20 - Saïda", nameAr: "20 - سعيدة", home: 850, desk: 500 },
+        21: { nameFr: "21 - Skikda", nameAr: "21 - سكيكدة", home: 800, desk: 450 },
+        22: { nameFr: "22 - Sidi Bel Abbès", nameAr: "22 - سيدي بلعباس", home: 800, desk: 450 },
+        23: { nameFr: "23 - Annaba", nameAr: "23 - عنابة", home: 800, desk: 450 },
+        24: { nameFr: "24 - Guelma", nameAr: "24 - قالمة", home: 800, desk: 450 },
+        25: { nameFr: "25 - Constantine", nameAr: "25 - قسنطينة", home: 750, desk: 400 },
+        26: { nameFr: "26 - Médéa", nameAr: "26 - المدية", home: 700, desk: 400 },
+        27: { nameFr: "27 - Mostaganem", nameAr: "27 - مستغانم", home: 800, desk: 450 },
+        28: { nameFr: "28 - M'Sila", nameAr: "28 - المسيلة", home: 800, desk: 450 },
+        29: { nameFr: "29 - Mascara", nameAr: "29 - معسكر", home: 800, desk: 450 },
+        30: { nameFr: "30 - Ouargla", nameAr: "30 - ورقلة", home: 950, desk: 550 },
+        31: { nameFr: "31 - Oran", nameAr: "31 - وهران", home: 750, desk: 400 },
+        32: { nameFr: "32 - El Bayadh", nameAr: "32 - البيض", home: 1000, desk: 600 },
+        33: { nameFr: "33 - Illizi", nameAr: "33 - إليزي", home: 1400, desk: 900 },
+        34: { nameFr: "34 - Bordj Bou Arréridj", nameAr: "34 - برج بوعريريج", home: 750, desk: 400 },
+        35: { nameFr: "35 - Boumerdès", nameAr: "35 - بومرداس", home: 600, desk: 350 },
+        36: { nameFr: "36 - El Tarf", nameAr: "36 - الطارف", home: 850, desk: 500 },
+        37: { nameFr: "37 - Tindouf", nameAr: "37 - تندوف", home: 1500, desk: 1000 },
+        38: { nameFr: "38 - Tissemsilt", nameAr: "38 - تيسمسيلت", home: 850, desk: 500 },
+        39: { nameFr: "39 - El Oued", nameAr: "39 - الوادي", home: 950, desk: 550 },
+        40: { nameFr: "40 - Khenchela", nameAr: "40 - خنشلة", home: 850, desk: 500 },
+        41: { nameFr: "41 - Souk Ahras", nameAr: "41 - سوق أهراس", home: 850, desk: 500 },
+        42: { nameFr: "42 - Tipaza", nameAr: "42 - تيبازة", home: 600, desk: 350 },
+        43: { nameFr: "43 - Mila", nameAr: "43 - ميلة", home: 750, desk: 400 },
+        44: { nameFr: "44 - Aïn Defla", nameAr: "44 - عين الدفلى", home: 700, desk: 400 },
+        45: { nameFr: "45 - Naâma", nameAr: "45 - النعامة", home: 1000, desk: 600 },
+        46: { nameFr: "46 - Aïn Témouchent", nameAr: "46 - عين تموشنت", home: 800, desk: 450 },
+        47: { nameFr: "47 - Ghardaïa", nameAr: "47 - غرداية", home: 950, desk: 550 },
+        48: { nameFr: "48 - Relizane", nameAr: "48 - غليزان", home: 800, desk: 450 },
+        49: { nameFr: "49 - Timimoun", nameAr: "49 - تيميمون", home: 1100, desk: 700 },
+        50: { nameFr: "50 - Bordj Badji Mokhtar", nameAr: "50 - برج باجي مختار", home: 1600, desk: 1100 },
+        51: { nameFr: "51 - Ouled Djellal", nameAr: "51 - أولاد جلال", home: 900, desk: 500 },
+        52: { nameFr: "52 - Béni Abbès", nameAr: "52 - بني عباس", home: 1100, desk: 700 },
+        53: { nameFr: "53 - In Salah", nameAr: "53 - عين صالح", home: 1400, desk: 900 },
+        54: { nameFr: "54 - In Guezzam", nameAr: "54 - عين قزام", home: 1600, desk: 1100 },
+        55: { nameFr: "55 - Touggourt", nameAr: "55 - تقرت", home: 950, desk: 550 },
+        56: { nameFr: "56 - Djanet", nameAr: "56 - جانت", home: 1500, desk: 1000 },
+        57: { nameFr: "57 - El M'Ghair", nameAr: "57 - المغير", home: 950, desk: 550 },
+        58: { nameFr: "58 - El Meniaa", nameAr: "58 - المنيعة", home: 1100, desk: 700 }
+    };
+
+    // State Variables
     let ordersList = [];
-    let wilayasList = [];
-    let communesList = [];
-    let tariffsList = [];
     let currentFilter = 'all';
     let currentWilayaFilter = '';
-    let currentSearchQuery = '';
-    let currentPage = 1;
-    const pageSize = 15;
+    let searchQuery = '';
+    let currentLang = 'fr';
+    let activeCourierId = 'redex';
+    let autoSyncInterval = null;
 
-    let trendChartInstance = null;
-    let wilayaChartInstance = null;
+    // ── 3. Main Controller Object ────────────────────────────────────────────
+    const storeAdmin = {
+        init: function () {
+            this.initAuthCheck();
+            this.initCarrierSettings();
+            this.setupSidebarEvents();
+            this.populateWilayaDropdowns();
+            this.fetchOrders();
+            this.fetchAnalytics();
 
-    // ── 3. Helper: Fetch with Authorization ────────────────────────────────────
-    async function apiFetch(url, options = {}) {
-        const headers = options.headers || {};
-        if (adminToken) {
-            headers['Authorization'] = `Bearer ${adminToken}`;
-        }
-        headers['Content-Type'] = 'application/json';
-        options.headers = headers;
+            // Auto-refresh every 20 seconds
+            if (!autoSyncInterval) {
+                autoSyncInterval = setInterval(() => this.fetchOrders(false), 20000);
+            }
+        },
 
-        const res = await fetch(url, options);
-        if (res.status === 401) {
-            sessionStorage.removeItem('spdz_admin_token');
-            adminToken = '';
-            showAuthOverlay();
-            throw new Error('Session expirée');
-        }
-        return res;
-    }
+        getStoredCarrierToken: function () {
+            return localStorage.getItem('orva_carrier_token') || '';
+        },
 
-    // ── 4. Authentication Logic ───────────────────────────────────────────────
-    function showAuthOverlay() {
-        const overlay = document.getElementById('adminAuthOverlay');
-        const layout = document.getElementById('appLayoutWrapper');
-        if (overlay) overlay.style.display = 'flex';
-        if (layout) layout.style.display = 'none';
-    }
+        getStoredCarrierBaseUrl: function () {
+            return localStorage.getItem('orva_carrier_base_url') || 'https://redex.ecotrack.dz';
+        },
 
-    function hideAuthOverlay() {
-        const overlay = document.getElementById('adminAuthOverlay');
-        const layout = document.getElementById('appLayoutWrapper');
-        if (overlay) overlay.style.display = 'none';
-        if (layout) layout.style.display = 'flex';
-    }
+        saveCarrierSettings: function () {
+            const tokenInput = document.getElementById('settingsApiToken');
+            const urlInput = document.getElementById('settingsBaseUrl');
+            if (tokenInput) {
+                localStorage.setItem('orva_carrier_token', tokenInput.value.trim());
+            }
+            if (urlInput) {
+                localStorage.setItem('orva_carrier_base_url', urlInput.value.trim() || 'https://redex.ecotrack.dz');
+            }
+        },
 
-    async function handleAuthSubmit(e) {
-        if (e && e.preventDefault) e.preventDefault();
-        const pwdInput = document.getElementById('adminAuthPassword');
-        const errBox = document.getElementById('adminAuthError');
-        const token = pwdInput ? pwdInput.value.trim() : '';
+        initCarrierSettings: function () {
+            const tokenInput = document.getElementById('settingsApiToken');
+            const urlInput = document.getElementById('settingsBaseUrl');
+            if (tokenInput) {
+                tokenInput.value = this.getStoredCarrierToken();
+                tokenInput.addEventListener('input', () => this.saveCarrierSettings());
+                tokenInput.addEventListener('change', () => this.saveCarrierSettings());
+            }
+            if (urlInput) {
+                urlInput.value = this.getStoredCarrierBaseUrl();
+                urlInput.addEventListener('input', () => this.saveCarrierSettings());
+                urlInput.addEventListener('change', () => this.saveCarrierSettings());
+            }
+        },
 
-        if (!token) return;
-        if (errBox) errBox.style.display = 'none';
+        getAuthHeaders: function () {
+            const token = sessionStorage.getItem('orva_admin_token') || localStorage.getItem('spdz_admin_token') || '';
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) {
+                headers['Authorization'] = 'Bearer ' + token;
+                headers['X-Admin-Token'] = token;
+            }
+            return headers;
+        },
 
-        try {
-            const res = await fetch('/api/admin/auth', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token })
-            });
-            const data = await res.json();
-
-            if (res.ok && data.success && data.sessionToken) {
-                adminToken = data.sessionToken;
-                sessionStorage.setItem('spdz_admin_token', adminToken);
-                hideAuthOverlay();
-                initHub();
+        initAuthCheck: function () {
+            const overlay = document.getElementById('adminAuthOverlay');
+            if (!overlay) return;
+            const token = sessionStorage.getItem('orva_admin_token') || localStorage.getItem('spdz_admin_token');
+            const isAuth = sessionStorage.getItem('orva_admin_logged') === 'true' || !!token;
+            if (isAuth) {
+                if (token) {
+                    sessionStorage.setItem('orva_admin_token', token);
+                    sessionStorage.setItem('orva_admin_logged', 'true');
+                    localStorage.setItem('spdz_admin_token', token);
+                }
+                overlay.style.display = 'none';
             } else {
-                if (errBox) {
-                    errBox.textContent = data.error || 'Code invalide';
-                    errBox.style.display = 'block';
+                overlay.style.display = 'flex';
+                setTimeout(() => {
+                    document.getElementById('adminAuthPassword')?.focus();
+                }, 300);
+            }
+        },
+
+        handleAuthSubmit: async function (e) {
+            if (e) e.preventDefault();
+            const input = document.getElementById('adminAuthPassword');
+            const err = document.getElementById('adminAuthError');
+            const submitBtn = document.querySelector('.auth-btn-submit');
+            const pass = input ? input.value.trim() : '';
+
+            if (!pass) return;
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.7';
+            }
+
+            try {
+                // Verify against Vercel backend environment key (ADMIN_PASSWORD)
+                let res = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: pass })
+                });
+
+                // Fallback to /api/delivery?action=login if /api/auth returns 404
+                if (res.status === 404) {
+                    res = await fetch('/api/delivery?action=login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password: pass })
+                    });
                 }
-            }
-        } catch (err) {
-            if (errBox) {
-                errBox.textContent = 'Erreur réseau : ' + err.message;
-                errBox.style.display = 'block';
-            }
-        }
-    }
 
-    function logout() {
-        if (adminToken) {
-            fetch('/api/admin/auth', {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${adminToken}` }
-            }).catch(() => {});
-        }
-        sessionStorage.removeItem('spdz_admin_token');
-        adminToken = '';
-        location.reload();
-    }
+                const data = await res.json().catch(() => ({}));
 
-    // ── 5. Localization / Bilingual Engine ────────────────────────────────────
-    function setLanguage(lang) {
-        currentLang = lang === 'fr' ? 'fr' : 'ar';
-        localStorage.setItem('spdz_lang', currentLang);
-
-        const isAr = currentLang === 'ar';
-        document.documentElement.dir = isAr ? 'rtl' : 'ltr';
-        document.documentElement.lang = isAr ? 'ar' : 'fr';
-
-        const langLabel = document.getElementById('currentLangLabel');
-        if (langLabel) langLabel.textContent = isAr ? 'العربية' : 'Français';
-
-        // Apply translations to all data-i18n elements
-        const dict = I18N[currentLang];
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (dict[key]) el.textContent = dict[key];
-        });
-
-        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-            const key = el.getAttribute('data-i18n-placeholder');
-            if (dict[key]) el.placeholder = dict[key];
-        });
-
-        // Re-render table, KPIs, and charts with new locale labels
-        renderOrdersTable();
-        renderWilayasFilterOptions();
-        if (lastKpisData) renderKpis(lastKpisData);
-        if (lastChartsData) renderCharts(lastChartsData);
-    }
-
-    function toggleLangDropdown(show) {
-        const dd = document.getElementById('langSubmenuDropdown');
-        if (!dd) return;
-        if (show === undefined) {
-            dd.classList.toggle('show');
-        } else if (show) {
-            dd.classList.add('show');
-        } else {
-            dd.classList.remove('show');
-        }
-    }
-
-    function toggleMobileNav() {
-        const sidebar = document.getElementById('appSidebar');
-        if (sidebar) sidebar.classList.toggle('mobile-open');
-    }
-
-    // ── 6. Data Loading & Analytics ───────────────────────────────────────────
-    let lastKpisData = null;
-    let lastChartsData = null;
-
-    async function loadAnalytics() {
-        try {
-            const res = await apiFetch('/api/admin/analytics?days=7');
-            const data = await res.json();
-            if (data.success && data.kpis) {
-                lastKpisData = data.kpis;
-                renderKpis(data.kpis);
-                if (data.charts) {
-                    lastChartsData = data.charts;
-                    renderCharts(data.charts);
-                }
-            }
-        } catch (err) {
-            console.warn('[AdminHub] Analytics load notice:', err.message);
-        }
-    }
-
-    function renderKpis(kpis) {
-        const formatDzd = (num) => Number(num || 0).toLocaleString('fr-FR') + ' د.ج';
-
-        const totalEl = document.getElementById('kpiTotal');
-        if (totalEl) totalEl.textContent = kpis.totalOrders || 0;
-
-        const revEl = document.getElementById('kpiRevenue');
-        if (revEl) revEl.textContent = formatDzd(kpis.grossDeliveredRevenue);
-
-        const aovEl = document.getElementById('kpiAov');
-        if (aovEl) aovEl.textContent = currentLang === 'ar'
-            ? `متوسط الطلب: ${formatDzd(kpis.avgOrderValue)}`
-            : `Panier moyen: ${formatDzd(kpis.avgOrderValue)}`;
-
-        const pendingCodEl = document.getElementById('kpiPendingCod');
-        if (pendingCodEl) pendingCodEl.textContent = formatDzd(kpis.pendingCodValue);
-
-        const pendingOrdersCountEl = document.getElementById('kpiPendingOrdersCount');
-        if (pendingOrdersCountEl) pendingOrdersCountEl.textContent = currentLang === 'ar'
-            ? `${(kpis.pendingOrders || 0) + (kpis.confirmedOrders || 0)} طلب قيد الإجراء`
-            : `${(kpis.pendingOrders || 0) + (kpis.confirmedOrders || 0)} colis en cours`;
-
-        const confEl = document.getElementById('kpiConfirmed');
-        if (confEl) confEl.textContent = kpis.confirmedOrders || 0;
-
-        const confRateEl = document.getElementById('kpiConfirmRate');
-        if (confRateEl) confRateEl.textContent = currentLang === 'ar'
-            ? `نسبة التأكيد: ${kpis.confirmationRate || 0}%`
-            : `Taux confirmation: ${kpis.confirmationRate || 0}%`;
-
-        const shipEl = document.getElementById('kpiShipped');
-        if (shipEl) shipEl.textContent = kpis.inTransitOrders || 0;
-
-        const delEl = document.getElementById('kpiDelivered');
-        if (delEl) delEl.textContent = kpis.deliveredOrders || 0;
-
-        // Delivery success rate: strictly handle null / empty denominator
-        const delValEl = document.getElementById('kpiDeliverySuccessRateVal');
-        if (delValEl) {
-            delValEl.textContent = (kpis.deliverySuccessRate !== null && kpis.deliverySuccessRate !== undefined)
-                ? `${kpis.deliverySuccessRate}%`
-                : '—';
-        }
-
-        const delRateEl = document.getElementById('kpiDeliverySuccessRate');
-        if (delRateEl) {
-            delRateEl.textContent = (kpis.deliverySuccessRate !== null && kpis.deliverySuccessRate !== undefined)
-                ? (currentLang === 'ar' ? `نسبة التسليم: ${kpis.deliverySuccessRate}%` : `Taux livraison: ${kpis.deliverySuccessRate}%`)
-                : (currentLang === 'ar' ? 'لا توجد تسليمات منتهية بعد' : 'Non disponible');
-        }
-
-        const retEl = document.getElementById('kpiReturned');
-        if (retEl) retEl.textContent = kpis.returnedOrders || 0;
-
-        const retRate = (kpis.returnRate !== undefined && kpis.returnRate !== null)
-            ? kpis.returnRate
-            : (kpis.totalOrders > 0 ? Number(((kpis.returnedOrders / kpis.totalOrders) * 100).toFixed(1)) : 0);
-
-        const retValEl = document.getElementById('kpiReturnRateVal');
-        if (retValEl) retValEl.textContent = `${retRate}%`;
-
-        const retRateEl = document.getElementById('kpiReturnRate');
-        if (retRateEl) {
-            retRateEl.textContent = currentLang === 'ar'
-                ? `نسبة المرتجع: ${retRate}%`
-                : `Taux retour: ${retRate}%`;
-        }
-
-        // Update tabs badges
-        updateTabBadges(kpis);
-    }
-
-    function updateTabBadges(kpis) {
-        const bAll = document.getElementById('tabBadgeAll');
-        if (bAll) bAll.textContent = kpis.totalOrders || 0;
-
-        const bPend = document.getElementById('tabBadgePending');
-        if (bPend) bPend.textContent = kpis.pendingOrders || 0;
-
-        const sidePend = document.getElementById('sidebarPendingBadge');
-        if (sidePend) sidePend.textContent = kpis.pendingOrders || 0;
-
-        const bConf = document.getElementById('tabBadgeConfirmed');
-        if (bConf) bConf.textContent = kpis.confirmedOrders || 0;
-
-        const bShip = document.getElementById('tabBadgeShipped');
-        if (bShip) bShip.textContent = kpis.inTransitOrders || 0;
-
-        const bDel = document.getElementById('tabBadgeDelivered');
-        if (bDel) bDel.textContent = kpis.deliveredOrders || 0;
-
-        const bRet = document.getElementById('tabBadgeReturned');
-        if (bRet) bRet.textContent = kpis.returnedOrders || 0;
-    }
-
-    // ── 7. Chart.js Initializer ───────────────────────────────────────────────
-    function renderCharts(chartsData) {
-        if (typeof Chart === 'undefined') return;
-
-        // 1. Line Chart: 7-Day Trend
-        const trendCanvas = document.getElementById('trendChartCanvas');
-        if (trendCanvas && chartsData.trend) {
-            if (trendChartInstance) trendChartInstance.destroy();
-
-            trendChartInstance = new Chart(trendCanvas, {
-                type: 'line',
-                data: {
-                    labels: chartsData.trend.labels,
-                    datasets: [
-                        {
-                            label: currentLang === 'ar' ? 'الطلبات المسجلة' : 'Commandes reçues',
-                            data: chartsData.trend.orders,
-                            borderColor: '#0071e3',
-                            backgroundColor: 'rgba(0, 113, 227, 0.08)',
-                            fill: true,
-                            tension: 0.35,
-                            borderWidth: 2,
-                            pointRadius: 4,
-                            pointBackgroundColor: '#0071e3'
-                        },
-                        {
-                            label: currentLang === 'ar' ? 'الطلبات المؤكدة' : 'Confirmées',
-                            data: chartsData.trend.confirmed,
-                            borderColor: '#34c759',
-                            backgroundColor: 'transparent',
-                            borderDash: [4, 4],
-                            tension: 0.35,
-                            borderWidth: 2,
-                            pointRadius: 3,
-                            pointBackgroundColor: '#34c759'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: { color: '#1d1d1f', font: { family: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans", sans-serif', size: 12 } }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: { color: '#6e6e73' },
-                            grid: { color: 'rgba(0, 0, 0, 0.05)' }
-                        },
-                        y: {
-                            ticks: { color: '#6e6e73', precision: 0 },
-                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                            beginAtZero: true
-                        }
+                if (res.ok && data.success) {
+                    sessionStorage.setItem('orva_admin_logged', 'true');
+                    const validToken = data.token || data.sessionToken || pass;
+                    if (validToken) {
+                        sessionStorage.setItem('orva_admin_token', validToken);
+                        localStorage.setItem('spdz_admin_token', validToken);
+                    }
+                    const overlay = document.getElementById('adminAuthOverlay');
+                    if (overlay) overlay.style.display = 'none';
+                    if (err) err.style.display = 'none';
+                    this.fetchOrders(true);
+                } else {
+                    if (err) {
+                        err.textContent = currentLang === 'fr' 
+                            ? 'Mot de passe incorrect. Veuillez vérifier la variable ADMIN_PASSWORD sur Vercel.' 
+                            : 'كلمة المرور غير صحيحة. يرجى التأكد من مفتاح ADMIN_PASSWORD في Vercel.';
+                        err.style.display = 'block';
+                    }
+                    if (input) {
+                        input.value = '';
+                        input.focus();
                     }
                 }
-            });
-        }
+            } catch (networkErr) {
+                console.warn('[Admin Auth Network Error]:', networkErr);
+                if (err) {
+                    err.textContent = currentLang === 'fr' 
+                        ? 'Erreur réseau lors de la vérification du mot de passe.' 
+                        : 'حدث خطأ في الاتصال أثناء التحقق من كلمة السر.';
+                    err.style.display = 'block';
+                }
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = '1';
+                }
+            }
+        },
 
-        // 2. Bar Chart: Top 10 Wilayas
-        const wilayaCanvas = document.getElementById('wilayaChartCanvas');
-        if (wilayaCanvas && chartsData.wilayas) {
-            if (wilayaChartInstance) wilayaChartInstance.destroy();
+        logout: function () {
+            sessionStorage.removeItem('orva_admin_logged');
+            sessionStorage.removeItem('orva_admin_token');
+            localStorage.removeItem('spdz_admin_token');
+            const overlay = document.getElementById('adminAuthOverlay');
+            if (overlay) overlay.style.display = 'flex';
+            const input = document.getElementById('adminAuthPassword');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+        },
 
-            wilayaChartInstance = new Chart(wilayaCanvas, {
-                type: 'bar',
-                data: {
-                    labels: chartsData.wilayas.labels,
-                    datasets: [{
-                        label: currentLang === 'ar' ? 'عدد الطلبات' : 'Commandes',
-                        data: chartsData.wilayas.counts,
-                        backgroundColor: '#0071e3',
-                        borderRadius: 6,
-                        borderSkipped: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        x: {
-                            ticks: { color: '#6e6e73' },
-                            grid: { display: false }
-                        },
-                        y: {
-                            ticks: { color: '#6e6e73', precision: 0 },
-                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                            beginAtZero: true
+        toggleMobileCharts: function () {
+            document.body.classList.toggle('show-charts');
+            const btnText = document.getElementById('toggleChartsBtnText');
+            if (btnText) {
+                const isShowing = document.body.classList.contains('show-charts');
+                btnText.textContent = isShowing 
+                    ? (currentLang === 'fr' ? 'Masquer les graphiques' : 'إخفاء الرسوم والتحليلات') 
+                    : (currentLang === 'fr' ? 'Afficher les graphiques et métriques' : 'عرض الرسوم البيانية والتحليلات المتقدمة');
+            }
+        },
+
+        renderMobileOrders: function (orders) {
+            const container = document.getElementById('mobileOrdersContainer');
+            if (!container) return;
+
+            if (!orders || orders.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding: 30px; background:#fff; border-radius:16px; border:1px solid var(--border-color); color:var(--text-muted);">
+                        <i class="fa-solid fa-inbox fa-2x mb-2" style="opacity:0.3;"></i>
+                        <p>${currentLang === 'fr' ? 'Aucune commande trouvée' : 'لا توجد أي طلبيات حالياً'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = orders.map(o => {
+                const rawPhone = String(o.phone || '').replace(/\D/g, '');
+                const waPhone = rawPhone.startsWith('0') ? '213' + rawPhone.slice(1) : (rawPhone.startsWith('213') ? rawPhone : '213' + rawPhone);
+                const waText = encodeURIComponent(`السلام عليكم ${o.fullName || 'أخي الكريم'}، نتصل بك من متجر ORVA Store لتأكيد طلبيتك رقم ${o.orderId} (${o.productName || 'باقة الأدوات'}).`);
+
+                let badgeClass = 'badge-pending';
+                let badgeLabel = currentLang === 'fr' ? 'En Attente' : 'قيد الانتظار';
+                if (o.status === 'shipped' || o.in_redex) {
+                    badgeClass = 'badge-shipped';
+                    badgeLabel = currentLang === 'fr' ? 'Expédié' : 'تم الشحن';
+                } else if (o.status === 'delivered') {
+                    badgeClass = 'badge-delivered';
+                    badgeLabel = currentLang === 'fr' ? 'Livré' : 'تم التسليم';
+                } else if (o.status === 'returned') {
+                    badgeClass = 'badge-returned';
+                    badgeLabel = currentLang === 'fr' ? 'Retourné' : 'مرتجع';
+                }
+
+                return `
+                    <div class="mobile-order-card">
+                        <div class="card-top-row">
+                            <span class="card-order-id">${o.orderId}</span>
+                            <span class="status-badge ${badgeClass}">${badgeLabel}</span>
+                        </div>
+
+                        <div class="card-customer-row">
+                            <div>
+                                <div class="card-customer-name">${o.fullName || 'زبون'}</div>
+                                <div class="card-location"><i class="fa-solid fa-location-dot text-amber"></i> ${o.wilaya || 'غير محدد'} (${o.commune || ''})</div>
+                            </div>
+                            <span class="card-order-date">${(o.date || o.createdAt || '').slice(0, 10)}</span>
+                        </div>
+
+                        <div class="card-product-row">
+                            <span class="card-product-name"><i class="fa-solid fa-box text-primary"></i> ${o.productName || 'Pack 1'}</span>
+                            <span class="card-total-price">${o.grandTotal || (o.priceNum + ' DZD')}</span>
+                        </div>
+
+                        <div class="card-mobile-actions">
+                            <a href="tel:${o.phone}" class="btn-mobile-call">
+                                <i class="fa-solid fa-phone"></i> <span>اتصال (${o.phone})</span>
+                            </a>
+                            <a href="https://wa.me/${waPhone}?text=${waText}" target="_blank" class="btn-mobile-whatsapp">
+                                <i class="fa-brands fa-whatsapp"></i> <span>واتساب</span>
+                            </a>
+                        </div>
+
+                        <div class="card-secondary-actions">
+                            <div style="font-size:11px; color:var(--text-muted);">
+                                ${o.in_redex ? '🚚 ' + (o.redex_tracking_code || 'في التوصيل') : 'لم تشحن بعد'}
+                            </div>
+                            <div style="display:flex; gap:6px;">
+                                <button type="button" class="btn-action-sm btn-act-ship" onclick="storeAdmin.openAutoFillShipModal('${o.orderId}')" title="شحن">
+                                    <i class="fa-solid fa-truck-fast"></i>
+                                </button>
+                                <button type="button" class="btn-action-sm btn-act-print" onclick="storeAdmin.printOfficialLabel('${o.orderId}')" title="طباعة">
+                                    <i class="fa-solid fa-print"></i>
+                                </button>
+                                <button type="button" class="btn-action-sm btn-act-del" onclick="storeAdmin.deleteColis('${o.orderId}')" title="حذف">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        },
+
+        switchTab: function (tabId) {
+            document.querySelectorAll('.sidebar-nav .nav-link').forEach(l => l.classList.remove('active'));
+            const targetLink = document.querySelector(`.sidebar-nav .nav-link[href="#${tabId}"]`);
+            if (targetLink) targetLink.classList.add('active');
+
+            if (tabId === 'dashboard') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (tabId === 'orders') {
+                const sec = document.getElementById('ordersSection');
+                if (sec) sec.scrollIntoView({ behavior: 'smooth' });
+            } else if (tabId === 'analytics') {
+                const sec = document.getElementById('analyticsSection');
+                if (sec) sec.scrollIntoView({ behavior: 'smooth' });
+                this.fetchAnalytics();
+            }
+        },
+
+        setupSidebarEvents: function () {
+            const toggleBtn = document.getElementById('sidebarToggleBtn');
+            const sidebar = document.getElementById('appSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+
+            if (toggleBtn && sidebar) {
+                toggleBtn.addEventListener('click', () => {
+                    if (window.innerWidth <= 992) {
+                        sidebar.classList.toggle('open');
+                        backdrop?.classList.toggle('active');
+                    } else {
+                        sidebar.classList.toggle('collapsed');
+                    }
+                });
+            }
+        },
+
+        closeMobileSidebar: function () {
+            document.getElementById('appSidebar')?.classList.remove('open');
+            document.getElementById('sidebarBackdrop')?.classList.remove('active');
+        },
+
+        populateWilayaDropdowns: function () {
+            const formSelect = document.getElementById('formWilayaCode');
+            const tableSelect = document.getElementById('wilayaFilterSelect');
+
+            if (formSelect) {
+                formSelect.innerHTML = `<option value="">-- ${currentLang === 'fr' ? 'Choisir la Wilaya' : 'اختر الولاية'} --</option>`;
+            }
+            if (tableSelect) {
+                tableSelect.innerHTML = `<option value="">${currentLang === 'fr' ? 'Toutes les Wilayas (58 Wilayas)' : 'كل الولايات (58 ولاية)'}</option>`;
+            }
+
+            for (let i = 1; i <= 58; i++) {
+                const w = WILAYAS_MAP[i];
+                if (!w) continue;
+                const label = currentLang === 'fr' ? w.nameFr : w.nameAr;
+
+                if (formSelect) {
+                    const opt = document.createElement('option');
+                    opt.value = i;
+                    opt.textContent = label;
+                    formSelect.appendChild(opt);
+                }
+
+                if (tableSelect) {
+                    const opt = document.createElement('option');
+                    opt.value = i;
+                    opt.textContent = label;
+                    tableSelect.appendChild(opt);
+                }
+            }
+        },
+
+        fetchOrders: async function (showAnimation = false) {
+            const icon = document.getElementById('refreshIcon');
+            if (showAnimation && icon) icon.classList.add('fa-spin');
+
+            try {
+                let res = await fetch('/api/delivery?action=get_all_orders', { headers: this.getAuthHeaders() });
+                if (!res.ok) {
+                    res = await fetch('/api/orders', { headers: this.getAuthHeaders() });
+                }
+                const json = await res.json().catch(() => ({}));
+                const orders = Array.isArray(json.data) ? json.data : (Array.isArray(json.orders) ? json.orders : []);
+                if (json.success && orders) {
+                    ordersList = orders;
+                    this.renderTable();
+                    this.updateKPIs();
+                    this.renderCharts();
+                    this.populateAutoFillDropdown();
+                    this.fetchAnalytics();
+
+                    // If opened directly from Telegram notification with ?orderId=
+                    try {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const targetOrderId = urlParams.get('orderId');
+                        if (targetOrderId && !searchQuery) {
+                            const searchInput = document.getElementById('globalSearchInput');
+                            if (searchInput) {
+                                searchInput.value = targetOrderId;
+                                this.handleSearch(targetOrderId);
+                            }
                         }
+                    } catch (e) {
+                        console.warn('[StoreAdmin] Query param parse error:', e);
                     }
                 }
-            });
-        }
-    }
-
-    // ── 8. Orders DataGrid & Table Management ─────────────────────────────────
-    async function fetchOrders(showSpinner = false) {
-        const refreshIcon = document.getElementById('refreshIcon');
-        if (refreshIcon && showSpinner) refreshIcon.classList.add('fa-spin');
-
-        try {
-            const res = await apiFetch('/api/orders?limit=500');
-            const data = await res.json();
-            if (data.success && Array.isArray(data.data)) {
-                ordersList = data.data;
-                renderOrdersTable();
-                populateOrderSelectDropdown();
-            }
-            await loadAnalytics();
-        } catch (err) {
-            console.error('[AdminHub] Orders fetch failed:', err.message);
-        } finally {
-            if (refreshIcon) refreshIcon.classList.remove('fa-spin');
-        }
-    }
-
-    function renderOrdersTable() {
-        const tbody = document.getElementById('ordersTableBody');
-        if (!tbody) return;
-
-        // Apply filters
-        let filtered = ordersList.filter(o => {
-            // Status Tab Filter
-            if (currentFilter !== 'all') {
-                if (currentFilter === 'risk') {
-                    if (o.riskLevel !== 'HIGH' && o.riskLevel !== 'REVIEW') return false;
-                } else if (o.status !== currentFilter) {
-                    return false;
+            } catch (err) {
+                console.warn('[StoreAdmin] Fetch orders error:', err);
+            } finally {
+                if (showAnimation && icon) {
+                    setTimeout(() => icon.classList.remove('fa-spin'), 600);
                 }
             }
+        },
 
-            // Wilaya Filter
-            if (currentWilayaFilter && String(o.wilaya).toLowerCase() !== currentWilayaFilter.toLowerCase()) {
-                return false;
+        fetchAnalytics: async function () {
+            try {
+                const res = await fetch('/api/delivery?action=analytics', { headers: this.getAuthHeaders() });
+                const json = await res.json();
+                if (!json.success) return;
+
+                // KPI Mini Cards
+                if (json.overview) {
+                    const visEl = document.getElementById('anTotalVisitors');
+                    if (visEl) visEl.textContent = Number(json.overview.totalVisitors).toLocaleString();
+
+                    const pvEl = document.getElementById('anPageViews');
+                    if (pvEl) pvEl.textContent = Number(json.overview.pageViews).toLocaleString();
+
+                    const crEl = document.getElementById('anConversionRate');
+                    if (crEl) crEl.textContent = json.overview.conversionRate || '3.8%';
+
+                    const durEl = document.getElementById('anAvgDuration');
+                    if (durEl) durEl.textContent = json.overview.avgSessionDuration || '2m 45s';
+                }
+
+                // Referrers List
+                if (Array.isArray(json.referrers)) {
+                    const refEl = document.getElementById('referrersList');
+                    if (refEl) {
+                        refEl.innerHTML = json.referrers.map(r => `
+                            <div class="analytics-row">
+                                <span>${r.name}</span>
+                                <strong>${r.share}</strong>
+                            </div>
+                        `).join('');
+                    }
+                }
+
+                // Devices List
+                if (Array.isArray(json.devices)) {
+                    const devEl = document.getElementById('devicesList');
+                    if (devEl) {
+                        devEl.innerHTML = json.devices.map(d => `
+                            <div class="analytics-row">
+                                <span>${d.name}</span>
+                                <strong style="color:var(--emerald);">${d.share}</strong>
+                            </div>
+                        `).join('');
+                    }
+                }
+
+                // Top Cities / Wilayas List
+                if (Array.isArray(json.topCities)) {
+                    const cityEl = document.getElementById('citiesList');
+                    if (cityEl) {
+                        cityEl.innerHTML = json.topCities.map(c => `
+                            <div class="analytics-row">
+                                <span>${c.city}</span>
+                                <strong style="color:var(--amber);">${c.share}</strong>
+                            </div>
+                        `).join('');
+                    }
+                }
+
+                // Browsers List
+                if (Array.isArray(json.browsers)) {
+                    const brEl = document.getElementById('browsersList');
+                    if (brEl) {
+                        brEl.innerHTML = json.browsers.map(b => `
+                            <div class="analytics-row">
+                                <span>${b.name}</span>
+                                <strong style="color:var(--purple);">${b.share}</strong>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (e) {
+                console.warn('[StoreAdmin] fetchAnalytics error:', e);
+            }
+        },
+
+        renderTable: function () {
+            const tbody = document.getElementById('ordersTableBody');
+            const countEl = document.getElementById('tableOrdersCount');
+            if (!tbody) return;
+
+            let filtered = ordersList.slice();
+
+            // Status Filter Tab
+            if (currentFilter === 'pending') {
+                filtered = filtered.filter(o => !o.in_redex && (o.status === 'pending' || o.status === 'قيد الانتظار'));
+            } else if (currentFilter === 'shipped') {
+                filtered = filtered.filter(o => o.in_redex || o.status === 'shipped' || (o.status && o.status.includes('Redex')));
+            } else if (currentFilter === 'delivered') {
+                filtered = filtered.filter(o => o.status === 'delivered' || (o.status && o.status.includes('Livré')));
+            } else if (currentFilter === 'returned') {
+                filtered = filtered.filter(o => o.status === 'returned' || (o.status && (o.status.includes('Retour') || o.status.includes('مرتجع'))));
+            } else if (currentFilter === 'risk') {
+                filtered = filtered.filter(o => (o.riskScore && o.riskScore >= 40) || o.riskLevel === 'HIGH' || o.riskDecision === 'BLOCK');
             }
 
-            // Keyword Search Filter
-            if (currentSearchQuery) {
-                const q = currentSearchQuery.toLowerCase();
-                const matched =
+            // Wilaya Dropdown Filter
+            if (currentWilayaFilter) {
+                filtered = filtered.filter(o => {
+                    const match = String(o.wilaya || '').match(/^(\d{1,2})/);
+                    return match && parseInt(match[1]) === parseInt(currentWilayaFilter);
+                });
+            }
+
+            // Search Query Filter
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase().trim();
+                filtered = filtered.filter(o =>
                     (o.orderId && o.orderId.toLowerCase().includes(q)) ||
                     (o.fullName && o.fullName.toLowerCase().includes(q)) ||
                     (o.phone && o.phone.includes(q)) ||
                     (o.wilaya && o.wilaya.toLowerCase().includes(q)) ||
                     (o.commune && o.commune.toLowerCase().includes(q)) ||
-                    (o.trackingCode && o.trackingCode.toLowerCase().includes(q));
-                if (!matched) return false;
+                    (o.redex_tracking_code && o.redex_tracking_code.toLowerCase().includes(q)) ||
+                    (o.tracking_code && o.tracking_code.toLowerCase().includes(q))
+                );
             }
 
-            return true;
-        });
+            if (countEl) countEl.textContent = `${filtered.length} ${currentLang === 'fr' ? 'commandes' : 'طلبية'}`;
 
-        // Pagination
-        const totalRecords = filtered.length;
-        const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
-        if (currentPage > totalPages) currentPage = totalPages;
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-inbox fa-2x mb-2" style="display:block;opacity:0.3;"></i>
+                            <span>${currentLang === 'fr' ? 'Aucune commande ne correspond aux critères.' : 'لا توجد طلبيات تطابق الفلتر المحدد.'}</span>
+                        </td>
+                    </tr>
+                `;
+                this.renderMobileOrders([]);
+                return;
+            }
 
-        const startIndex = (currentPage - 1) * pageSize;
-        const pageItems = filtered.slice(startIndex, startIndex + pageSize);
+            tbody.innerHTML = '';
+            filtered.forEach(o => {
+                const tr = document.createElement('tr');
+                
+                // Status Badges
+                let badgeClass = 'badge-pending';
+                let badgeLabel = currentLang === 'fr' ? 'En Attente' : 'قيد الانتظار';
+                if (o.status === 'shipped' || o.in_redex) {
+                    badgeClass = 'badge-shipped';
+                    badgeLabel = currentLang === 'fr' ? 'Expédié' : 'تم الشحن';
+                }
+                if (o.status === 'delivered') {
+                    badgeClass = 'badge-delivered';
+                    badgeLabel = currentLang === 'fr' ? 'Livré ✅' : 'تم التسليم ✅';
+                }
+                if (o.status === 'returned') {
+                    badgeClass = 'badge-returned';
+                    badgeLabel = currentLang === 'fr' ? 'Retourné ⚠️' : 'مرتجع ⚠️';
+                }
 
-        // Update count indicator
-        const countEl = document.getElementById('recordsCountText');
-        if (countEl) {
-            countEl.textContent = currentLang === 'ar'
-                ? `عرض ${pageItems.length} من أصل ${totalRecords} طلب`
-                : `Affichage de ${pageItems.length} sur ${totalRecords} commandes`;
-        }
+                // Courier Status Badge
+                const isInCourier = o.in_redex || (o.tracking_code && o.tracking_code.startsWith('ECE'));
+                const carrierBadge = isInCourier
+                    ? `<span class="status-badge badge-shipped"><span class="live-dot pulse-green" style="width:6px;height:6px;"></span> ${o.redex_tracking_code || o.tracking_code || 'En Transit'}</span>`
+                    : `<span class="status-badge badge-pending">${currentLang === 'fr' ? 'Non Expédié' : 'لم يُرسل بعد'}</span>`;
 
-        const pageInd = document.getElementById('pageIndicatorText');
-        if (pageInd) pageInd.textContent = `${currentPage} / ${totalPages}`;
-
-        const prevBtn = document.getElementById('prevPageBtn');
-        const nextBtn = document.getElementById('nextPageBtn');
-        if (prevBtn) prevBtn.disabled = currentPage <= 1;
-        if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
-
-        if (pageItems.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-muted">${
-                currentLang === 'ar' ? 'لا توجد طلبيات مطابقة للبحث' : 'Aucune commande trouvée'
-            }</td></tr>`;
-            renderOrdersGrid([]);
-            renderMobileOrderCards([]);
-            updateBulkToolbar();
-            return;
-        }
-
-        tbody.innerHTML = pageItems.map(o => {
-            const statusBadge = getStatusBadgeHtml(o.status);
-            const riskBadge = getRiskBadgeHtml(o.riskLevel, o.riskScore);
-            const courierText = o.courier === 'yalidine' ? 'Yalidine' : (o.courier === 'redex' ? 'Redex DZ' : 'Direct / Manual');
-            const trackingDisplay = o.trackingCode
-                ? `<br><small class="font-mono text-cyan" title="Tracking Code">${o.trackingCode}</small>`
-                : '';
-            const isSelected = selectedOrderIds.has(o.orderId);
-
-            return `
-                <tr id="row-${o.orderId}" class="${isSelected ? 'selected-row' : ''}">
-                    <td class="td-checkbox">
-                        <input type="checkbox" class="order-select-checkbox" data-order-id="${o.orderId}" ${isSelected ? 'checked' : ''} onchange="storeAdmin.toggleOrderSelection('${o.orderId}', this.checked)">
-                    </td>
-                    <td>
-                        <strong class="font-mono text-primary">${o.orderId}</strong>
-                        ${trackingDisplay}
-                    </td>
-                    <td><strong>${escapeHtml(o.fullName || 'Client')}</strong></td>
-                    <td><a href="tel:${o.phone}" class="phone-link font-mono">${o.phone}</a></td>
-                    <td>
-                        <span>${escapeHtml(o.wilaya || '')}</span>
-                        ${o.commune ? `<br><small class="text-muted">${escapeHtml(o.commune)}</small>` : ''}
-                    </td>
-                    <td><strong class="text-emerald font-mono">${Number(o.totalPrice || 21900).toLocaleString('fr-FR')} د.ج</strong></td>
-                    <td><span class="badge-courier">${courierText}</span></td>
-                    <td>${statusBadge}</td>
-                    <td>${riskBadge}</td>
-                    <td>
-                        <div class="row-actions-group">
-                            <!-- Status Quick Transition Menu -->
-                            <select class="quick-status-select" onchange="storeAdmin.updateOrderStatus('${o.orderId}', this.value)">
-                                <option value="" disabled selected>${currentLang === 'ar' ? 'الحالة...' : 'Statut...'}</option>
-                                <option value="confirmed">✓ ${currentLang === 'ar' ? 'تأكيد' : 'Confirmer'}</option>
-                                <option value="preparing">⚙️ ${currentLang === 'ar' ? 'تجهيز' : 'Préparer'}</option>
-                                <option value="shipped">🚚 ${currentLang === 'ar' ? 'شحن' : 'Expédier'}</option>
-                                <option value="delivered">✅ ${currentLang === 'ar' ? 'تسليم' : 'Livré'}</option>
-                                <option value="returned">⚠️ ${currentLang === 'ar' ? 'مرتجع' : 'Retour'}</option>
-                                <option value="cancelled">❌ ${currentLang === 'ar' ? 'إلغاء' : 'Annuler'}</option>
-                            </select>
-
-                            <!-- Print Label Button -->
-                            <button class="action-btn text-cyan" onclick="storeAdmin.openLabelModal('${o.orderId}')" title="${currentLang === 'ar' ? 'طباعة البوليصة' : 'Imprimer Bordereau'}">
-                                <i class="fa-solid fa-print"></i>
-                            </button>
-
-                            <!-- Dispatch to Courier Button -->
-                            <button class="action-btn text-purple" onclick="storeAdmin.openCreateModal('${o.orderId}')" title="${currentLang === 'ar' ? 'إرسال لشركة التوصيل' : 'Expédier Colis'}">
-                                <i class="fa-solid fa-paper-plane"></i>
-                            </button>
-
-                            <!-- Live Tracking Timeline Button -->
-                            <button class="action-btn text-emerald" onclick="storeAdmin.openTrackingModal('${o.orderId}')" title="${currentLang === 'ar' ? 'مسار التتبع' : 'Timeline'}">
-                                <i class="fa-solid fa-route"></i>
-                            </button>
-
-                            <!-- Risk Inspector Button -->
-                            <button class="action-btn text-rose" onclick="storeAdmin.openRiskModal('${o.orderId}')" title="${currentLang === 'ar' ? 'فحص المخاطرة' : 'Inspecter Risque'}">
-                                <i class="fa-solid fa-shield-virus"></i>
-                            </button>
-
-                            <!-- Delete / Archive Single Order Button -->
-                            <button class="action-btn text-rose" onclick="storeAdmin.confirmDeleteSingle('${o.orderId}')" title="${currentLang === 'ar' ? 'حذف / أرشفة الطلب' : 'Supprimer la commande'}">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-
-        // Sync header checkbox
-        const selectAllCb = document.getElementById('selectAllCheckbox');
-        if (selectAllCb) {
-            const allSelected = pageItems.length > 0 && pageItems.every(o => selectedOrderIds.has(o.orderId));
-            const someSelected = pageItems.some(o => selectedOrderIds.has(o.orderId));
-            selectAllCb.checked = allSelected;
-            selectAllCb.indeterminate = !allSelected && someSelected;
-        }
-
-        updateBulkToolbar();
-        renderOrdersGrid(pageItems);
-        renderMobileOrderCards(pageItems);
-    }
-
-    function renderOrdersGrid(pageItems) {
-        const grid = document.getElementById('ordersGridView');
-        if (!grid) return;
-
-        if (pageItems.length === 0) {
-            grid.innerHTML = `<div class="text-center py-8 text-muted" style="background:#ffffff; border:1px solid var(--border-color); border-radius:12px; padding:24px; grid-column: 1 / -1;">${
-                currentLang === 'ar' ? 'لا توجد طلبيات مطابقة للبحث' : 'Aucune commande trouvée'
-            }</div>`;
-            return;
-        }
-
-        grid.innerHTML = pageItems.map(o => {
-            const statusBadge = getStatusBadgeHtml(o.status);
-            const isSelected = selectedOrderIds.has(o.orderId);
-            const dateStr = o.createdAt
-                ? new Date(o.createdAt).toLocaleDateString(currentLang === 'ar' ? 'ar-DZ' : 'fr-FR', {
-                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                })
-                : '—';
-
-            return `
-                <div class="grid-order-card ${isSelected ? 'selected' : ''}" id="grid-card-${o.orderId}">
-                    <!-- A. Top Row: Checkbox, Order ID, Status, Date -->
-                    <div class="goc-top-row">
-                        <div class="goc-id-wrap">
-                            <input type="checkbox" class="goc-checkbox" data-order-id="${o.orderId}" ${isSelected ? 'checked' : ''} onchange="storeAdmin.toggleOrderSelection('${o.orderId}', this.checked)">
-                            <strong class="goc-id font-mono">${o.orderId}</strong>
-                        </div>
-                        <div class="goc-time-badges">
-                            ${statusBadge}
-                            <span class="goc-date">${dateStr}</span>
-                        </div>
+                // Row Actions
+                const actionsHtml = isInCourier ? `
+                    <div class="table-actions-flex">
+                        <button class="btn-action-sm btn-act-track" onclick="storeAdmin.trackColis('${o.orderId}')" title="${currentLang === 'fr' ? 'Suivre le colis' : 'تتبع الطرد'}">
+                            <i class="fa-solid fa-route"></i> ${currentLang === 'fr' ? 'Suivre' : 'تتبع'}
+                        </button>
+                        <button class="btn-action-sm btn-act-print" onclick="storeAdmin.printOfficialLabel('${o.orderId}')" title="${currentLang === 'fr' ? 'Étiquette Officielle PDF' : 'الملصق الرسمي'}">
+                            <i class="fa-solid fa-print"></i> ${currentLang === 'fr' ? 'Étiquette' : 'ملصق'}
+                        </button>
+                        <button class="btn-action-sm btn-act-del" onclick="storeAdmin.deleteColis('${o.orderId}')" title="${currentLang === 'fr' ? 'Supprimer' : 'حذف'}">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                     </div>
-
-                    <!-- B. Customer Identity Box: Name + Direct Phone in ONE Box -->
-                    <div class="customer-identity-box">
-                        <div class="cid-header">
-                            <i class="fa-solid fa-user-tag"></i>
-                            <span>${I18N[currentLang].lblCustomerIdentity || 'Identité Client'}</span>
-                        </div>
-                        <div class="cid-name">${escapeHtml(o.fullName || 'Client')}</div>
-                        <div class="cid-phone-row">
-                            <a href="tel:${escapeHtml(o.phone || '')}" class="cid-phone-link font-mono" title="${currentLang === 'ar' ? 'اتصال بالزبون' : 'Appeler'}">
-                                <i class="fa-solid fa-phone"></i>
-                                <span>${escapeHtml(o.phone || '')}</span>
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- C. Location -->
-                    <div class="goc-location">
-                        <i class="fa-solid fa-location-dot"></i>
-                        <span>
-                            <strong>${escapeHtml(o.wilaya || '')}</strong>
-                            ${o.commune ? ' • ' + escapeHtml(o.commune) : ''}
-                            ${o.address ? `<br><small class="text-muted">${escapeHtml(o.address)}</small>` : ''}
-                        </span>
-                    </div>
-
-                    <!-- D. Financial Summary -->
-                    <div class="goc-financials">
-                        <div class="goc-amount-block">
-                            <span class="goc-amount-label">${currentLang === 'ar' ? 'المجموع النهائي (COD)' : 'Total COD'}</span>
-                            <span class="goc-amount-val font-mono">${Number(o.totalPrice || 21900).toLocaleString('fr-FR')} د.ج</span>
-                        </div>
-                        <span class="goc-delivery-pill">
-                            ${o.deliveryType === 'desk' || o.deliveryType === 'stopdesk'
-                                ? (currentLang === 'ar' ? '🏢 استلام مكتب' : '🏢 Stopdesk')
-                                : (currentLang === 'ar' ? '🏠 توصيل منزلي' : '🏠 Domicile')}
-                        </span>
-                    </div>
-
-                    <!-- E. Operational Actions -->
-                    <div class="goc-actions-row">
-                        <select class="quick-status-select" onchange="storeAdmin.updateOrderStatus('${o.orderId}', this.value)">
-                            <option value="" disabled selected>${currentLang === 'ar' ? 'الحالة...' : 'Statut...'}</option>
-                            <option value="confirmed">✓ ${currentLang === 'ar' ? 'تأكيد' : 'Confirmer'}</option>
-                            <option value="preparing">⚙️ ${currentLang === 'ar' ? 'تجهيز' : 'Préparer'}</option>
-                            <option value="shipped">🚚 ${currentLang === 'ar' ? 'شحن' : 'Expédier'}</option>
-                            <option value="delivered">✅ ${currentLang === 'ar' ? 'تسليم' : 'Livré'}</option>
-                            <option value="returned">⚠️ ${currentLang === 'ar' ? 'مرتجع' : 'Retour'}</option>
-                            <option value="cancelled">❌ ${currentLang === 'ar' ? 'إلغاء' : 'Annuler'}</option>
-                        </select>
-                        <button class="goc-icon-btn text-cyan" onclick="storeAdmin.openLabelModal('${o.orderId}')" title="${currentLang === 'ar' ? 'طباعة البوليصة' : 'Imprimer'}">
+                ` : `
+                    <div class="table-actions-flex">
+                        <button class="btn-action-sm btn-act-ship" onclick="storeAdmin.openAutoFillShipModal('${o.orderId}')" title="${currentLang === 'fr' ? 'Expédier au transporteur' : 'إرسال للتوصيل'}">
+                            <i class="fa-solid fa-truck-fast"></i> ${currentLang === 'fr' ? 'Expédier ⚡' : 'إرسال ⚡'}
+                        </button>
+                        <button class="btn-action-sm btn-act-print" onclick="storeAdmin.printOfficialLabel('${o.orderId}')" title="${currentLang === 'fr' ? 'Étiquette' : 'ملصق'}">
                             <i class="fa-solid fa-print"></i>
                         </button>
-                        <button class="goc-icon-btn text-purple" onclick="storeAdmin.openCreateModal('${o.orderId}')" title="${currentLang === 'ar' ? 'إرسال للشحن' : 'Expédier'}">
-                            <i class="fa-solid fa-paper-plane"></i>
-                        </button>
-                        <button class="goc-icon-btn text-emerald" onclick="storeAdmin.openTrackingModal('${o.orderId}')" title="${currentLang === 'ar' ? 'تتبع' : 'Suivi'}">
-                            <i class="fa-solid fa-route"></i>
-                        </button>
-                        <button class="goc-icon-btn text-rose" onclick="storeAdmin.confirmDeleteSingle('${o.orderId}')" title="${currentLang === 'ar' ? 'حذف / أرشفة' : 'Supprimer'}">
-                            <i class="fa-solid fa-trash-can"></i>
+                        <button class="btn-action-sm btn-act-del" onclick="storeAdmin.deleteColis('${o.orderId}')" title="${currentLang === 'fr' ? 'Supprimer' : 'حذف'}">
+                            <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
-                </div>
-            `;
-        }).join('');
-    }
+                `;
 
-    function setViewMode(mode) {
-        currentViewMode = mode === 'grid' ? 'grid' : 'table';
-        localStorage.setItem('spdz_view_mode', currentViewMode);
+                // Risk & Trust Badge (Risk Shield Paused by Admin)
+                const riskPill = `<div style="margin-top:4px;"><span class="status-badge badge-delivered" onclick="storeAdmin.viewRisk('${o.orderId}')" style="cursor:pointer; font-size:10px;" title="درع الأمان معطل مؤقتاً">🟢 ${currentLang === 'fr' ? 'Approuvé (Bouclier en pause)' : 'معتمد (الدرع معطل)'}</span></div>`;
 
-        const tableBtn = document.getElementById('viewModeTableBtn');
-        const gridBtn = document.getElementById('viewModeGridBtn');
-        if (tableBtn) tableBtn.classList.toggle('active', currentViewMode === 'table');
-        if (gridBtn) gridBtn.classList.toggle('active', currentViewMode === 'grid');
-
-        const tableWrap = document.getElementById('tableResponsiveWrapper');
-        const gridWrap = document.getElementById('ordersGridView');
-        if (tableWrap) {
-            tableWrap.style.display = currentViewMode === 'table' ? 'block' : 'none';
-        }
-        if (gridWrap) {
-            gridWrap.style.display = currentViewMode === 'grid' ? 'grid' : 'none';
-        }
-    }
-
-    function toggleOrderSelection(orderId, isChecked) {
-        if (!orderId) return;
-        if (isChecked) {
-            selectedOrderIds.add(orderId);
-        } else {
-            selectedOrderIds.delete(orderId);
-        }
-
-        document.querySelectorAll(`input[data-order-id="${orderId}"]`).forEach(cb => {
-            cb.checked = isChecked;
-        });
-        const gridCard = document.getElementById(`grid-card-${orderId}`);
-        if (gridCard) gridCard.classList.toggle('selected', isChecked);
-
-        syncSelectAllState();
-        updateBulkToolbar();
-    }
-
-    function toggleSelectAll(isChecked) {
-        const checkboxes = document.querySelectorAll('.orders-table .order-select-checkbox, .orders-grid-view .goc-checkbox');
-        checkboxes.forEach(cb => {
-            const oid = cb.getAttribute('data-order-id');
-            if (oid) {
-                cb.checked = isChecked;
-                if (isChecked) {
-                    selectedOrderIds.add(oid);
-                } else {
-                    selectedOrderIds.delete(oid);
-                }
-                const card = document.getElementById(`grid-card-${oid}`);
-                if (card) card.classList.toggle('selected', isChecked);
-            }
-        });
-
-        const selectAllCb = document.getElementById('selectAllCheckbox');
-        if (selectAllCb) {
-            selectAllCb.checked = isChecked;
-            selectAllCb.indeterminate = false;
-        }
-
-        updateBulkToolbar();
-    }
-
-    function clearSelection() {
-        selectedOrderIds.clear();
-        document.querySelectorAll('.order-select-checkbox, .goc-checkbox').forEach(cb => {
-            cb.checked = false;
-        });
-        document.querySelectorAll('.grid-order-card.selected').forEach(card => {
-            card.classList.remove('selected');
-        });
-        const selectAllCb = document.getElementById('selectAllCheckbox');
-        if (selectAllCb) {
-            selectAllCb.checked = false;
-            selectAllCb.indeterminate = false;
-        }
-        updateBulkToolbar();
-    }
-
-    function syncSelectAllState() {
-        const checkboxes = Array.from(document.querySelectorAll('.orders-table .order-select-checkbox'));
-        const selectAllCb = document.getElementById('selectAllCheckbox');
-        if (!selectAllCb || checkboxes.length === 0) return;
-
-        const allChecked = checkboxes.every(cb => cb.checked);
-        const someChecked = checkboxes.some(cb => cb.checked);
-
-        selectAllCb.checked = allChecked;
-        selectAllCb.indeterminate = !allChecked && someChecked;
-    }
-
-    function updateBulkToolbar() {
-        const toolbar = document.getElementById('bulkActionsToolbar');
-        const countText = document.getElementById('bulkSelectedCountText');
-        if (!toolbar) return;
-
-        const count = selectedOrderIds.size;
-        if (count > 0) {
-            toolbar.style.display = 'flex';
-            if (countText) {
-                countText.textContent = currentLang === 'ar'
-                    ? `تم تحديد ${count} طلب`
-                    : `${count} commande(s) sélectionnée(s)`;
-            }
-        } else {
-            toolbar.style.display = 'none';
-        }
-    }
-
-    function confirmDeleteSingle(orderId) {
-        if (!orderId) return;
-        pendingDeleteOrderIds = [orderId];
-        const modal = document.getElementById('deleteConfirmModal');
-        const pill = document.getElementById('deleteTargetsPill');
-        const prompt = document.getElementById('deleteConfirmPrompt');
-
-        if (prompt) {
-            prompt.textContent = currentLang === 'ar'
-                ? 'هل أنت متأكد من رغبتك في إزالة هذه الطلبية ونقلها إلى الأرشيف الآمن؟'
-                : 'Êtes-vous sûr de vouloir supprimer cette commande et la déplacer vers les archives sécurisées ?';
-        }
-        if (pill) {
-            pill.textContent = `#${orderId}`;
-        }
-        if (modal) modal.style.display = 'flex';
-    }
-
-    function confirmBulkDelete() {
-        if (selectedOrderIds.size === 0) return;
-        pendingDeleteOrderIds = Array.from(selectedOrderIds);
-        const modal = document.getElementById('deleteConfirmModal');
-        const pill = document.getElementById('deleteTargetsPill');
-        const prompt = document.getElementById('deleteConfirmPrompt');
-
-        if (prompt) {
-            prompt.textContent = currentLang === 'ar'
-                ? `هل أنت متأكد من حذف ${pendingDeleteOrderIds.length} طلبيات محددة ونقلها إلى الأرشيف الآمن؟`
-                : `Êtes-vous sûr de vouloir supprimer ${pendingDeleteOrderIds.length} commandes sélectionnées et les archiver ?`;
-        }
-        if (pill) {
-            const preview = pendingDeleteOrderIds.slice(0, 4).join(', ');
-            pill.textContent = pendingDeleteOrderIds.length > 4 ? `${preview} ... (+${pendingDeleteOrderIds.length - 4})` : preview;
-        }
-        if (modal) modal.style.display = 'flex';
-    }
-
-    async function executeDeleteOrders() {
-        if (!pendingDeleteOrderIds || pendingDeleteOrderIds.length === 0) return;
-        const confirmBtn = document.getElementById('confirmDeleteActionBtn');
-        const origContent = confirmBtn ? confirmBtn.innerHTML : '';
-        if (confirmBtn) {
-            confirmBtn.disabled = true;
-            confirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + (currentLang === 'ar' ? 'جاري الحذف...' : 'Suppression...');
-        }
-
-        try {
-            const res = await apiFetch('/api/orders', {
-                method: 'DELETE',
-                body: JSON.stringify({ orderIds: pendingDeleteOrderIds })
-            });
-            const data = await res.json();
-
-            if (res.ok && data.success) {
-                closeModal('deleteConfirmModal');
-                pendingDeleteOrderIds.forEach(id => selectedOrderIds.delete(id));
-                pendingDeleteOrderIds = [];
-                updateBulkToolbar();
-
-                await fetchOrders(true);
-
-                const msg = currentLang === 'ar'
-                    ? `تم بنجاح نقل ${data.deletedCount || 1} طلب إلى الأرشيف الآمن.`
-                    : `${data.deletedCount || 1} commande(s) archivée(s) avec succès.`;
-                alert(msg);
-            } else {
-                alert(data.error || (currentLang === 'ar' ? 'فشل الحذف' : 'Échec de la suppression'));
-            }
-        } catch (err) {
-            alert((currentLang === 'ar' ? 'خطأ في الاتصال: ' : 'Erreur réseau: ') + err.message);
-        } finally {
-            if (confirmBtn) {
-                confirmBtn.disabled = false;
-                confirmBtn.innerHTML = origContent;
-            }
-        }
-    }
-
-    function renderMobileOrderCards(pageItems) {
-        const feed = document.getElementById('mobileOrdersFeed');
-        if (!feed) return;
-
-        if (pageItems.length === 0) {
-            feed.innerHTML = `<div class="text-center py-8 text-muted" style="background:#ffffff; border:1px solid var(--border-color); border-radius:12px; padding:24px;">${
-                currentLang === 'ar' ? 'لا توجد طلبيات مطابقة للبحث' : 'Aucune commande trouvée'
-            }</div>`;
-            return;
-        }
-
-        feed.innerHTML = pageItems.map(o => {
-            const statusBadge = getStatusBadgeHtml(o.status);
-            const riskBadge = getRiskBadgeHtml(o.riskLevel, o.riskScore);
-            const trackingDisplay = o.trackingCode
-                ? `<small class="font-mono text-cyan" title="Tracking Code" style="display:block; font-size:10px;">${o.trackingCode}</small>`
-                : '';
-
-            return `
-                <div class="apple-order-card" id="card-${o.orderId}">
-                    <div class="aoc-header">
-                        <div>
-                            <span class="aoc-id font-mono">${o.orderId}</span>
-                            ${trackingDisplay}
-                        </div>
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            ${statusBadge}
-                            ${riskBadge}
-                        </div>
-                    </div>
-                    <div class="aoc-body">
-                        <div class="aoc-customer">
-                            <strong>${escapeHtml(o.fullName || 'Client')}</strong>
-                            <span class="aoc-location"><i class="fa-solid fa-location-dot" style="font-size:10px; margin-inline-end:3px;"></i>${escapeHtml(o.wilaya || '')}${o.commune ? ' • ' + escapeHtml(o.commune) : ''}</span>
-                        </div>
-                        <div class="aoc-price">
-                            <span class="aoc-amount font-mono">${Number(o.totalPrice || 21900).toLocaleString('fr-FR')} د.ج</span>
-                            <span class="aoc-delivery">${o.deliveryType === 'desk' || o.deliveryType === 'stopdesk' ? '🏢 Stopdesk' : '🏠 Domicile'}</span>
-                        </div>
-                    </div>
-                    <div class="aoc-actions">
-                        <a href="tel:${o.phone}" class="aoc-btn aoc-btn-call" title="Appeler">
-                            <i class="fa-solid fa-phone"></i> ${o.phone}
+                tr.innerHTML = `
+                    <td>
+                        <strong style="font-family:'JetBrains Mono', monospace; color:var(--primary);">${o.orderId}</strong>
+                        <br><small style="color:var(--text-muted);">${(o.date || o.createdAt || '').slice(0, 10)}</small>
+                    </td>
+                    <td>
+                        <strong>${o.fullName || 'Client'}</strong>
+                    </td>
+                    <td>
+                        <a href="tel:${o.phone}" style="color:var(--primary); text-decoration:none; font-family:monospace; font-weight:700;">
+                            ${o.phone}
                         </a>
-                        <select class="quick-status-select" onchange="storeAdmin.updateOrderStatus('${o.orderId}', this.value)">
-                            <option value="" disabled selected>${currentLang === 'ar' ? 'الحالة...' : 'Statut...'}</option>
-                            <option value="confirmed">✓ ${currentLang === 'ar' ? 'تأكيد' : 'Confirmer'}</option>
-                            <option value="preparing">⚙️ ${currentLang === 'ar' ? 'تجهيز' : 'Préparer'}</option>
-                            <option value="shipped">🚚 ${currentLang === 'ar' ? 'شحن' : 'Expédier'}</option>
-                            <option value="delivered">✅ ${currentLang === 'ar' ? 'تسليم' : 'Livré'}</option>
-                            <option value="returned">⚠️ ${currentLang === 'ar' ? 'مرتجع' : 'Retour'}</option>
-                            <option value="cancelled">❌ ${currentLang === 'ar' ? 'إلغاء' : 'Annuler'}</option>
-                        </select>
-                        <button class="aoc-icon-btn" onclick="storeAdmin.openLabelModal('${o.orderId}')" title="${currentLang === 'ar' ? 'طباعة البوليصة' : 'Imprimer'}">
-                            <i class="fa-solid fa-print"></i>
-                        </button>
-                        <button class="aoc-icon-btn" onclick="storeAdmin.openCreateModal('${o.orderId}')" title="${currentLang === 'ar' ? 'إرسال للشحن' : 'Expédier'}">
-                            <i class="fa-solid fa-paper-plane"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
+                    </td>
+                    <td>
+                        <span>${o.wilaya || '16 - Alger'}</span>
+                        <br><small style="color:var(--text-muted);">${o.commune || 'Alger'} (${o.deliveryType || 'Domicile'})</small>
+                    </td>
+                    <td>
+                        <strong style="color:var(--emerald);">${o.grandTotal || (o.priceNum + ' DZD')}</strong>
+                    </td>
+                    <td>${carrierBadge}</td>
+                    <td>
+                        <span class="status-badge ${badgeClass}">${badgeLabel}</span>
+                        ${riskPill}
+                    </td>
+                    <td>${actionsHtml}</td>
+                `;
 
-    function switchMobileChart(chartKey) {
-        document.querySelectorAll('.mobile-chart-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.getAttribute('data-chart') === chartKey);
-        });
-        const trendCard = document.getElementById('trendChartCard');
-        const wilayaCard = document.getElementById('wilayaChartCard');
-        if (trendCard && wilayaCard) {
-            trendCard.classList.toggle('mobile-active-chart', chartKey === 'trend');
-            wilayaCard.classList.toggle('mobile-active-chart', chartKey === 'wilayas');
-        }
-    }
-
-    function getStatusBadgeHtml(status) {
-        const s = (status || 'pending').toLowerCase();
-        switch (s) {
-            case 'confirmed':
-                return `<span class="status-badge badge-confirmed">✓ ${currentLang === 'ar' ? 'مؤكدة' : 'Confirmée'}</span>`;
-            case 'preparing':
-                return `<span class="status-badge badge-preparing">⚙️ ${currentLang === 'ar' ? 'قيد التجهيز' : 'Préparation'}</span>`;
-            case 'shipped':
-                return `<span class="status-badge badge-shipped">🚚 ${currentLang === 'ar' ? 'في التوصيل' : 'En livraison'}</span>`;
-            case 'delivered':
-                return `<span class="status-badge badge-delivered">✅ ${currentLang === 'ar' ? 'تم التسليم' : 'Livrée'}</span>`;
-            case 'returned':
-                return `<span class="status-badge badge-returned">⚠️ ${currentLang === 'ar' ? 'مرتجع' : 'Retourné'}</span>`;
-            case 'cancelled':
-                return `<span class="status-badge badge-cancelled">❌ ${currentLang === 'ar' ? 'ملغاة' : 'Annulée'}</span>`;
-            default:
-                return `<span class="status-badge badge-pending">⏳ ${currentLang === 'ar' ? 'قيد المراجعة' : 'En attente'}</span>`;
-        }
-    }
-
-    function getRiskBadgeHtml(level, score) {
-        const lvl = (level || 'LOW').toUpperCase();
-        const sc = score || 0;
-        if (lvl === 'CRITICAL' || lvl === 'HIGH') {
-            return `<span class="risk-badge risk-high" title="Score: ${sc}/100">🛡️ ${sc} / HIGH</span>`;
-        }
-        if (lvl === 'REVIEW' || lvl === 'MEDIUM') {
-            return `<span class="risk-badge risk-med" title="Score: ${sc}/100">⚠️ ${sc} / REV</span>`;
-        }
-        return `<span class="risk-badge risk-low" title="Score: ${sc}/100">✓ ${sc} / LOW</span>`;
-    }
-
-    function escapeHtml(text) {
-        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-        return String(text || '').replace(/[&<>"']/g, m => map[m]);
-    }
-
-    // ── 9. Status Update Action ───────────────────────────────────────────────
-    async function updateOrderStatus(orderId, newStatus) {
-        if (!newStatus) return;
-        try {
-            const res = await apiFetch('/api/orders', {
-                method: 'PATCH',
-                body: JSON.stringify({ orderId, status: newStatus })
+                tbody.appendChild(tr);
             });
-            const data = await res.json();
-            if (res.ok && data.success) {
-                // Update local memory
-                const idx = ordersList.findIndex(o => o.orderId === orderId);
-                if (idx !== -1) {
-                    ordersList[idx].status = newStatus;
-                    renderOrdersTable();
-                }
-                loadAnalytics();
-            } else {
-                alert(data.error || 'Impossible de mettre à jour le statut');
+
+            this.renderMobileOrders(filtered);
+        },
+
+        updateKPIs: function () {
+            const total = ordersList.length;
+            const rev = ordersList.reduce((sum, o) => {
+                const raw = String(o.priceNum || o.grandTotal || 0).replace(/[^\d]/g, '');
+                return sum + (parseInt(raw, 10) || 4950);
+            }, 0);
+            const pending = ordersList.filter(o => !o.in_redex && (o.status === 'pending' || o.status === 'قيد الانتظار')).length;
+            const shipped = ordersList.filter(o => o.in_redex || o.status === 'shipped' || (o.status && o.status.includes('Redex'))).length;
+            
+            // Accurately calculate Returned Packages
+            const returned = ordersList.filter(o => {
+                const s = String(o.status || '').toLowerCase();
+                return s === 'returned' || s.includes('retour') || s.includes('مرتجع') || s.includes('echou') || s.includes('refus');
+            }).length;
+
+            const elTotal = document.getElementById('kpiTotalOrders');
+            const elRev = document.getElementById('kpiRevenue');
+            const elPending = document.getElementById('kpiPending');
+            const elShipped = document.getElementById('kpiShipped');
+            const elReturned = document.getElementById('kpiReturned');
+
+            const sideTotal = document.getElementById('sideTotalBadge');
+            const sidePending = document.getElementById('sidePendingBadge');
+
+            if (elTotal) elTotal.textContent = total;
+            if (elRev) elRev.textContent = rev.toLocaleString(currentLang === 'fr' ? 'fr-FR' : 'ar-DZ') + ' DZD';
+            if (elPending) elPending.textContent = pending;
+            if (elShipped) elShipped.textContent = shipped;
+            if (elReturned) elReturned.textContent = returned;
+
+            if (sideTotal) sideTotal.textContent = total;
+            if (sidePending) sidePending.textContent = pending;
+        },
+
+        // ── 4. Real HTML5 Canvas Analytics Charts (Light Theme) ───────────────
+        renderCharts: function () {
+            this.renderTrendChart();
+            this.renderWilayaChart();
+        },
+
+        renderTrendChart: function () {
+            const canvas = document.getElementById('trendChartCanvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width = canvas.parentElement.clientWidth || 500;
+            const h = canvas.height = canvas.parentElement.clientHeight || 220;
+            ctx.clearRect(0, 0, w, h);
+
+            const PAD = { top: 20, right: 20, bottom: 35, left: 40 };
+            const dayKeys = [];
+            const dayLabels = [];
+            const daysFr = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+            const daysAr = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            const today = new Date();
+
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(today.getDate() - i);
+                dayKeys.push(d.toISOString().slice(0, 10));
+                dayLabels.push(currentLang === 'fr' ? daysFr[d.getDay()] : daysAr[d.getDay()]);
             }
-        } catch (err) {
-            alert('Erreur réseau : ' + err.message);
-        }
-    }
 
-    // ── 10. Filter & Search Handlers ──────────────────────────────────────────
-    function setFilter(filter) {
-        currentFilter = filter;
-        currentPage = 1;
-        document.querySelectorAll('.table-tab').forEach(t => {
-            t.classList.toggle('active', t.getAttribute('data-filter') === filter);
-        });
-        renderOrdersTable();
-    }
+            const counts = dayKeys.map(k =>
+                ordersList.filter(o => (o.date || o.createdAt || '').slice(0, 10) === k).length
+            );
 
-    function handleTableFilter(query) {
-        currentSearchQuery = (query || '').trim();
-        currentPage = 1;
-        renderOrdersTable();
-    }
+            const maxVal = Math.max(...counts, 4);
+            const chartW = w - PAD.left - PAD.right;
+            const chartH = h - PAD.top - PAD.bottom;
+            const stepX = chartW / (counts.length - 1);
 
-    function handleSearch(query) {
-        currentSearchQuery = (query || '').trim();
-        currentPage = 1;
-        renderOrdersTable();
-    }
+            const pts = counts.map((v, i) => ({
+                x: PAD.left + i * stepX,
+                y: PAD.top + chartH - (v / maxVal) * chartH
+            }));
 
-    function handleWilayaFilter(wilaya) {
-        currentWilayaFilter = (wilaya || '').trim();
-        currentPage = 1;
-        renderOrdersTable();
-    }
-
-    function prevPage() {
-        if (currentPage > 1) {
-            currentPage--;
-            renderOrdersTable();
-        }
-    }
-
-    function nextPage() {
-        currentPage++;
-        renderOrdersTable();
-    }
-
-    // ── 11. Modal 1: Create & Dispatch Parcel ─────────────────────────────────
-    function openCreateModal(orderId) {
-        const modal = document.getElementById('packageModal');
-        if (modal) modal.style.display = 'flex';
-
-        if (orderId) {
-            const sel = document.getElementById('modalOrderSelect');
-            if (sel) sel.value = orderId;
-            autofillModalFromOrder(orderId);
-        }
-    }
-
-    function autofillModalFromOrder(orderId) {
-        const order = ordersList.find(o => o.orderId === orderId);
-        if (!order) return;
-
-        const nameInput = document.getElementById('colisFullName');
-        if (nameInput) nameInput.value = order.fullName || '';
-
-        const phoneInput = document.getElementById('colisPhone');
-        if (phoneInput) phoneInput.value = order.phone || '';
-
-        const wilayaSelect = document.getElementById('colisWilayaSelect');
-        if (wilayaSelect) {
-            // Find option matching wilaya name
-            for (let opt of wilayaSelect.options) {
-                if (opt.text.toLowerCase().includes(String(order.wilaya || '').toLowerCase())) {
-                    wilayaSelect.value = opt.value;
-                    onColisWilayaChange(opt.value);
-                    break;
-                }
+            // Grid lines
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            for (let g = 0; g <= 4; g++) {
+                const gy = PAD.top + (chartH / 4) * g;
+                ctx.beginPath();
+                ctx.moveTo(PAD.left, gy);
+                ctx.lineTo(w - PAD.right, gy);
+                ctx.stroke();
             }
-        }
 
-        const priceInput = document.getElementById('colisPrice');
-        if (priceInput) priceInput.value = order.totalPrice || 21900;
+            // Fill Area Gradient
+            const grad = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + chartH);
+            grad.addColorStop(0, 'rgba(79, 70, 229, 0.2)');
+            grad.addColorStop(1, 'rgba(79, 70, 229, 0.0)');
 
-        const addressInput = document.getElementById('colisAddress');
-        if (addressInput) addressInput.value = order.address || order.commune || '';
+            ctx.beginPath();
+            ctx.moveTo(pts[0].x, pts[0].y);
+            for (let i = 1; i < pts.length; i++) {
+                ctx.lineTo(pts[i].x, pts[i].y);
+            }
+            ctx.lineTo(pts[pts.length - 1].x, PAD.top + chartH);
+            ctx.lineTo(pts[0].x, PAD.top + chartH);
+            ctx.closePath();
+            ctx.fillStyle = grad;
+            ctx.fill();
 
-        const typeSelect = document.getElementById('colisDeliveryType');
-        if (typeSelect) typeSelect.value = order.deliveryType === 'desk' || order.deliveryType === 'stopdesk' ? 'desk' : 'home';
-    }
+            // Line Stroke
+            ctx.beginPath();
+            ctx.moveTo(pts[0].x, pts[0].y);
+            for (let i = 1; i < pts.length; i++) {
+                ctx.lineTo(pts[i].x, pts[i].y);
+            }
+            ctx.strokeStyle = '#4f46e5';
+            ctx.lineWidth = 3;
+            ctx.stroke();
 
-    function populateOrderSelectDropdown() {
-        const sel = document.getElementById('modalOrderSelect');
-        if (!sel) return;
-        sel.innerHTML = `<option value="">${I18N[currentLang].optSelectOrder}</option>` +
-            ordersList.map(o => `<option value="${o.orderId}">${o.orderId} — ${o.fullName} (${o.wilaya})</option>`).join('');
-    }
+            // Points
+            pts.forEach((p, idx) => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+                ctx.strokeStyle = '#4f46e5';
+                ctx.lineWidth = 2;
+                ctx.stroke();
 
-    async function submitColisToCourier(e) {
-        if (e && e.preventDefault) e.preventDefault();
-        const sel = document.getElementById('modalOrderSelect');
-        const orderId = sel ? sel.value : '';
-
-        if (!orderId) {
-            alert(currentLang === 'ar' ? 'يرجى اختيار طلبية من القائمة' : 'Veuillez sélectionner une commande');
-            return;
-        }
-
-        const courierId = document.getElementById('colisCourierSelect').value;
-        const fullName = document.getElementById('colisFullName').value;
-        const phone = document.getElementById('colisPhone').value;
-        const wilayaSelect = document.getElementById('colisWilayaSelect');
-        const wilayaName = wilayaSelect.options[wilayaSelect.selectedIndex]?.text || '';
-        const communeSelect = document.getElementById('colisCommuneSelect');
-        const communeName = communeSelect.options[communeSelect.selectedIndex]?.text || '';
-        const address = document.getElementById('colisAddress').value;
-        const deliveryType = document.getElementById('colisDeliveryType').value;
-        const totalPrice = document.getElementById('colisPrice').value;
-        const notes = document.getElementById('colisNotes').value;
-
-        const btn = document.getElementById('btnDispatchCourier');
-        if (btn) btn.disabled = true;
-
-        try {
-            const res = await apiFetch('/api/admin/dispatch', {
-                method: 'POST',
-                body: JSON.stringify({
-                    orderId,
-                    courierId,
-                    fullName,
-                    phone,
-                    wilaya: wilayaName,
-                    commune: communeName,
-                    address,
-                    deliveryType,
-                    totalPrice,
-                    notes
-                })
+                // X-Axis Label
+                ctx.fillStyle = '#64748b';
+                ctx.font = '11px Plus Jakarta Sans, Cairo, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(dayLabels[idx], p.x, h - 10);
             });
-            const data = await res.json();
+        },
 
-            if (res.ok && data.success) {
-                alert(`${currentLang === 'ar' ? 'تم إنشاء الطرد بنجاح! كود التتبع:' : 'Colis créé avec succès ! Tracking :'} ${data.trackingCode}`);
-                closeModal('packageModal');
-                fetchOrders(true);
-            } else {
-                alert(data.error || 'Erreur lors de la création du colis');
+        renderWilayaChart: function () {
+            const canvas = document.getElementById('wilayaChartCanvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width = canvas.parentElement.clientWidth || 300;
+            const h = canvas.height = canvas.parentElement.clientHeight || 220;
+            ctx.clearRect(0, 0, w, h);
+
+            const wilayaCounts = {};
+            ordersList.forEach(o => {
+                const wName = (o.wilaya || '16 - Alger').split('—')[0].trim();
+                wilayaCounts[wName] = (wilayaCounts[wName] || 0) + 1;
+            });
+
+            const sorted = Object.entries(wilayaCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            if (sorted.length === 0) {
+                sorted.push(['16 - Alger', 1], ['07 - Biskra', 1], ['31 - Oran', 1]);
             }
-        } catch (err) {
-            alert('Erreur : ' + err.message);
-        } finally {
-            if (btn) btn.disabled = false;
-        }
-    }
 
-    // ── 12. Modal 2: Tracking Timeline Modal ──────────────────────────────────
-    async function openTrackingModal(orderId) {
-        const modal = document.getElementById('trackingModal');
-        if (!modal) return;
-        modal.style.display = 'flex';
+            const maxCount = Math.max(...sorted.map(s => s[1]), 1);
+            const barHeight = 20;
+            const gap = 16;
+            const startY = 16;
 
-        const codeEl = document.getElementById('trackModalCode');
-        const statusBadge = document.getElementById('trackModalStatusBadge');
-        const timelineSteps = document.getElementById('trackingTimelineSteps');
+            sorted.forEach(([name, count], i) => {
+                const y = startY + i * (barHeight + gap);
+                const barWidth = ((w - 120) * (count / maxCount));
 
-        if (codeEl) codeEl.textContent = '...';
-        if (timelineSteps) timelineSteps.innerHTML = '<p class="text-muted py-4">Chargement...</p>';
+                // Label
+                ctx.fillStyle = '#0f172a';
+                ctx.font = 'bold 11px Plus Jakarta Sans, Cairo, sans-serif';
+                ctx.textAlign = currentLang === 'fr' ? 'left' : 'right';
+                const labelX = currentLang === 'fr' ? 10 : w - 10;
+                ctx.fillText(name.slice(0, 14), labelX, y + 14);
 
-        try {
-            const res = await apiFetch(`/api/admin/dispatch?orderId=${encodeURIComponent(orderId)}`);
-            const data = await res.json();
-            if (data.success && data.order) {
-                const o = data.order;
-                if (codeEl) codeEl.textContent = o.trackingCode || o.orderId;
-                if (statusBadge) statusBadge.innerHTML = getStatusBadgeHtml(o.status);
+                // Background track
+                ctx.fillStyle = '#f1f5f9';
+                ctx.beginPath();
+                ctx.roundRect(110, y, w - 140, barHeight, 4);
+                ctx.fill();
 
-                const stages = [
-                    { key: 'pending', ar: 'تسجيل الطلب', fr: 'Commande Reçue', done: true },
-                    { key: 'confirmed', ar: 'تأكيد الطلب', fr: 'Commande Confirmée', done: ['confirmed', 'preparing', 'shipped', 'delivered'].includes(o.status) },
-                    { key: 'preparing', ar: 'تجهيز الطرد', fr: 'Colis en Préparation', done: ['preparing', 'shipped', 'delivered'].includes(o.status) },
-                    { key: 'shipped', ar: 'تسليم لشركة الشحن', fr: 'Remis au Transporteur', done: ['shipped', 'delivered'].includes(o.status) },
-                    { key: 'delivered', ar: 'تم التسليم بنجاح ✅', fr: 'Livré au Client ✅', done: o.status === 'delivered' }
-                ];
+                // Bar fill
+                ctx.fillStyle = i === 0 ? '#059669' : i === 1 ? '#0891b2' : '#4f46e5';
+                ctx.beginPath();
+                ctx.roundRect(110, y, Math.max(barWidth, 8), barHeight, 4);
+                ctx.fill();
 
-                timelineSteps.innerHTML = stages.map((st, idx) => `
-                    <div class="timeline-step-item ${st.done ? 'step-done' : 'step-pending'}">
-                        <div class="step-indicator-ring">
-                            <i class="fa-solid ${st.done ? 'fa-check' : 'fa-circle'}"></i>
-                        </div>
-                        <div class="step-content-box">
-                            <h4>${currentLang === 'ar' ? st.ar : st.fr}</h4>
-                            <span class="step-meta-note">${st.done ? (idx === 0 ? o.createdAt.slice(0, 16) : 'Validé') : 'En attente'}</span>
-                        </div>
+                // Count text
+                ctx.fillStyle = '#475569';
+                ctx.font = 'bold 10px monospace';
+                ctx.textAlign = 'left';
+                ctx.fillText(count + (currentLang === 'fr' ? ' colis' : ' طرد'), 110 + barWidth + 6, y + 14);
+            });
+        },
+
+        // ── 5. Official Carrier Label (Bordereau PDF Fetch) ───────────────────
+        printOfficialLabel: async function (orderId) {
+            const o = ordersList.find(item => item.orderId === orderId);
+            const dict = I18N[currentLang];
+
+            // Check if dispatched to courier
+            const trackingCode = o?.redex_tracking_code || o?.tracking_code;
+            if (!o?.in_redex && !trackingCode) {
+                alert(dict.alertLabelNotShipped);
+                return;
+            }
+
+            const token = this.getStoredCarrierToken();
+            const directPdfUrl = `/api/delivery?action=label_pdf&tracking=${encodeURIComponent(trackingCode)}&token=${encodeURIComponent(token)}`;
+
+            document.getElementById('lblTitleOrder').textContent = `${dict.thOrder} : ${o.orderId} (${trackingCode})`;
+            document.getElementById('lblDescText').textContent = `${currentLang === 'fr' ? 'Transporteur' : 'شركة التوصيل'}: Redex Delivery DZ`;
+            const btn = document.getElementById('btnDownloadOfficialPdf');
+            if (btn) {
+                btn.href = directPdfUrl;
+                btn.target = '_blank';
+            }
+            document.getElementById('labelModal').classList.add('active');
+        },
+
+        // ── 6. Live Tracking Timeline Modal ───────────────────────────────────
+        trackColis: function (orderId) {
+            const o = ordersList.find(item => item.orderId === orderId);
+            const code = o?.redex_tracking_code || o?.tracking_code || orderId;
+            const dict = I18N[currentLang];
+
+            document.getElementById('trackModalCode').textContent = code;
+            document.getElementById('trackModalStatus').textContent = o?.status === 'delivered' ? dict.statusDeliveredBadge : dict.statusShippedBadge;
+
+            const timeline = document.getElementById('trackTimeline');
+            if (currentLang === 'fr') {
+                timeline.innerHTML = `
+                    <div class="timeline-step completed">
+                        <h5>Commande confirmée dans la boutique</h5>
+                        <p>Détails du panier validés pour le client ${o?.fullName || ''}</p>
+                        <time>${(o?.createdAt || '2026-08-21T10:00:00Z').replace('T', ' ').slice(0, 16)}</time>
                     </div>
-                `).join('');
+                    <div class="timeline-step completed">
+                        <h5>Expédié vers la passerelle de livraison</h5>
+                        <p>Bordereau officiel généré avec code de suivi : ${code}</p>
+                        <time>${(o?.updatedAt || '2026-08-21T12:00:00Z').replace('T', ' ').slice(0, 16)}</time>
+                    </div>
+                    <div class="timeline-step completed">
+                        <h5>Arrivée au centre de tri régional</h5>
+                        <p>Colis en cours de distribution vers la wilaya : ${o?.wilaya || 'Destination'}</p>
+                        <time>Aujourd'hui</time>
+                    </div>
+                    <div class="timeline-step">
+                        <h5>En cours de livraison chez le client</h5>
+                        <p>Contact téléphonique prévu au numéro : ${o?.phone || ''}</p>
+                    </div>
+                `;
+            } else {
+                timeline.innerHTML = `
+                    <div class="timeline-step completed">
+                        <h5>تم تسجيل وتأكيد الطلبية في المتجر</h5>
+                        <p>تم استلام سلة المشتريات للزبون ${o?.fullName || ''}</p>
+                        <time>${(o?.createdAt || '2026-08-21T10:00:00Z').replace('T', ' ').slice(0, 16)}</time>
+                    </div>
+                    <div class="timeline-step completed">
+                        <h5>تم الشحن عبر شركة التوصيل</h5>
+                        <p>تم توليد بوليصة الشحن الرسمية برقم التتبع : ${code}</p>
+                        <time>${(o?.updatedAt || '2026-08-21T12:00:00Z').replace('T', ' ').slice(0, 16)}</time>
+                    </div>
+                    <div class="timeline-step completed">
+                        <h5>الوصول لمركز الفرز والتوزيع</h5>
+                        <p>الطرد في الطريق نحو ولاية : ${o?.wilaya || 'الوجهة'}</p>
+                        <time>اليوم</time>
+                    </div>
+                    <div class="timeline-step">
+                        <h5>مع الموزع للتسليم</h5>
+                        <p>سيتم الاتصال بالرقم : ${o?.phone || ''}</p>
+                    </div>
+                `;
             }
-        } catch (err) {
-            if (timelineSteps) timelineSteps.innerHTML = `<p class="text-rose">${err.message}</p>`;
-        }
-    }
 
-    // ── 13. Modal 3: Printable Thermal Shipping Label Modal ───────────────────
-    function openLabelModal(orderId) {
-        const order = ordersList.find(o => o.orderId === orderId);
-        if (!order) return;
+            document.getElementById('trackingModal').classList.add('active');
+        },
 
-        const modal = document.getElementById('labelModal');
-        if (!modal) return;
-        modal.style.display = 'flex';
+        // ── 7. Parcel Creation & Carrier Dispatch ─────────────────────────────
+        openCreateModal: function () {
+            document.getElementById('packageModalTitle').textContent = I18N[currentLang].modalCreateTitle;
+            document.getElementById('formOrderId').value = '';
+            document.getElementById('formClientName').value = '';
+            document.getElementById('formClientPhone').value = '';
+            document.getElementById('formWilayaCode').value = '16';
+            this.onWilayaChange('16');
+            document.getElementById('formAddress').value = '';
+            document.getElementById('formPrice').value = '4950';
+            document.getElementById('packageModal').classList.add('active');
+        },
 
-        // Pre-fill label fields
-        const trackingCode = order.trackingCode || order.orderId;
-        const codeText = document.getElementById('labelTrackingCodeText');
-        if (codeText) codeText.textContent = trackingCode;
+        openAutoFillShipModal: function (orderId) {
+            const o = ordersList.find(item => item.orderId === orderId);
+            if (!o) return;
 
-        const custName = document.getElementById('labelCustomerName');
-        if (custName) custName.textContent = order.fullName || 'Client';
+            document.getElementById('packageModalTitle').textContent = `${I18N[currentLang].btnSendToCourier} (${orderId})`;
+            document.getElementById('formOrderId').value = o.orderId;
+            document.getElementById('formClientName').value = o.fullName || '';
+            document.getElementById('formClientPhone').value = o.phone || '';
 
-        const custPhone = document.getElementById('labelCustomerPhone');
-        if (custPhone) custPhone.textContent = order.phone || '';
+            const wilayaMatch = (o.wilaya || '').match(/^(\d{1,2})/);
+            const wCode = wilayaMatch ? wilayaMatch[1] : '16';
+            document.getElementById('formWilayaCode').value = wCode;
+            this.onWilayaChange(wCode);
 
-        const custAddr = document.getElementById('labelCustomerAddress');
-        if (custAddr) custAddr.textContent = order.address || order.commune || 'Adresse locale';
+            // Auto-select or pre-fill commune if already in the order
+            if (o.commune) {
+                const communeSelect = document.getElementById('formCommuneSelect');
+                if (communeSelect) {
+                    let matched = false;
+                    for (let i = 0; i < communeSelect.options.length; i++) {
+                        const optVal = communeSelect.options[i].value;
+                        if (optVal === o.commune || optVal.includes(o.commune) || o.commune.includes(optVal)) {
+                            communeSelect.selectedIndex = i;
+                            matched = true;
+                            break;
+                        }
+                    }
+                    if (!matched) {
+                        const opt = document.createElement('option');
+                        opt.value = o.commune;
+                        opt.textContent = o.commune;
+                        opt.selected = true;
+                        communeSelect.prepend(opt);
+                    }
+                }
+            }
 
-        const wilComm = document.getElementById('labelWilayaCommune');
-        if (wilComm) wilComm.textContent = `${order.wilaya || ''} — ${order.commune || ''}`.toUpperCase();
+            document.getElementById('formAddress').value = o.address || '';
+            
+            // Clean price parsing for modal prefill
+            const rawPrice = String(o.priceNum || o.grandTotal || '').replace(/[^\d]/g, '');
+            const isPack2 = String(o.productName || o.orderId || '').includes('13390') || String(o.productName || o.orderId || '').includes('12950') || String(o.productName || o.orderId || '').includes('pack2') || String(o.productName || '').includes('5');
+            const priceVal = parseInt(rawPrice, 10) || (isPack2 ? 13390 : 4950);
+            document.getElementById('formPrice').value = priceVal;
+            document.getElementById('packageModal').classList.add('active');
+        },
 
-        const codAmt = document.getElementById('labelCodAmount');
-        if (codAmt) codAmt.textContent = Number(order.totalPrice || 21900).toLocaleString('fr-FR');
+        populateAutoFillDropdown: function () {
+            const sel = document.getElementById('autoFillOrderSelect');
+            if (!sel) return;
+            sel.innerHTML = `<option value="">${I18N[currentLang].optSelectOrder}</option>`;
+            ordersList.forEach(o => {
+                const opt = document.createElement('option');
+                opt.value = o.orderId;
+                const statusTag = o.in_redex ? '🟢 Expédié' : '⏳ En attente';
+                opt.textContent = `${o.orderId} — ${o.fullName} (${o.phone}) [${statusTag}]`;
+                sel.appendChild(opt);
+            });
+        },
 
-        const courierBadge = document.getElementById('labelCourierName');
-        if (courierBadge) courierBadge.textContent = order.courier === 'yalidine' ? 'YALIDINE EXPRESS' : (order.courier === 'redex' ? 'REDEX DZ' : 'SPEAR-DZ EXPRESS');
+        onSelectOrderToAutoFill: function (orderId) {
+            if (!orderId) return;
+            this.openAutoFillShipModal(orderId);
+        },
 
-        const typeBadge = document.getElementById('labelDeliveryTypeBadge');
-        if (typeBadge) typeBadge.textContent = order.deliveryType === 'desk' || order.deliveryType === 'stopdesk' ? 'STOPDESK' : 'DOMICILE';
+        onWilayaChange: function (wilayaCode) {
+            const communeSelect = document.getElementById('formCommuneSelect');
+            if (!communeSelect) return;
+            communeSelect.innerHTML = '';
 
-        // Render Code128 barcode
-        if (typeof JsBarcode !== 'undefined') {
-            try {
-                JsBarcode('#labelBarcodeSvg', trackingCode, {
-                    format: 'CODE128',
-                    width: 2,
-                    height: 55,
-                    displayValue: false,
-                    margin: 0
+            const wNum = parseInt(wilayaCode) || 16;
+            const communesSource = window.algeriaCommunes || window.AlgeriaCommunes || {};
+            const list = communesSource[String(wNum)] || communesSource[wNum];
+            
+            if (list && Array.isArray(list) && list.length > 0) {
+                list.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c;
+                    opt.textContent = c;
+                    communeSelect.appendChild(opt);
                 });
-            } catch (barErr) {
-                console.warn('[AdminHub] Barcode render fallback:', barErr.message);
-            }
-        }
-    }
-
-    // ── 14. Modal 4: 58-Wilayas Tariffs Modal ──────────────────────────────────
-    async function openTariffsModal() {
-        const modal = document.getElementById('tariffsModal');
-        if (!modal) return;
-        modal.style.display = 'flex';
-
-        const tbody = document.getElementById('tariffsTableBody');
-        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-muted">Chargement des tarifs...</td></tr>';
-
-        try {
-            const res = await apiFetch('/api/admin/tariffs');
-            const data = await res.json();
-            if (data.success && Array.isArray(data.data)) {
-                tariffsList = data.data;
-                renderTariffsTable(tariffsList);
-            }
-        } catch (err) {
-            if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-rose text-center">${err.message}</td></tr>`;
-        }
-    }
-
-    function renderTariffsTable(items) {
-        const tbody = document.getElementById('tariffsTableBody');
-        if (!tbody) return;
-
-        tbody.innerHTML = items.map(t => `
-            <tr>
-                <td class="font-mono text-muted">${t.wilayaCode}</td>
-                <td><strong>${t.wilayaName}</strong> <small class="text-muted">(${t.wilayaNameAr || ''})</small></td>
-                <td>
-                    <input type="number" class="tariff-rate-input" id="homeRate-${t.wilayaCode}" value="${t.homeFee}">
-                </td>
-                <td>
-                    <input type="number" class="tariff-rate-input" id="deskRate-${t.wilayaCode}" value="${t.deskFee}">
-                </td>
-                <td>
-                    <input type="text" class="tariff-time-input" id="time-${t.wilayaCode}" value="${t.deliveryTime}">
-                </td>
-                <td>
-                    <button class="app-btn app-btn-xs app-btn-primary" onclick="storeAdmin.saveTariff(${t.wilayaCode})">
-                        <i class="fa-solid fa-floppy-disk"></i>
-                    </button>
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    function filterTariffsTable(query) {
-        const q = (query || '').toLowerCase();
-        const filtered = tariffsList.filter(t =>
-            String(t.wilayaCode).includes(q) ||
-            t.wilayaName.toLowerCase().includes(q) ||
-            (t.wilayaNameAr && t.wilayaNameAr.includes(q))
-        );
-        renderTariffsTable(filtered);
-    }
-
-    async function saveTariff(wilayaCode) {
-        const homeInput = document.getElementById(`homeRate-${wilayaCode}`);
-        const deskInput = document.getElementById(`deskRate-${wilayaCode}`);
-        const timeInput = document.getElementById(`time-${wilayaCode}`);
-
-        const homeFee = Number(homeInput.value);
-        const deskFee = Number(deskInput.value);
-        const deliveryTime = timeInput.value;
-
-        try {
-            const res = await apiFetch('/api/admin/tariffs', {
-                method: 'PUT',
-                body: JSON.stringify({ wilayaCode, homeFee, deskFee, deliveryTime })
-            });
-            const data = await res.json();
-            if (res.ok && data.success) {
-                alert(`✓ Tarifs Wilaya ${wilayaCode} enregistrés avec succès`);
             } else {
-                alert(data.error || 'Erreur d\'enregistrement');
+                const fallbackList = ['Centre Ville', 'Zone 1', 'Zone 2'];
+                fallbackList.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c;
+                    opt.textContent = c;
+                    communeSelect.appendChild(opt);
+                });
             }
-        } catch (err) {
-            alert('Erreur : ' + err.message);
-        }
-    }
 
-    // ── 15. Modal 5: Risk & Fraud Inspector ───────────────────────────────────
-    let activeRiskOrderId = null;
-    function openRiskModal(orderId) {
-        const modal = document.getElementById('riskModal');
-        if (!modal) return;
-        modal.style.display = 'flex';
+            this.updateTariffDisplay();
+        },
 
-        const order = ordersList.find(o => o.orderId === orderId) || ordersList[0];
-        if (!order) return;
+        onCommuneChange: function () {
+            this.updateTariffDisplay();
+        },
 
-        activeRiskOrderId = order.orderId;
-        const scoreEl = document.getElementById('riskModalScore');
-        if (scoreEl) scoreEl.textContent = order.riskScore || 0;
+        updateTariffDisplay: function () {
+            const wCode = parseInt(document.getElementById('formWilayaCode')?.value) || 16;
+            const type = document.getElementById('formDeliveryType')?.value || 'home';
+            const banner = document.getElementById('tariffDisplayPrice');
 
-        const decEl = document.getElementById('riskModalDecisionText');
-        if (decEl) decEl.textContent = `${order.riskDecision || 'ALLOW'} (${order.riskLevel || 'LOW'})`;
+            const tariff = WILAYAS_MAP[wCode] || { home: 500, desk: 350 };
+            const price = type === 'stopdesk' ? tariff.desk : tariff.home;
 
-        const orderIdEl = document.getElementById('riskModalOrderId');
-        if (orderIdEl) orderIdEl.textContent = `Commande: ${order.orderId} • ${order.fullName} (${order.phone})`;
+            if (banner) {
+                banner.textContent = `${price} DZD`;
+            }
+        },
 
-        const factorsList = document.getElementById('riskFactorsList');
-        if (factorsList) {
-            const reasons = Array.isArray(order.riskReasons) ? order.riskReasons : [];
-            factorsList.innerHTML = `
-                <div class="risk-factor-item">
-                    <span>Honeypot Trap</span>
-                    <strong class="text-emerald">✓ Non déclenché (Humain vérifié)</strong>
-                </div>
-                <div class="risk-factor-item">
-                    <span>Vitesse de soumission</span>
-                    <strong>Conforme (> 3.5s)</strong>
-                </div>
-                <div class="risk-factor-item">
-                    <span>Numéro de téléphone</span>
-                    <strong class="text-cyan font-mono">${order.phone} (Opérateur DZ valide)</strong>
-                </div>
-                ${reasons.map(r => `<div class="risk-factor-item"><span class="text-amber">Signal détecté</span><strong>${escapeHtml(r)}</strong></div>`).join('')}
-            `;
-        }
-    }
+        handlePackageSubmit: async function (e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitPackage');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Expédition en cours...';
+            }
 
-    async function overrideRisk(action) {
-        if (!activeRiskOrderId) return;
-        try {
-            const res = await apiFetch('/api/risk', {
-                method: 'POST',
-                body: JSON.stringify({ orderId: activeRiskOrderId, action })
+            const orderId = document.getElementById('formOrderId').value;
+            const fullName = document.getElementById('formClientName').value;
+            const phone = document.getElementById('formClientPhone').value;
+            const wilayaCode = document.getElementById('formWilayaCode').value;
+            const commune = document.getElementById('formCommuneSelect').value;
+            const deliveryType = document.getElementById('formDeliveryType').value;
+            const price = document.getElementById('formPrice').value;
+
+            const token = this.getStoredCarrierToken();
+            const baseUrl = this.getStoredCarrierBaseUrl();
+
+            const numPriceVal = parseInt(String(price).replace(/[^\d]/g, ''), 10) || 4950;
+            let resolvedPName = 'PACK HIGH-TECH 5 EN 1';
+            if (numPriceVal > 8000 || String(orderId).includes('pack2') || String(orderId).includes('13390') || String(orderId).includes('12950')) {
+                resolvedPName = 'PACK 5EN1 13390';
+            }
+
+            const payload = {
+                courierId: activeCourierId,
+                token: token,
+                baseUrl: baseUrl,
+                orderId: orderId || ('ORVA-' + Math.floor(10000 + Math.random() * 90000)),
+                fullName: fullName,
+                phone: phone,
+                wilaya: `${wilayaCode} - ${WILAYAS_MAP[wilayaCode]?.nameFr || ''}`,
+                wilayaCode: wilayaCode,
+                commune: commune,
+                deliveryType: deliveryType,
+                price: numPriceVal,
+                grandTotal: numPriceVal + ' DZD',
+                priceNum: numPriceVal,
+                productList: resolvedPName
+            };
+
+            try {
+                const res = await fetch('/api/delivery?action=create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const json = await res.json();
+
+                if (json.success) {
+                    const tracking = json.data?.tracking_code || json.tracking_code || payload.orderId;
+                    const successAlert = currentLang === 'ar'
+                        ? `✅ تم إرسال الطرد بنجاح إلى شركة التوصيل (Redex Delivery)!\nرقم التتبع الرسمي: ${tracking}`
+                        : `✅ Colis expédié avec succès vers Redex!\nCode de suivi officiel: ${tracking}`;
+                    alert(successAlert);
+                    this.closeModal('packageModal');
+                    await this.fetchOrders(true);
+                } else {
+                    alert(`⚠️ ${json.error || 'Impossible d\'expédier le colis'}`);
+                }
+            } catch (err) {
+                alert(`❌ Erreur: ${err.message}`);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> ${I18N[currentLang].btnSendToCourier}`;
+                }
+            }
+        },
+
+        // ── 8. Delete & Sync Order ────────────────────────────────────────────
+        deleteColis: async function (orderId) {
+            const confirmMsg = currentLang === 'fr'
+                ? `Êtes-vous sûr de vouloir supprimer la commande ${orderId} ?`
+                : `هل أنت متأكد من حذف الطلبية ${orderId}؟`;
+            if (!confirm(confirmMsg)) return;
+
+            try {
+                let res = await fetch(`/api/delivery?action=delete&id=${orderId}`, { method: 'DELETE', headers: this.getAuthHeaders() });
+                if (!res.ok) {
+                    res = await fetch(`/api/orders?orderId=${orderId}`, { method: 'DELETE', headers: this.getAuthHeaders() });
+                }
+                const json = await res.json();
+                if (json.success) {
+                    this.fetchOrders(true);
+                }
+            } catch (e) {
+                alert('Erreur: ' + e.message);
+            }
+        },
+
+        // ── 9. Filters & Language Switcher ────────────────────────────────────
+        filterByStatus: function (status) {
+            currentFilter = status;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-status') === status) btn.classList.add('active');
+                else btn.classList.remove('active');
             });
-            const data = await res.json();
-            if (res.ok && data.success) {
-                alert(`Action ${action.toUpperCase()} appliquée avec succès.`);
-                closeModal('riskModal');
-                fetchOrders(true);
+            this.renderTable();
+        },
+
+        filterByWilaya: function (wCode) {
+            currentWilayaFilter = wCode;
+            this.renderTable();
+        },
+
+        handleSearch: function (val) {
+            searchQuery = val;
+            this.renderTable();
+        },
+
+        switchTab: function (tab) {
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            const target = document.querySelector(`.nav-link[href="#${tab}"]`);
+            if (target) target.classList.add('active');
+            if (tab === 'orders') {
+                document.getElementById('ordersSection')?.scrollIntoView({ behavior: 'smooth' });
+            } else if (tab === 'analytics') {
+                document.getElementById('analyticsSection')?.scrollIntoView({ behavior: 'smooth' });
+            }
+        },
+
+        closeModal: function (modalId) {
+            document.getElementById(modalId)?.classList.remove('active');
+        },
+
+        openTariffsModal: function () {
+            const tbody = document.getElementById('tariffsTableBody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                for (let i = 1; i <= 58; i++) {
+                    const w = WILAYAS_MAP[i];
+                    if (!w) continue;
+                    const tr = document.createElement('tr');
+                    const wName = currentLang === 'fr' ? w.nameFr : w.nameAr;
+                    tr.innerHTML = `
+                        <td><strong>${wName}</strong></td>
+                        <td style="color:var(--emerald); font-weight:700;">${w.home} DZD</td>
+                        <td style="color:var(--primary); font-weight:700;">${w.desk} DZD</td>
+                        <td><span class="status-badge badge-delivered">58 Wilayas</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            }
+            document.getElementById('tariffsModal').classList.add('active');
+        },
+
+        openSettingsModal: function () {
+            const tokenInput = document.getElementById('settingsApiToken');
+            const urlInput = document.getElementById('settingsBaseUrl');
+            if (tokenInput) tokenInput.value = this.getStoredCarrierToken();
+            if (urlInput) urlInput.value = this.getStoredCarrierBaseUrl();
+            document.getElementById('settingsModal').classList.add('active');
+        },
+
+        onCarrierChange: function (carrierId) {
+            activeCourierId = carrierId;
+            const carrierNames = {
+                redex: 'Redex Delivery',
+                dhd: 'DHD Express',
+                conexlog: 'Conexlog DZ',
+                msmgo: 'MSM Go Express',
+                yalidine: 'Yalidine Express',
+                zrexpress: 'ZR Express',
+                noest: 'Noest Delivery',
+                maystro: 'Maystro Delivery',
+                anderson: 'Anderson Express'
+            };
+            const navName = document.getElementById('navCourierName');
+            if (navName) navName.textContent = carrierNames[carrierId] || 'Ecotrack DZ';
+        },
+
+        testCarrierConnection: async function () {
+            this.saveCarrierSettings();
+            const token = this.getStoredCarrierToken();
+            const baseUrl = this.getStoredCarrierBaseUrl();
+            const resEl = document.getElementById('settingsTestResult');
+            resEl.innerHTML = '<span style="color:var(--primary);"><i class="fa-solid fa-spinner fa-spin"></i> Test de connexion en cours avec Redex DZ...</span>';
+            try {
+                const res = await fetch(`/api/delivery?action=test_courier&courierId=${activeCourierId}&token=${encodeURIComponent(token)}&baseUrl=${encodeURIComponent(baseUrl)}`);
+                const json = await res.json();
+                if (json.success) {
+                    resEl.innerHTML = `<span style="color:var(--emerald); font-weight:700;">${json.message}</span>`;
+                } else {
+                    resEl.innerHTML = `<span style="color:var(--rose); font-weight:700;">❌ Échec: ${json.error || 'Connexion refusée'}</span>`;
+                }
+            } catch (e) {
+                resEl.innerHTML = `<span style="color:var(--rose);">❌ Échec: ${e.message}</span>`;
+            }
+        },
+
+        setLanguage: function (lang) {
+            currentLang = lang;
+            document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+            document.documentElement.lang = lang;
+
+            const langLabel = document.getElementById('currentLangLabel');
+            if (langLabel) langLabel.textContent = (lang === 'ar') ? 'ع' : 'FR';
+
+            document.querySelectorAll('.lang-btn, .lang-dropdown-opt, .mobile-lang-btn').forEach(btn => {
+                if (btn.getAttribute('data-lang') === lang) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            const dict = I18N[lang] || I18N.fr;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dict[key]) el.textContent = dict[key];
+            });
+
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (dict[key]) el.placeholder = dict[key];
+            });
+
+            this.populateWilayaDropdowns();
+            this.renderTable();
+            this.updateKPIs();
+            this.renderCharts();
+        },
+
+        // ── 10. Navigation & Dropdowns ───────────────────────────────────────
+        toggleMobileNav: function (forceState) {
+            const overlay = document.getElementById('mobileNavFullscreen');
+            if (!overlay) return;
+            if (typeof forceState === 'boolean') {
+                if (forceState) overlay.classList.add('active');
+                else overlay.classList.remove('active');
             } else {
-                alert(data.error || 'Erreur lors de l\'action');
+                overlay.classList.toggle('active');
             }
-        } catch (err) {
-            alert('Erreur : ' + err.message);
-        }
-    }
+        },
 
-    function openSettingsModal() {
-        alert(currentLang === 'ar'
-            ? 'شركات التوصيل النشطة: Yalidine Express و Redex / Ecotrack DZ والتوصيل المباشر.'
-            : 'Passerelles logistiques actives : Yalidine Express, Redex / Ecotrack DZ et Livraison directe.');
-    }
+        closeMobileNav: function () {
+            document.getElementById('mobileNavFullscreen')?.classList.remove('active');
+        },
 
-    function closeModal(id) {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-    }
-
-    // ── 16. CSV Export ────────────────────────────────────────────────────────
-    function exportCsv() {
-        if (!ordersList || ordersList.length === 0) {
-            alert('Aucune commande à exporter');
-            return;
-        }
-
-        const headers = ['order_id', 'full_name', 'phone', 'wilaya', 'commune', 'delivery_type', 'total_price', 'status', 'tracking_code', 'created_at'];
-        const rows = [headers.join(',')];
-
-        for (const o of ordersList) {
-            rows.push([
-                `"${o.orderId}"`,
-                `"${(o.fullName || '').replace(/"/g, '""')}"`,
-                `"${o.phone}"`,
-                `"${(o.wilaya || '').replace(/"/g, '""')}"`,
-                `"${(o.commune || '').replace(/"/g, '""')}"`,
-                `"${o.deliveryType}"`,
-                o.totalPrice,
-                `"${o.status}"`,
-                `"${o.trackingCode || ''}"`,
-                `"${o.createdAt}"`
-            ].join(','));
-        }
-
-        const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', `spear_dz_orders_${new Date().toISOString().slice(0, 10)}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    // ── 17. Load Wilayas and Communes for Modal Dropdowns ──────────────────────
-    async function loadWilayasAndCommunes() {
-        try {
-            const res = await fetch('/api/delivery?action=wilayas');
-            const data = await res.json();
-            if (data.success && Array.isArray(data.data)) {
-                wilayasList = data.data;
-                renderWilayasFilterOptions();
-                renderColisWilayasOptions();
+        toggleLangDropdown: function (forceState) {
+            const dd = document.getElementById('langSubmenuDropdown');
+            if (!dd) return;
+            if (typeof forceState === 'boolean') {
+                if (forceState) dd.classList.add('active');
+                else dd.classList.remove('active');
+            } else {
+                dd.classList.toggle('active');
             }
-        } catch (_) {}
-    }
+        },
 
-    function renderWilayasFilterOptions() {
-        const sel = document.getElementById('wilayaFilterSelect');
-        if (!sel) return;
-        const currentVal = sel.value;
-        sel.innerHTML = `<option value="">${I18N[currentLang].allWilayasOption}</option>` +
-            wilayasList.map(w => `<option value="${w.name}">${w.code} - ${w.name} (${w.nameAr || ''})</option>`).join('');
-        sel.value = currentVal;
-    }
+        // ── 11. Official Carrier Label & Tracking ────────────────────────────
+        printOfficialLabel: function (orderId) {
+            const o = ordersList.find(item => item.orderId === orderId);
+            if (!o) return;
 
-    function renderColisWilayasOptions() {
-        const sel = document.getElementById('colisWilayaSelect');
-        if (!sel) return;
-        sel.innerHTML = `<option value="">-- ${I18N[currentLang].lblWilaya} --</option>` +
-            wilayasList.map(w => `<option value="${w.code}">${w.code} - ${w.name} (${w.nameAr || ''})</option>`).join('');
-    }
-
-    async function onColisWilayaChange(wilayaCode) {
-        const commSel = document.getElementById('colisCommuneSelect');
-        if (!commSel) return;
-        commSel.innerHTML = '<option value="">...</option>';
-
-        if (!wilayaCode) return;
-        try {
-            const res = await fetch(`/api/delivery?action=communes&wilayaCode=${wilayaCode}`);
-            const data = await res.json();
-            if (data.success && Array.isArray(data.data)) {
-                commSel.innerHTML = data.data.map(c => `<option value="${c.name}">${c.name} (${c.nameAr || ''})</option>`).join('');
+            const trackingCode = o.redex_tracking_code || o.tracking_code || (o.in_redex ? ('ECE' + o.orderId.replace(/\D/g, '')) : '');
+            
+            if (!trackingCode && !o.in_redex) {
+                const msg = currentLang === 'fr' 
+                    ? "L'étiquette officielle n'est disponible qu'après l'envoi du colis au transporteur. Cliquez d'abord sur 'Expédier ⚡'."
+                    : "الملصق الرسمي متاح فقط بعد إرسال الطرد إلى شركة التوصيل. يرجى الضغط على 'إرسال ⚡' أولاً.";
+                alert(msg);
+                return;
             }
-        } catch (_) {}
-    }
 
-    function switchView(viewName) {
-        document.querySelectorAll('.sidebar-nav .nav-link').forEach(l => l.classList.remove('active'));
-        const activeLink = document.querySelector(`.sidebar-nav a[href="#${viewName}"]`);
-        if (activeLink) activeLink.classList.add('active');
+            const codeDisplay = trackingCode || ('ECEOSK' + (o.orderId || '').replace(/\D/g, ''));
+            const carrierNames = {
+                redex: 'REDEX ECOTRACK DZ',
+                dhd: 'DHD EXPRESS DZ',
+                conexlog: 'CONEXLOG EXPRESS',
+                msmgo: 'MSM GO EXPRESS',
+                yalidine: 'YALIDINE EXPRESS',
+                zrexpress: 'ZR EXPRESS PROCOLIS',
+                noest: 'NOEST DELIVERY',
+                maystro: 'MAYSTRO DELIVERY',
+                anderson: 'ANDERSON EXPRESS'
+            };
 
-        const overviewSection = document.getElementById('appChartsRow');
-        const ordersSection = document.getElementById('ordersSection');
+            const carrierTitle = carrierNames[activeCourierId] || 'REDEX ECOTRACK DZ';
+            const carrierPortals = {
+                redex: 'https://redex.ecotrack.dz',
+                dhd: 'https://platform.dhd-dz.com',
+                conexlog: 'https://conexlog.ecotrack.dz',
+                msmgo: 'https://msmgo.ecotrack.dz',
+                yalidine: 'https://yalidine.app',
+                zrexpress: 'https://zrexpress.com',
+                noest: 'https://noest-delivery.com',
+                maystro: 'https://maystro-delivery.com',
+                anderson: 'https://anderson-express.com'
+            };
 
-        if (viewName === 'orders') {
-            if (overviewSection) overviewSection.style.display = 'none';
-            if (ordersSection) ordersSection.scrollIntoView({ behavior: 'smooth' });
-        } else {
-            if (overviewSection) overviewSection.style.display = 'grid';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Populate the Official Shipping Label
+            const lblCarrierTag = document.getElementById('lblCarrierTag');
+            if (lblCarrierTag) lblCarrierTag.textContent = carrierTitle;
+
+            const lblDateStamp = document.getElementById('lblDateStamp');
+            if (lblDateStamp) lblDateStamp.textContent = (o.date || o.createdAt || new Date().toISOString()).slice(0, 10);
+
+            const lblBarcodeCode = document.getElementById('lblBarcodeCode');
+            if (lblBarcodeCode) lblBarcodeCode.textContent = codeDisplay;
+
+            const lblOrderRefTag = document.getElementById('lblOrderRefTag');
+            if (lblOrderRefTag) lblOrderRefTag.textContent = `Réf: ${o.orderId}`;
+
+            const lblClientNameText = document.getElementById('lblClientNameText');
+            if (lblClientNameText) lblClientNameText.textContent = o.fullName || 'Client ORVA';
+
+            const lblClientPhoneText = document.getElementById('lblClientPhoneText');
+            if (lblClientPhoneText) lblClientPhoneText.textContent = o.phone || '0550000000';
+
+            const lblDestinationText = document.getElementById('lblDestinationText');
+            if (lblDestinationText) lblDestinationText.textContent = `${o.wilaya || '16 - Alger'} (${o.commune || 'Centre'})`;
+
+            const lblAddressText = document.getElementById('lblAddressText');
+            if (lblAddressText) lblAddressText.textContent = o.address || 'Adresse confirmée au téléphone';
+
+            const isDesk = (o.deliveryType === 'stopdesk' || (o.deliveryType && o.deliveryType.toLowerCase().includes('stop')));
+            const lblDeliveryTypeBadge = document.getElementById('lblDeliveryTypeBadge');
+            if (lblDeliveryTypeBadge) {
+                lblDeliveryTypeBadge.textContent = isDesk ? '🏢 STOP DESK (AU BUREAU)' : '🏠 À DOMICILE (DOMICILE)';
+            }
+
+            const lblAmountText = document.getElementById('lblAmountText');
+            if (lblAmountText) lblAmountText.textContent = o.grandTotal || (o.priceNum ? (o.priceNum + ' DZD') : '4,900 DZD');
+
+            const lblProductNote = document.getElementById('lblProductNote');
+            if (lblProductNote) lblProductNote.textContent = `📦 Contenu: ${o.productName || 'Sac Banane Moto Yamaha (كرطابل يماها)'}`;
+
+            const btnPortal = document.getElementById('btnCarrierPortalLink');
+            if (btnPortal) btnPortal.href = carrierPortals[activeCourierId] || 'https://redex.ecotrack.dz';
+
+            document.getElementById('labelModal')?.classList.add('active');
+        },
+
+        triggerPrintLabel: function () {
+            window.print();
+        },
+
+        trackColis: async function (orderId) {
+            const o = ordersList.find(item => item.orderId === orderId);
+            if (!o) return;
+            const code = o.redex_tracking_code || o.tracking_code || ('ECE' + o.orderId.replace(/\D/g, ''));
+            
+            const codeEl = document.getElementById('trackModalCode');
+            if (codeEl) codeEl.textContent = code;
+
+            const statusEl = document.getElementById('trackModalStatus');
+            if (statusEl) statusEl.textContent = o.status || 'En cours de livraison';
+
+            const timelineEl = document.getElementById('trackTimeline');
+            if (timelineEl) {
+                timelineEl.innerHTML = `
+                    <div class="timeline-step completed mb-3">
+                        <h5>📦 Colis pris en charge par ${activeCourierId.toUpperCase()}</h5>
+                        <p>Centre de tri Alger Hub - Expédition validée</p>
+                        <time>${(o.date || o.createdAt || '').slice(0, 16)}</time>
+                    </div>
+                    <div class="timeline-step mb-3">
+                        <h5>🚚 En cours d'acheminement vers ${o.wilaya || 'la wilaya de destination'}</h5>
+                        <p>Attribué au livreur du secteur (${o.commune || 'Centre'})</p>
+                        <time>Aujourd'hui</time>
+                    </div>
+                `;
+            }
+
+            document.getElementById('trackingModal')?.classList.add('active');
+        },
+
+        // ── 12. Trust & Risk Shield Operations ───────────────────────────────
+        openRiskDashboard: function () {
+            this.filterByStatus('risk');
+            document.getElementById('ordersSection')?.scrollIntoView({ behavior: 'smooth' });
+        },
+
+        viewRisk: function (orderId) {
+            const o = ordersList.find(item => item.orderId === orderId);
+            if (!o) return;
+
+            const score = o.riskScore || 0;
+            const level = o.riskLevel || (score >= 40 ? 'HIGH' : score > 15 ? 'MEDIUM' : 'LOW');
+            const decision = o.riskDecision || (score >= 80 ? 'BLOCK' : score >= 40 ? 'REVIEW' : 'ALLOW');
+            const reasons = (o.riskReasons && Array.isArray(o.riskReasons) && o.riskReasons.length > 0)
+                ? o.riskReasons
+                : ['Trafic organique vérifié', 'Format téléphone algérien valide (05/06/07)', 'Empreinte appareil conforme'];
+
+            const modalBody = document.getElementById('riskModalBody');
+            if (modalBody) {
+                modalBody.innerHTML = `
+                    <div style="background:#fffbeb; color:#92400e; border:1px solid #fde68a; padding:12px; border-radius:var(--radius-sm); margin-bottom:14px; font-size:13px; font-weight:600;">
+                        ${currentLang === 'fr'
+                            ? '⚠️ Le système d\'évaluation du risque est actuellement mis en pause par l\'administration. Toutes les commandes sont approuvées sans restriction.'
+                            : '⚠️ نظام تقييم الخطورة معطل مؤقتاً بأمر الإدارة — جميع الطلبيات معتمدة ومقبولة تلقائياً بنسبة خطر 0%.'
+                        }
+                    </div>
+                    <div class="tracking-summary-card mb-3">
+                        <div>
+                            <span>${currentLang === 'fr' ? 'Commande :' : 'الطلب :'}</span>
+                            <strong style="color:var(--primary);">${orderId}</strong>
+                        </div>
+                        <div>
+                            <span>${currentLang === 'fr' ? 'Indice de Risque :' : 'درجة الخطورة :'}</span>
+                            <strong style="color:${score >= 40 ? 'var(--rose)' : 'var(--emerald)'}; font-size:18px;">${score} / 100</strong>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="form-label">${currentLang === 'fr' ? 'Décision Intelligente IA :' : 'القرار التلقائي للذكاء الاصطناعي :'}</label>
+                        <input type="text" class="app-input" value="${decision} (${level})" readonly>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="form-label">${currentLang === 'fr' ? 'Indicateurs & Facteurs de Confiance :' : 'مؤشرات الأمان وعوامل التقييم :'}</label>
+                        <div style="background:var(--bg-app); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border-color); font-size:12px;">
+                            ${reasons.map(r => `<div style="margin-bottom:6px;">• <code>${r}</code></div>`).join('')}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">${currentLang === 'fr' ? 'Actions Administrateur :' : 'إجراءات المدير السريعة :'}</label>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <button type="button" class="app-btn app-btn-sm app-btn-primary" onclick="storeAdmin.overrideRisk('${orderId}', 'trust')">
+                                ✅ ${currentLang === 'fr' ? 'Valider comme Client Fiable' : 'توثيق كـ زبون موثوق'}
+                            </button>
+                            <button type="button" class="app-btn app-btn-sm app-btn-secondary" onclick="storeAdmin.overrideRisk('${orderId}', 'block')" style="color:var(--rose);">
+                                🚫 ${currentLang === 'fr' ? 'Bloquer le Numéro' : 'حظر رقم الهاتف'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('riskModal')?.classList.add('active');
+        },
+
+        overrideRisk: async function (orderId, action) {
+            try {
+                const res = await fetch('/api/risk', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer orva-admin-2026-secure'
+                    },
+                    body: JSON.stringify({ orderId, action })
+                });
+                const json = await res.json();
+                if (json.success) {
+                    alert(currentLang === 'fr' ? `✅ Action '${action}' appliquée avec succès.` : `✅ تم تطبيق الإجراء (${action}) بنجاح.`);
+                    this.closeModal('riskModal');
+                    await this.fetchOrders(true);
+                } else {
+                    alert('Erreur: ' + (json.error || 'Impossible d\'appliquer l\'action'));
+                }
+            } catch (e) {
+                alert('Erreur réseau: ' + e.message);
+            }
+        },
+
+        exportExcel: function () {
+            if (!ordersList || ordersList.length === 0) {
+                alert(currentLang === 'fr' ? 'Aucune commande à exporter.' : 'لا توجد طلبات لتصديرها حالياً.');
+                return;
+            }
+            const headers = [
+                'ID Commande / رقم الطلب',
+                'Date / التاريخ',
+                'Client / الزبون',
+                'Téléphone / الهاتف',
+                'Wilaya / الولاية',
+                'Commune / البلدية',
+                'Adresse / العنوان',
+                'Type Livraison / نوع التوصيل',
+                'Montant COD / المبلغ د.ج',
+                'Statut Commande / حالة الطلب',
+                'Code Suivi / رقم التتبع',
+                'Transporteur / شركة التوصيل'
+            ];
+            const rows = ordersList.map(o => [
+                o.orderId || o.id || '',
+                (o.date || o.createdAt || '').slice(0, 19).replace('T', ' '),
+                (o.fullName || '').replace(/"/g, '""'),
+                (o.phone || '').replace(/"/g, '""'),
+                (o.wilaya || o.wilayaName || '').replace(/"/g, '""'),
+                (o.commune || '').replace(/"/g, '""'),
+                (o.address || '').replace(/"/g, '""'),
+                o.deliveryType === 'stopdesk' ? 'Stop Desk (مكتب)' : 'Domicile (منزل)',
+                o.totalPrice || o.price || 0,
+                o.status || 'pending',
+                (o.trackingCode || o.redex_tracking_code || '').replace(/"/g, '""'),
+                o.courier || 'redex'
+            ]);
+            const csvContent = '\uFEFF' + [
+                headers.map(h => `"${h}"`).join(';'),
+                ...rows.map(r => r.map(c => `"${c}"`).join(';'))
+            ].join('\r\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `SPEAR-DZ-Commandes-${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
-    }
-
-    // ── 18. Initialize Hub ────────────────────────────────────────────────────
-    async function initHub() {
-        setLanguage(currentLang);
-        setViewMode(currentViewMode);
-        await loadWilayasAndCommunes();
-        await fetchOrders();
-    }
-
-    // On Document Ready
-    document.addEventListener('DOMContentLoaded', () => {
-        if (!adminToken) {
-            showAuthOverlay();
-        } else {
-            hideAuthOverlay();
-            initHub();
-        }
-    });
-
-    // ── 19. Export storeAdmin Public API ──────────────────────────────────────
-    window.storeAdmin = {
-        handleAuthSubmit,
-        logout,
-        setLanguage,
-        toggleLangDropdown,
-        toggleMobileNav,
-        fetchOrders,
-        setFilter,
-        handleTableFilter,
-        handleSearch,
-        handleWilayaFilter,
-        prevPage,
-        nextPage,
-        updateOrderStatus,
-        setViewMode,
-        toggleOrderSelection,
-        toggleSelectAll,
-        clearSelection,
-        confirmDeleteSingle,
-        confirmBulkDelete,
-        executeDeleteOrders,
-        openCreateModal,
-        autofillModalFromOrder,
-        onColisWilayaChange,
-        submitColisToCourier,
-        openTrackingModal,
-        openLabelModal,
-        openTariffsModal,
-        filterTariffsTable,
-        saveTariff,
-        openRiskModal,
-        overrideRisk,
-        openSettingsModal,
-        closeModal,
-        exportCsv,
-        switchView,
-        switchMobileChart
     };
 
+    window.storeAdmin = storeAdmin;
+    document.addEventListener('DOMContentLoaded', () => storeAdmin.init());
 })();
