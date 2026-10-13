@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="/css/admin.css">
 </head>
 
-<body class="theme-obsidian">
+<body class="theme-apple-light">
 
     <!-- ===================================================================== -->
     <!-- 1. AUTHENTICATION OVERLAY MODAL                                       -->
@@ -139,6 +139,14 @@
                             </div>
                         </li>
 
+                        <!-- Storefront Link -->
+                        <li class="action-item hide-on-sm">
+                            <a href="/" target="_blank" class="store-nav-link-btn" title="زيارة المتجر الرئيسي">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                <span data-i18n="navStorefront">المتجر</span>
+                            </a>
+                        </li>
+
                         <!-- Logout Button -->
                         <li class="action-item">
                             <button class="icon-circle-btn text-rose" onclick="storeAdmin.logout()" title="تسجيل الخروج">
@@ -147,15 +155,6 @@
                         </li>
                     </ul>
                 </div>
-            </div>
-
-            <!-- Quick Store Pages Navigation -->
-            <div class="store-quick-nav">
-                <a href="/" target="_blank" class="store-nav-pill" title="زيارة المتجر الرئيسي">
-                    <i class="fa-solid fa-house"></i> <span data-i18n="navStorefront">المتجر الرئيسي</span>
-                </a>
-                <span class="quick-nav-sep">•</span>
-                <span class="quick-nav-tag" data-i18n="badgeBundleOffer">عرض النخبة 5 في 1 (21,900 د.ج)</span>
             </div>
         </header>
 
@@ -174,6 +173,10 @@
                         <div class="nav-icon"><i class="fa-solid fa-boxes-packing"></i></div>
                         <span data-i18n="navOrders">إدارة الطلبيات</span>
                         <span class="nav-badge" id="sidebarPendingBadge">0</span>
+                    </a>
+                    <a href="/" target="_blank" class="nav-link" title="زيارة المتجر الرئيسي">
+                        <div class="nav-icon text-amber"><i class="fa-solid fa-store"></i></div>
+                        <span data-i18n="navStorefront">المتجر الرئيسي</span>
                     </a>
 
                     <div class="nav-category" data-i18n="catLogistics">اللوجستيك والشحن</div>
@@ -201,30 +204,33 @@
             <!-- ── MAIN CONTENT WORKSPACE ──────────────────────────────────── -->
             <main class="app-main-content">
 
-                <!-- 1. Hero Operational Banner -->
-                <section class="app-banner-card">
-                    <div class="banner-content">
-                        <div class="banner-tag">
-                            <span class="pulse-emerald-dot"></span>
+                <!-- Section A: Page Heading & Actions -->
+                <section class="app-page-header">
+                    <div class="page-header-info">
+                        <div class="page-header-tag">
+                            <span class="live-dot pulse-green"></span>
                             <span data-i18n="bannerTag">نظام الإدارة المركزي • الجزائر 58 ولاية</span>
                         </div>
-                        <h2 data-i18n="bannerTitle">لوحة التحكم اللوجستية ومتابعة المبيعات</h2>
-                        <p data-i18n="bannerDesc">منصة متكاملة متصلة بشركات التوصيل الجزائرية وقاعدة بيانات Supabase مع درع الحماية الذكي.</p>
+                        <h1 class="page-header-title" data-i18n="bannerTitle">لوحة التحكم اللوجستية ومتابعة المبيعات</h1>
+                        <p class="page-header-subtitle" data-i18n="bannerDesc">منصة متكاملة متصلة بشركات التوصيل الجزائرية وقاعدة بيانات Supabase مع درع الحماية الذكي.</p>
                     </div>
-                    <div class="banner-actions">
-                        <button class="app-btn app-btn-primary" onclick="storeAdmin.openCreateModal()">
-                            <i class="fa-solid fa-plus"></i> <span data-i18n="btnNewColis">طرد جديد</span>
+                    <div class="page-header-actions">
+                        <button class="app-btn app-btn-secondary" onclick="storeAdmin.fetchOrders(true)" title="تحديث البيانات">
+                            <i class="fa-solid fa-arrows-rotate"></i> <span data-i18n="kpiLiveSync">تحديث</span>
                         </button>
                         <button class="app-btn app-btn-secondary" onclick="storeAdmin.exportCsv()">
-                            <i class="fa-solid fa-file-csv"></i> <span data-i18n="btnExport">تصدير CSV</span>
+                            <i class="fa-solid fa-file-csv text-emerald"></i> <span data-i18n="btnExport">تصدير CSV</span>
+                        </button>
+                        <button class="app-btn app-btn-primary" onclick="storeAdmin.openCreateModal()">
+                            <i class="fa-solid fa-plus"></i> <span data-i18n="btnNewColis">طرد جديد</span>
                         </button>
                     </div>
                 </section>
 
-                <!-- 2. Operational KPIs Grid (10 Precision Metrics) -->
+                <!-- Section C: Operational KPIs Bento Grid (4 Priority Metrics on Mobile 2x2 Bento, Extended on Desktop) -->
                 <section class="app-kpi-grid">
-                    <!-- Total Orders -->
-                    <div class="app-card kpi-card">
+                    <!-- 1. Priority Metric: Total Orders -->
+                    <div class="app-card kpi-card" id="kpiCardTotal">
                         <div class="kpi-icon-wrap bg-primary-soft">
                             <i class="fa-solid fa-cart-shopping text-primary"></i>
                         </div>
@@ -235,20 +241,8 @@
                         </div>
                     </div>
 
-                    <!-- Gross Delivered Revenue in DZD -->
-                    <div class="app-card kpi-card">
-                        <div class="kpi-icon-wrap bg-emerald-soft">
-                            <i class="fa-solid fa-money-bill-wave text-emerald"></i>
-                        </div>
-                        <div class="kpi-details">
-                            <span class="kpi-label" data-i18n="kpiRevenue">مداخيل تم تحصيلها (COD)</span>
-                            <h3 class="kpi-value text-emerald" id="kpiRevenue">0 د.ج</h3>
-                            <span class="kpi-subtext" id="kpiAov">متوسط الطلب: 0 د.ج</span>
-                        </div>
-                    </div>
-
-                    <!-- Pending COD Value in DZD -->
-                    <div class="app-card kpi-card">
+                    <!-- 2. Priority Metric: Pending COD Value in DZD -->
+                    <div class="app-card kpi-card" id="kpiCardPendingCod">
                         <div class="kpi-icon-wrap bg-amber-soft">
                             <i class="fa-solid fa-hourglass-half text-amber"></i>
                         </div>
@@ -259,8 +253,45 @@
                         </div>
                     </div>
 
+                    <!-- 3. Priority Metric: Delivery Success Rate -->
+                    <div class="app-card kpi-card" id="kpiCardDeliveryRate">
+                        <div class="kpi-icon-wrap bg-emerald-soft">
+                            <i class="fa-solid fa-circle-check text-emerald"></i>
+                        </div>
+                        <div class="kpi-details">
+                            <span class="kpi-label" data-i18n="kpiDeliverySuccessRateLabel">نسبة التسليم</span>
+                            <h3 class="kpi-value text-emerald" id="kpiDeliverySuccessRateVal">—</h3>
+                            <span class="kpi-subtext" id="kpiDeliverySuccessRate">معدل الإنجاز</span>
+                        </div>
+                    </div>
+
+                    <!-- 4. Priority Metric: Return Rate -->
+                    <div class="app-card kpi-card" id="kpiCardReturnRate">
+                        <div class="kpi-icon-wrap bg-rose-soft">
+                            <i class="fa-solid fa-arrow-rotate-left text-rose"></i>
+                        </div>
+                        <div class="kpi-details">
+                            <span class="kpi-label" data-i18n="kpiReturnRateLabel">نسبة المرتجع</span>
+                            <h3 class="kpi-value text-rose" id="kpiReturnRateVal">0%</h3>
+                            <span class="kpi-subtext" id="kpiReturnRate">سجل المرتجعات</span>
+                        </div>
+                    </div>
+
+                    <!-- ── Secondary Desktop Metrics (Preserved for Desktop/Analytics, hidden on Mobile 2x2 Bento) ── -->
+                    <!-- Gross Delivered Revenue in DZD -->
+                    <div class="app-card kpi-card kpi-secondary">
+                        <div class="kpi-icon-wrap bg-emerald-soft">
+                            <i class="fa-solid fa-money-bill-wave text-emerald"></i>
+                        </div>
+                        <div class="kpi-details">
+                            <span class="kpi-label" data-i18n="kpiRevenue">مداخيل تم تحصيلها (COD)</span>
+                            <h3 class="kpi-value text-emerald" id="kpiRevenue">0 د.ج</h3>
+                            <span class="kpi-subtext" id="kpiAov">متوسط الطلب: 0 د.ج</span>
+                        </div>
+                    </div>
+
                     <!-- Confirmed Orders -->
-                    <div class="app-card kpi-card">
+                    <div class="app-card kpi-card kpi-secondary">
                         <div class="kpi-icon-wrap bg-cyan-soft">
                             <i class="fa-solid fa-clipboard-check text-cyan"></i>
                         </div>
@@ -272,7 +303,7 @@
                     </div>
 
                     <!-- In Transit (Couriers) -->
-                    <div class="app-card kpi-card">
+                    <div class="app-card kpi-card kpi-secondary">
                         <div class="kpi-icon-wrap bg-purple-soft">
                             <i class="fa-solid fa-truck-fast text-purple"></i>
                         </div>
@@ -284,34 +315,44 @@
                     </div>
 
                     <!-- Delivered Parcels -->
-                    <div class="app-card kpi-card">
+                    <div class="app-card kpi-card kpi-secondary">
                         <div class="kpi-icon-wrap bg-emerald-soft">
                             <i class="fa-solid fa-circle-check text-emerald"></i>
                         </div>
                         <div class="kpi-details">
                             <span class="kpi-label" data-i18n="kpiDelivered">تم التسليم بنجاح</span>
                             <h3 class="kpi-value text-emerald" id="kpiDelivered">0</h3>
-                            <span class="kpi-subtext" id="kpiDeliverySuccessRate">نسبة التسليم: 0%</span>
+                            <span class="kpi-subtext" id="kpiDeliveredCountSub">مكتمل ومغلق</span>
                         </div>
                     </div>
 
-                    <!-- Returns -->
-                    <div class="app-card kpi-card">
+                    <!-- Returns Count -->
+                    <div class="app-card kpi-card kpi-secondary">
                         <div class="kpi-icon-wrap bg-rose-soft">
                             <i class="fa-solid fa-arrow-rotate-left text-rose"></i>
                         </div>
                         <div class="kpi-details">
                             <span class="kpi-label" data-i18n="kpiReturned">مرتجعات</span>
                             <h3 class="kpi-value text-rose" id="kpiReturned">0</h3>
-                            <span class="kpi-subtext" id="kpiReturnRate">نسبة المرتجع: 0%</span>
+                            <span class="kpi-subtext" id="kpiReturnedCountSub">شحنات راجعة</span>
                         </div>
                     </div>
                 </section>
 
+                <!-- Mobile Chart Switcher (Apple Segmented Control on mobile) -->
+                <div class="mobile-chart-switcher" id="mobileChartSwitcher">
+                    <button class="mobile-chart-btn active" data-chart="trend" onclick="storeAdmin.switchMobileChart('trend')">
+                        <i class="fa-solid fa-chart-line"></i> <span data-i18n="chartTrendTab">وتيرة الطلبات</span>
+                    </button>
+                    <button class="mobile-chart-btn" data-chart="wilayas" onclick="storeAdmin.switchMobileChart('wilayas')">
+                        <i class="fa-solid fa-map-location-dot"></i> <span data-i18n="chartWilayasTab">أكثر الولايات</span>
+                    </button>
+                </div>
+
                 <!-- 3. Interactive Analytics Charts (Chart.js) -->
                 <section class="app-charts-row" id="appChartsRow">
                     <!-- Daily Volume Trend (7 Days) -->
-                    <div class="app-card chart-card-lg">
+                    <div class="app-card chart-card-lg mobile-active-chart" id="trendChartCard">
                         <div class="card-header-clean">
                             <div class="title-with-icon">
                                 <i class="fa-solid fa-chart-line text-cyan"></i>
@@ -325,7 +366,7 @@
                     </div>
 
                     <!-- Top 10 Wilayas Order Volume -->
-                    <div class="app-card chart-card-sm">
+                    <div class="app-card chart-card-sm" id="wilayaChartCard">
                         <div class="card-header-clean">
                             <div class="title-with-icon">
                                 <i class="fa-solid fa-map-location-dot text-amber"></i>
@@ -374,7 +415,7 @@
                         </div>
                     </div>
 
-                    <!-- Controls Bar: Filter by Wilaya & Search -->
+                    <!-- Controls Bar: Filter by Wilaya, Search & View Switcher -->
                     <div class="table-controls-bar">
                         <div class="filter-inputs-row">
                             <div class="search-input-field">
@@ -391,14 +432,43 @@
                             <button class="app-btn app-btn-sm app-btn-secondary" onclick="storeAdmin.openTariffsModal()">
                                 <i class="fa-solid fa-tags"></i> <span data-i18n="btnTariffs">جدول الأسعار</span>
                             </button>
+
+                            <!-- View Mode Switcher: Table View vs Grid View -->
+                            <div class="view-switcher-group" id="viewSwitcherGroup">
+                                <button type="button" class="view-switch-btn active" id="viewModeTableBtn" onclick="storeAdmin.setViewMode('table')" title="عرض الجدول">
+                                    <i class="fa-solid fa-table-list"></i> <span data-i18n="viewTable">جدول</span>
+                                </button>
+                                <button type="button" class="view-switch-btn" id="viewModeGridBtn" onclick="storeAdmin.setViewMode('grid')" title="عرض البطاقات الشبكية">
+                                    <i class="fa-solid fa-grip"></i> <span data-i18n="viewGrid">شبكة</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Bulk Actions Toolbar (Appears when 1+ orders selected) -->
+                        <div class="bulk-actions-toolbar" id="bulkActionsToolbar" style="display:none;">
+                            <div class="bulk-selected-info">
+                                <i class="fa-solid fa-check-double text-primary"></i>
+                                <span id="bulkSelectedCountText">تم تحديد 0 طلب</span>
+                            </div>
+                            <div class="bulk-buttons-group">
+                                <button type="button" class="app-btn app-btn-sm app-btn-secondary" onclick="storeAdmin.clearSelection()">
+                                    <span data-i18n="btnCancelSelection">إلغاء التحديد</span>
+                                </button>
+                                <button type="button" class="app-btn app-btn-sm app-btn-danger" onclick="storeAdmin.confirmBulkDelete()">
+                                    <i class="fa-solid fa-trash-can"></i> <span data-i18n="btnDeleteSelected">حذف المحدد</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Orders Table -->
-                    <div class="table-responsive-wrapper">
+                    <!-- 1. Orders Desktop DataGrid (Table View) -->
+                    <div class="table-responsive-wrapper" id="tableResponsiveWrapper">
                         <table class="orders-table" id="ordersTable">
                             <thead>
                                 <tr>
+                                    <th class="th-checkbox">
+                                        <input type="checkbox" id="selectAllCheckbox" onchange="storeAdmin.toggleSelectAll(this.checked)" title="تحديد الكل في الصفحة">
+                                    </th>
                                     <th data-i18n="thOrder">الرقم / التتبع</th>
                                     <th data-i18n="thCustomer">الزبون</th>
                                     <th data-i18n="thPhone">الهاتف</th>
@@ -412,7 +482,7 @@
                             </thead>
                             <tbody id="ordersTableBody">
                                 <tr>
-                                    <td colspan="9" class="text-center py-6 text-muted">
+                                    <td colspan="10" class="text-center py-6 text-muted">
                                         <i class="fa-solid fa-spinner fa-spin text-cyan"></i>
                                         <span data-i18n="loadingOrders">جاري تحميل الطلبيات من Supabase...</span>
                                     </td>
@@ -420,6 +490,12 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- 2. Orders Cards Grid View (Default on Mobile, Switchable on Desktop) -->
+                    <div class="orders-grid-view" id="ordersGridView"></div>
+
+                    <!-- Mobile Native Order Cards Feed Fallback -->
+                    <div class="mobile-orders-feed" id="mobileOrdersFeed" style="display:none;"></div>
 
                     <!-- Table Footer: Pagination & Summary -->
                     <div class="table-footer-bar">
@@ -721,6 +797,31 @@
             </div>
             <div class="app-modal-footer">
                 <button type="button" class="app-btn app-btn-secondary" onclick="storeAdmin.closeModal('riskModal')" data-i18n="btnClose">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 6: SINGLE / BULK ORDER DELETION & ARCHIVE CONFIRMATION          -->
+    <!-- ===================================================================== -->
+    <div class="app-modal-backdrop" id="deleteConfirmModal" style="display:none;">
+        <div class="app-modal-dialog modal-dialog-sm">
+            <div class="app-modal-header bg-rose-soft">
+                <div class="modal-title-wrap">
+                    <i class="fa-solid fa-triangle-exclamation text-rose"></i>
+                    <h3 data-i18n="modalDeleteTitle">تأكيد حذف وأرشفة الطلبيات</h3>
+                </div>
+                <button class="modal-close-btn" onclick="storeAdmin.closeModal('deleteConfirmModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="app-modal-body text-center py-6">
+                <p id="deleteConfirmPrompt" class="mb-4 text-secondary">هل أنت متأكد من رغبتك في إزالة هذه الطلبيات ونقلها إلى الأرشيف الآمن؟</p>
+                <div class="delete-targets-pill font-mono" id="deleteTargetsPill"></div>
+            </div>
+            <div class="app-modal-footer">
+                <button type="button" class="app-btn app-btn-secondary" onclick="storeAdmin.closeModal('deleteConfirmModal')" data-i18n="btnCancel">إلغاء</button>
+                <button type="button" class="app-btn app-btn-danger" id="confirmDeleteActionBtn" onclick="storeAdmin.executeDeleteOrders()">
+                    <i class="fa-solid fa-trash-can"></i> <span data-i18n="btnConfirmDelete">تأكيد الحذف</span>
+                </button>
             </div>
         </div>
     </div>

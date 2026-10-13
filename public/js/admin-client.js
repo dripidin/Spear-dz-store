@@ -89,7 +89,18 @@
             thHomeRate: "توصيل للمنزل (د.ج)",
             thDeskRate: "استلام من المكتب (د.ج)",
             thTime: "المدة المقدرة",
+            chartTrendTab: "وتيرة الطلبات",
+            chartWilayasTab: "أكثر الولايات",
             modalRiskTitle: "درع الحماية وتقييم المخاطر (Trust Shield)",
+            viewTable: "جدول",
+            viewGrid: "شبكة",
+            lblCustomerIdentity: "بيانات العميل",
+            btnCancelSelection: "إلغاء التحديد",
+            btnDeleteSelected: "حذف المحدد",
+            modalDeleteTitle: "تأكيد حذف وأرشفة الطلبيات",
+            btnConfirmDelete: "تأكيد الحذف",
+            kpiDeliverySuccessRateLabel: "نسبة التسليم",
+            kpiReturnRateLabel: "نسبة المرتجع",
             btnClose: "إغلاق"
         },
         fr: {
@@ -170,7 +181,18 @@
             thHomeRate: "Livraison Domicile (DZD)",
             thDeskRate: "Bureau Stopdesk (DZD)",
             thTime: "Délai Estimé",
+            chartTrendTab: "Tendance Commandes",
+            chartWilayasTab: "Top Wilayas",
             modalRiskTitle: "Bouclier Anti-Fraude & Évaluation de Confiance",
+            viewTable: "Tableau",
+            viewGrid: "Grille",
+            lblCustomerIdentity: "Identité Client",
+            btnCancelSelection: "Désélectionner",
+            btnDeleteSelected: "Supprimer Sélection",
+            modalDeleteTitle: "Confirmer la Suppression / Archivage",
+            btnConfirmDelete: "Confirmer la Suppression",
+            kpiDeliverySuccessRateLabel: "Taux Livraison",
+            kpiReturnRateLabel: "Taux Retour",
             btnClose: "Fermer"
         }
     };
@@ -178,6 +200,9 @@
     // ── 2. Controller State ───────────────────────────────────────────────────
     let currentLang = localStorage.getItem('spdz_lang') || 'ar';
     let adminToken = sessionStorage.getItem('spdz_admin_token') || '';
+    let currentViewMode = localStorage.getItem('spdz_view_mode') || (window.innerWidth <= 768 ? 'grid' : 'table');
+    let selectedOrderIds = new Set();
+    let pendingDeleteOrderIds = [];
     let ordersList = [];
     let wilayasList = [];
     let communesList = [];
@@ -297,9 +322,11 @@
             if (dict[key]) el.placeholder = dict[key];
         });
 
-        // Re-render table and charts with new locale labels
+        // Re-render table, KPIs, and charts with new locale labels
         renderOrdersTable();
         renderWilayasFilterOptions();
+        if (lastKpisData) renderKpis(lastKpisData);
+        if (lastChartsData) renderCharts(lastChartsData);
     }
 
     function toggleLangDropdown(show) {
@@ -320,13 +347,18 @@
     }
 
     // ── 6. Data Loading & Analytics ───────────────────────────────────────────
+    let lastKpisData = null;
+    let lastChartsData = null;
+
     async function loadAnalytics() {
         try {
             const res = await apiFetch('/api/admin/analytics?days=7');
             const data = await res.json();
             if (data.success && data.kpis) {
+                lastKpisData = data.kpis;
                 renderKpis(data.kpis);
                 if (data.charts) {
+                    lastChartsData = data.charts;
                     renderCharts(data.charts);
                 }
             }
@@ -371,19 +403,33 @@
         const delEl = document.getElementById('kpiDelivered');
         if (delEl) delEl.textContent = kpis.deliveredOrders || 0;
 
+        // Delivery success rate: strictly handle null / empty denominator
+        const delValEl = document.getElementById('kpiDeliverySuccessRateVal');
+        if (delValEl) {
+            delValEl.textContent = (kpis.deliverySuccessRate !== null && kpis.deliverySuccessRate !== undefined)
+                ? `${kpis.deliverySuccessRate}%`
+                : '—';
+        }
+
         const delRateEl = document.getElementById('kpiDeliverySuccessRate');
-        if (delRateEl) delRateEl.textContent = currentLang === 'ar'
-            ? `نسبة التسليم: ${kpis.deliverySuccessRate || 0}%`
-            : `Taux livraison: ${kpis.deliverySuccessRate || 0}%`;
+        if (delRateEl) {
+            delRateEl.textContent = (kpis.deliverySuccessRate !== null && kpis.deliverySuccessRate !== undefined)
+                ? (currentLang === 'ar' ? `نسبة التسليم: ${kpis.deliverySuccessRate}%` : `Taux livraison: ${kpis.deliverySuccessRate}%`)
+                : (currentLang === 'ar' ? 'لا توجد تسليمات منتهية بعد' : 'Non disponible');
+        }
 
         const retEl = document.getElementById('kpiReturned');
         if (retEl) retEl.textContent = kpis.returnedOrders || 0;
 
+        const retRate = (kpis.returnRate !== undefined && kpis.returnRate !== null)
+            ? kpis.returnRate
+            : (kpis.totalOrders > 0 ? Number(((kpis.returnedOrders / kpis.totalOrders) * 100).toFixed(1)) : 0);
+
+        const retValEl = document.getElementById('kpiReturnRateVal');
+        if (retValEl) retValEl.textContent = `${retRate}%`;
+
         const retRateEl = document.getElementById('kpiReturnRate');
         if (retRateEl) {
-            const retRate = kpis.totalOrders > 0
-                ? ((kpis.returnedOrders / kpis.totalOrders) * 100).toFixed(1)
-                : '0.0';
             retRateEl.textContent = currentLang === 'ar'
                 ? `نسبة المرتجع: ${retRate}%`
                 : `Taux retour: ${retRate}%`;
@@ -433,24 +479,24 @@
                         {
                             label: currentLang === 'ar' ? 'الطلبات المسجلة' : 'Commandes reçues',
                             data: chartsData.trend.orders,
-                            borderColor: '#0ea5e9',
-                            backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                            borderColor: '#0071e3',
+                            backgroundColor: 'rgba(0, 113, 227, 0.08)',
                             fill: true,
                             tension: 0.35,
                             borderWidth: 2,
                             pointRadius: 4,
-                            pointBackgroundColor: '#0ea5e9'
+                            pointBackgroundColor: '#0071e3'
                         },
                         {
                             label: currentLang === 'ar' ? 'الطلبات المؤكدة' : 'Confirmées',
                             data: chartsData.trend.confirmed,
-                            borderColor: '#10b981',
+                            borderColor: '#34c759',
                             backgroundColor: 'transparent',
                             borderDash: [4, 4],
                             tension: 0.35,
                             borderWidth: 2,
                             pointRadius: 3,
-                            pointBackgroundColor: '#10b981'
+                            pointBackgroundColor: '#34c759'
                         }
                     ]
                 },
@@ -459,17 +505,17 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 12 } }
+                            labels: { color: '#1d1d1f', font: { family: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans", sans-serif', size: 12 } }
                         }
                     },
                     scales: {
                         x: {
-                            ticks: { color: '#64748b' },
-                            grid: { color: 'rgba(255, 255, 255, 0.04)' }
+                            ticks: { color: '#6e6e73' },
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' }
                         },
                         y: {
-                            ticks: { color: '#64748b', precision: 0 },
-                            grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                            ticks: { color: '#6e6e73', precision: 0 },
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
                             beginAtZero: true
                         }
                     }
@@ -489,7 +535,7 @@
                     datasets: [{
                         label: currentLang === 'ar' ? 'عدد الطلبات' : 'Commandes',
                         data: chartsData.wilayas.counts,
-                        backgroundColor: '#f59e0b',
+                        backgroundColor: '#0071e3',
                         borderRadius: 6,
                         borderSkipped: false
                     }]
@@ -502,12 +548,12 @@
                     },
                     scales: {
                         x: {
-                            ticks: { color: '#64748b' },
+                            ticks: { color: '#6e6e73' },
                             grid: { display: false }
                         },
                         y: {
-                            ticks: { color: '#64748b', precision: 0 },
-                            grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                            ticks: { color: '#6e6e73', precision: 0 },
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
                             beginAtZero: true
                         }
                     }
@@ -598,9 +644,12 @@
         if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
 
         if (pageItems.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-muted">${
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-muted">${
                 currentLang === 'ar' ? 'لا توجد طلبيات مطابقة للبحث' : 'Aucune commande trouvée'
             }</td></tr>`;
+            renderOrdersGrid([]);
+            renderMobileOrderCards([]);
+            updateBulkToolbar();
             return;
         }
 
@@ -611,9 +660,13 @@
             const trackingDisplay = o.trackingCode
                 ? `<br><small class="font-mono text-cyan" title="Tracking Code">${o.trackingCode}</small>`
                 : '';
+            const isSelected = selectedOrderIds.has(o.orderId);
 
             return `
-                <tr id="row-${o.orderId}">
+                <tr id="row-${o.orderId}" class="${isSelected ? 'selected-row' : ''}">
+                    <td class="td-checkbox">
+                        <input type="checkbox" class="order-select-checkbox" data-order-id="${o.orderId}" ${isSelected ? 'checked' : ''} onchange="storeAdmin.toggleOrderSelection('${o.orderId}', this.checked)">
+                    </td>
                     <td>
                         <strong class="font-mono text-primary">${o.orderId}</strong>
                         ${trackingDisplay}
@@ -660,11 +713,393 @@
                             <button class="action-btn text-rose" onclick="storeAdmin.openRiskModal('${o.orderId}')" title="${currentLang === 'ar' ? 'فحص المخاطرة' : 'Inspecter Risque'}">
                                 <i class="fa-solid fa-shield-virus"></i>
                             </button>
+
+                            <!-- Delete / Archive Single Order Button -->
+                            <button class="action-btn text-rose" onclick="storeAdmin.confirmDeleteSingle('${o.orderId}')" title="${currentLang === 'ar' ? 'حذف / أرشفة الطلب' : 'Supprimer la commande'}">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
             `;
         }).join('');
+
+        // Sync header checkbox
+        const selectAllCb = document.getElementById('selectAllCheckbox');
+        if (selectAllCb) {
+            const allSelected = pageItems.length > 0 && pageItems.every(o => selectedOrderIds.has(o.orderId));
+            const someSelected = pageItems.some(o => selectedOrderIds.has(o.orderId));
+            selectAllCb.checked = allSelected;
+            selectAllCb.indeterminate = !allSelected && someSelected;
+        }
+
+        updateBulkToolbar();
+        renderOrdersGrid(pageItems);
+        renderMobileOrderCards(pageItems);
+    }
+
+    function renderOrdersGrid(pageItems) {
+        const grid = document.getElementById('ordersGridView');
+        if (!grid) return;
+
+        if (pageItems.length === 0) {
+            grid.innerHTML = `<div class="text-center py-8 text-muted" style="background:#ffffff; border:1px solid var(--border-color); border-radius:12px; padding:24px; grid-column: 1 / -1;">${
+                currentLang === 'ar' ? 'لا توجد طلبيات مطابقة للبحث' : 'Aucune commande trouvée'
+            }</div>`;
+            return;
+        }
+
+        grid.innerHTML = pageItems.map(o => {
+            const statusBadge = getStatusBadgeHtml(o.status);
+            const isSelected = selectedOrderIds.has(o.orderId);
+            const dateStr = o.createdAt
+                ? new Date(o.createdAt).toLocaleDateString(currentLang === 'ar' ? 'ar-DZ' : 'fr-FR', {
+                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                })
+                : '—';
+
+            return `
+                <div class="grid-order-card ${isSelected ? 'selected' : ''}" id="grid-card-${o.orderId}">
+                    <!-- A. Top Row: Checkbox, Order ID, Status, Date -->
+                    <div class="goc-top-row">
+                        <div class="goc-id-wrap">
+                            <input type="checkbox" class="goc-checkbox" data-order-id="${o.orderId}" ${isSelected ? 'checked' : ''} onchange="storeAdmin.toggleOrderSelection('${o.orderId}', this.checked)">
+                            <strong class="goc-id font-mono">${o.orderId}</strong>
+                        </div>
+                        <div class="goc-time-badges">
+                            ${statusBadge}
+                            <span class="goc-date">${dateStr}</span>
+                        </div>
+                    </div>
+
+                    <!-- B. Customer Identity Box: Name + Direct Phone in ONE Box -->
+                    <div class="customer-identity-box">
+                        <div class="cid-header">
+                            <i class="fa-solid fa-user-tag"></i>
+                            <span>${I18N[currentLang].lblCustomerIdentity || 'Identité Client'}</span>
+                        </div>
+                        <div class="cid-name">${escapeHtml(o.fullName || 'Client')}</div>
+                        <div class="cid-phone-row">
+                            <a href="tel:${escapeHtml(o.phone || '')}" class="cid-phone-link font-mono" title="${currentLang === 'ar' ? 'اتصال بالزبون' : 'Appeler'}">
+                                <i class="fa-solid fa-phone"></i>
+                                <span>${escapeHtml(o.phone || '')}</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- C. Location -->
+                    <div class="goc-location">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>
+                            <strong>${escapeHtml(o.wilaya || '')}</strong>
+                            ${o.commune ? ' • ' + escapeHtml(o.commune) : ''}
+                            ${o.address ? `<br><small class="text-muted">${escapeHtml(o.address)}</small>` : ''}
+                        </span>
+                    </div>
+
+                    <!-- D. Financial Summary -->
+                    <div class="goc-financials">
+                        <div class="goc-amount-block">
+                            <span class="goc-amount-label">${currentLang === 'ar' ? 'المجموع النهائي (COD)' : 'Total COD'}</span>
+                            <span class="goc-amount-val font-mono">${Number(o.totalPrice || 21900).toLocaleString('fr-FR')} د.ج</span>
+                        </div>
+                        <span class="goc-delivery-pill">
+                            ${o.deliveryType === 'desk' || o.deliveryType === 'stopdesk'
+                                ? (currentLang === 'ar' ? '🏢 استلام مكتب' : '🏢 Stopdesk')
+                                : (currentLang === 'ar' ? '🏠 توصيل منزلي' : '🏠 Domicile')}
+                        </span>
+                    </div>
+
+                    <!-- E. Operational Actions -->
+                    <div class="goc-actions-row">
+                        <select class="quick-status-select" onchange="storeAdmin.updateOrderStatus('${o.orderId}', this.value)">
+                            <option value="" disabled selected>${currentLang === 'ar' ? 'الحالة...' : 'Statut...'}</option>
+                            <option value="confirmed">✓ ${currentLang === 'ar' ? 'تأكيد' : 'Confirmer'}</option>
+                            <option value="preparing">⚙️ ${currentLang === 'ar' ? 'تجهيز' : 'Préparer'}</option>
+                            <option value="shipped">🚚 ${currentLang === 'ar' ? 'شحن' : 'Expédier'}</option>
+                            <option value="delivered">✅ ${currentLang === 'ar' ? 'تسليم' : 'Livré'}</option>
+                            <option value="returned">⚠️ ${currentLang === 'ar' ? 'مرتجع' : 'Retour'}</option>
+                            <option value="cancelled">❌ ${currentLang === 'ar' ? 'إلغاء' : 'Annuler'}</option>
+                        </select>
+                        <button class="goc-icon-btn text-cyan" onclick="storeAdmin.openLabelModal('${o.orderId}')" title="${currentLang === 'ar' ? 'طباعة البوليصة' : 'Imprimer'}">
+                            <i class="fa-solid fa-print"></i>
+                        </button>
+                        <button class="goc-icon-btn text-purple" onclick="storeAdmin.openCreateModal('${o.orderId}')" title="${currentLang === 'ar' ? 'إرسال للشحن' : 'Expédier'}">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                        <button class="goc-icon-btn text-emerald" onclick="storeAdmin.openTrackingModal('${o.orderId}')" title="${currentLang === 'ar' ? 'تتبع' : 'Suivi'}">
+                            <i class="fa-solid fa-route"></i>
+                        </button>
+                        <button class="goc-icon-btn text-rose" onclick="storeAdmin.confirmDeleteSingle('${o.orderId}')" title="${currentLang === 'ar' ? 'حذف / أرشفة' : 'Supprimer'}">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function setViewMode(mode) {
+        currentViewMode = mode === 'grid' ? 'grid' : 'table';
+        localStorage.setItem('spdz_view_mode', currentViewMode);
+
+        const tableBtn = document.getElementById('viewModeTableBtn');
+        const gridBtn = document.getElementById('viewModeGridBtn');
+        if (tableBtn) tableBtn.classList.toggle('active', currentViewMode === 'table');
+        if (gridBtn) gridBtn.classList.toggle('active', currentViewMode === 'grid');
+
+        const tableWrap = document.getElementById('tableResponsiveWrapper');
+        const gridWrap = document.getElementById('ordersGridView');
+        if (tableWrap) {
+            tableWrap.style.display = currentViewMode === 'table' ? 'block' : 'none';
+        }
+        if (gridWrap) {
+            gridWrap.style.display = currentViewMode === 'grid' ? 'grid' : 'none';
+        }
+    }
+
+    function toggleOrderSelection(orderId, isChecked) {
+        if (!orderId) return;
+        if (isChecked) {
+            selectedOrderIds.add(orderId);
+        } else {
+            selectedOrderIds.delete(orderId);
+        }
+
+        document.querySelectorAll(`input[data-order-id="${orderId}"]`).forEach(cb => {
+            cb.checked = isChecked;
+        });
+        const gridCard = document.getElementById(`grid-card-${orderId}`);
+        if (gridCard) gridCard.classList.toggle('selected', isChecked);
+
+        syncSelectAllState();
+        updateBulkToolbar();
+    }
+
+    function toggleSelectAll(isChecked) {
+        const checkboxes = document.querySelectorAll('.orders-table .order-select-checkbox, .orders-grid-view .goc-checkbox');
+        checkboxes.forEach(cb => {
+            const oid = cb.getAttribute('data-order-id');
+            if (oid) {
+                cb.checked = isChecked;
+                if (isChecked) {
+                    selectedOrderIds.add(oid);
+                } else {
+                    selectedOrderIds.delete(oid);
+                }
+                const card = document.getElementById(`grid-card-${oid}`);
+                if (card) card.classList.toggle('selected', isChecked);
+            }
+        });
+
+        const selectAllCb = document.getElementById('selectAllCheckbox');
+        if (selectAllCb) {
+            selectAllCb.checked = isChecked;
+            selectAllCb.indeterminate = false;
+        }
+
+        updateBulkToolbar();
+    }
+
+    function clearSelection() {
+        selectedOrderIds.clear();
+        document.querySelectorAll('.order-select-checkbox, .goc-checkbox').forEach(cb => {
+            cb.checked = false;
+        });
+        document.querySelectorAll('.grid-order-card.selected').forEach(card => {
+            card.classList.remove('selected');
+        });
+        const selectAllCb = document.getElementById('selectAllCheckbox');
+        if (selectAllCb) {
+            selectAllCb.checked = false;
+            selectAllCb.indeterminate = false;
+        }
+        updateBulkToolbar();
+    }
+
+    function syncSelectAllState() {
+        const checkboxes = Array.from(document.querySelectorAll('.orders-table .order-select-checkbox'));
+        const selectAllCb = document.getElementById('selectAllCheckbox');
+        if (!selectAllCb || checkboxes.length === 0) return;
+
+        const allChecked = checkboxes.every(cb => cb.checked);
+        const someChecked = checkboxes.some(cb => cb.checked);
+
+        selectAllCb.checked = allChecked;
+        selectAllCb.indeterminate = !allChecked && someChecked;
+    }
+
+    function updateBulkToolbar() {
+        const toolbar = document.getElementById('bulkActionsToolbar');
+        const countText = document.getElementById('bulkSelectedCountText');
+        if (!toolbar) return;
+
+        const count = selectedOrderIds.size;
+        if (count > 0) {
+            toolbar.style.display = 'flex';
+            if (countText) {
+                countText.textContent = currentLang === 'ar'
+                    ? `تم تحديد ${count} طلب`
+                    : `${count} commande(s) sélectionnée(s)`;
+            }
+        } else {
+            toolbar.style.display = 'none';
+        }
+    }
+
+    function confirmDeleteSingle(orderId) {
+        if (!orderId) return;
+        pendingDeleteOrderIds = [orderId];
+        const modal = document.getElementById('deleteConfirmModal');
+        const pill = document.getElementById('deleteTargetsPill');
+        const prompt = document.getElementById('deleteConfirmPrompt');
+
+        if (prompt) {
+            prompt.textContent = currentLang === 'ar'
+                ? 'هل أنت متأكد من رغبتك في إزالة هذه الطلبية ونقلها إلى الأرشيف الآمن؟'
+                : 'Êtes-vous sûr de vouloir supprimer cette commande et la déplacer vers les archives sécurisées ?';
+        }
+        if (pill) {
+            pill.textContent = `#${orderId}`;
+        }
+        if (modal) modal.style.display = 'flex';
+    }
+
+    function confirmBulkDelete() {
+        if (selectedOrderIds.size === 0) return;
+        pendingDeleteOrderIds = Array.from(selectedOrderIds);
+        const modal = document.getElementById('deleteConfirmModal');
+        const pill = document.getElementById('deleteTargetsPill');
+        const prompt = document.getElementById('deleteConfirmPrompt');
+
+        if (prompt) {
+            prompt.textContent = currentLang === 'ar'
+                ? `هل أنت متأكد من حذف ${pendingDeleteOrderIds.length} طلبيات محددة ونقلها إلى الأرشيف الآمن؟`
+                : `Êtes-vous sûr de vouloir supprimer ${pendingDeleteOrderIds.length} commandes sélectionnées et les archiver ?`;
+        }
+        if (pill) {
+            const preview = pendingDeleteOrderIds.slice(0, 4).join(', ');
+            pill.textContent = pendingDeleteOrderIds.length > 4 ? `${preview} ... (+${pendingDeleteOrderIds.length - 4})` : preview;
+        }
+        if (modal) modal.style.display = 'flex';
+    }
+
+    async function executeDeleteOrders() {
+        if (!pendingDeleteOrderIds || pendingDeleteOrderIds.length === 0) return;
+        const confirmBtn = document.getElementById('confirmDeleteActionBtn');
+        const origContent = confirmBtn ? confirmBtn.innerHTML : '';
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + (currentLang === 'ar' ? 'جاري الحذف...' : 'Suppression...');
+        }
+
+        try {
+            const res = await apiFetch('/api/orders', {
+                method: 'DELETE',
+                body: JSON.stringify({ orderIds: pendingDeleteOrderIds })
+            });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                closeModal('deleteConfirmModal');
+                pendingDeleteOrderIds.forEach(id => selectedOrderIds.delete(id));
+                pendingDeleteOrderIds = [];
+                updateBulkToolbar();
+
+                await fetchOrders(true);
+
+                const msg = currentLang === 'ar'
+                    ? `تم بنجاح نقل ${data.deletedCount || 1} طلب إلى الأرشيف الآمن.`
+                    : `${data.deletedCount || 1} commande(s) archivée(s) avec succès.`;
+                alert(msg);
+            } else {
+                alert(data.error || (currentLang === 'ar' ? 'فشل الحذف' : 'Échec de la suppression'));
+            }
+        } catch (err) {
+            alert((currentLang === 'ar' ? 'خطأ في الاتصال: ' : 'Erreur réseau: ') + err.message);
+        } finally {
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = origContent;
+            }
+        }
+    }
+
+    function renderMobileOrderCards(pageItems) {
+        const feed = document.getElementById('mobileOrdersFeed');
+        if (!feed) return;
+
+        if (pageItems.length === 0) {
+            feed.innerHTML = `<div class="text-center py-8 text-muted" style="background:#ffffff; border:1px solid var(--border-color); border-radius:12px; padding:24px;">${
+                currentLang === 'ar' ? 'لا توجد طلبيات مطابقة للبحث' : 'Aucune commande trouvée'
+            }</div>`;
+            return;
+        }
+
+        feed.innerHTML = pageItems.map(o => {
+            const statusBadge = getStatusBadgeHtml(o.status);
+            const riskBadge = getRiskBadgeHtml(o.riskLevel, o.riskScore);
+            const trackingDisplay = o.trackingCode
+                ? `<small class="font-mono text-cyan" title="Tracking Code" style="display:block; font-size:10px;">${o.trackingCode}</small>`
+                : '';
+
+            return `
+                <div class="apple-order-card" id="card-${o.orderId}">
+                    <div class="aoc-header">
+                        <div>
+                            <span class="aoc-id font-mono">${o.orderId}</span>
+                            ${trackingDisplay}
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            ${statusBadge}
+                            ${riskBadge}
+                        </div>
+                    </div>
+                    <div class="aoc-body">
+                        <div class="aoc-customer">
+                            <strong>${escapeHtml(o.fullName || 'Client')}</strong>
+                            <span class="aoc-location"><i class="fa-solid fa-location-dot" style="font-size:10px; margin-inline-end:3px;"></i>${escapeHtml(o.wilaya || '')}${o.commune ? ' • ' + escapeHtml(o.commune) : ''}</span>
+                        </div>
+                        <div class="aoc-price">
+                            <span class="aoc-amount font-mono">${Number(o.totalPrice || 21900).toLocaleString('fr-FR')} د.ج</span>
+                            <span class="aoc-delivery">${o.deliveryType === 'desk' || o.deliveryType === 'stopdesk' ? '🏢 Stopdesk' : '🏠 Domicile'}</span>
+                        </div>
+                    </div>
+                    <div class="aoc-actions">
+                        <a href="tel:${o.phone}" class="aoc-btn aoc-btn-call" title="Appeler">
+                            <i class="fa-solid fa-phone"></i> ${o.phone}
+                        </a>
+                        <select class="quick-status-select" onchange="storeAdmin.updateOrderStatus('${o.orderId}', this.value)">
+                            <option value="" disabled selected>${currentLang === 'ar' ? 'الحالة...' : 'Statut...'}</option>
+                            <option value="confirmed">✓ ${currentLang === 'ar' ? 'تأكيد' : 'Confirmer'}</option>
+                            <option value="preparing">⚙️ ${currentLang === 'ar' ? 'تجهيز' : 'Préparer'}</option>
+                            <option value="shipped">🚚 ${currentLang === 'ar' ? 'شحن' : 'Expédier'}</option>
+                            <option value="delivered">✅ ${currentLang === 'ar' ? 'تسليم' : 'Livré'}</option>
+                            <option value="returned">⚠️ ${currentLang === 'ar' ? 'مرتجع' : 'Retour'}</option>
+                            <option value="cancelled">❌ ${currentLang === 'ar' ? 'إلغاء' : 'Annuler'}</option>
+                        </select>
+                        <button class="aoc-icon-btn" onclick="storeAdmin.openLabelModal('${o.orderId}')" title="${currentLang === 'ar' ? 'طباعة البوليصة' : 'Imprimer'}">
+                            <i class="fa-solid fa-print"></i>
+                        </button>
+                        <button class="aoc-icon-btn" onclick="storeAdmin.openCreateModal('${o.orderId}')" title="${currentLang === 'ar' ? 'إرسال للشحن' : 'Expédier'}">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function switchMobileChart(chartKey) {
+        document.querySelectorAll('.mobile-chart-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-chart') === chartKey);
+        });
+        const trendCard = document.getElementById('trendChartCard');
+        const wilayaCard = document.getElementById('wilayaChartCard');
+        if (trendCard && wilayaCard) {
+            trendCard.classList.toggle('mobile-active-chart', chartKey === 'trend');
+            wilayaCard.classList.toggle('mobile-active-chart', chartKey === 'wilayas');
+        }
     }
 
     function getStatusBadgeHtml(status) {
@@ -1227,6 +1662,7 @@
     // ── 18. Initialize Hub ────────────────────────────────────────────────────
     async function initHub() {
         setLanguage(currentLang);
+        setViewMode(currentViewMode);
         await loadWilayasAndCommunes();
         await fetchOrders();
     }
@@ -1256,6 +1692,13 @@
         prevPage,
         nextPage,
         updateOrderStatus,
+        setViewMode,
+        toggleOrderSelection,
+        toggleSelectAll,
+        clearSelection,
+        confirmDeleteSingle,
+        confirmBulkDelete,
+        executeDeleteOrders,
         openCreateModal,
         autofillModalFromOrder,
         onColisWilayaChange,
@@ -1270,7 +1713,8 @@
         openSettingsModal,
         closeModal,
         exportCsv,
-        switchView
+        switchView,
+        switchMobileChart
     };
 
 })();

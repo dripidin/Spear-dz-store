@@ -74,7 +74,11 @@ module.exports = async (req, res) => {
         const closedDeliveries = deliveredOrders.length + returnedOrders.length;
         const deliverySuccessRate = closedDeliveries > 0
             ? Number(((deliveredOrders.length / closedDeliveries) * 100).toFixed(1))
-            : (inTransitOrders.length > 0 ? 92.5 : 100);
+            : null;
+
+        const returnRate = total > 0
+            ? Number(((returnedOrders.length / total) * 100).toFixed(1))
+            : 0;
 
         // ── 2. 7-Day Rolling Volume Trends (for Chart.js Line Chart) ─────────
         const dayTrendMap = new Map();
@@ -145,7 +149,8 @@ module.exports = async (req, res) => {
                 pendingCodValue,
                 avgOrderValue,
                 confirmationRate,
-                deliverySuccessRate
+                deliverySuccessRate,
+                returnRate
             },
             charts: {
                 trend: {

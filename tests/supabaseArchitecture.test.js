@@ -27,7 +27,9 @@ describe('Supabase-First Architecture & Persistence Tests', () => {
     it('Fails with explicit operational error if Supabase credentials are missing (No Silent Fallback)', () => {
         setStorageInstance(null);
         const origUrl = process.env.SUPABASE_URL;
+        const origViteUrl = process.env.VITE_SUPABASE_URL;
         delete process.env.SUPABASE_URL;
+        delete process.env.VITE_SUPABASE_URL;
         const origBackend = process.env.STORAGE_BACKEND;
         process.env.STORAGE_BACKEND = 'supabase';
 
@@ -36,6 +38,7 @@ describe('Supabase-First Architecture & Persistence Tests', () => {
         }, /CRITICAL ARCHITECTURE ERROR/);
 
         process.env.SUPABASE_URL = origUrl;
+        if (origViteUrl) process.env.VITE_SUPABASE_URL = origViteUrl;
         process.env.STORAGE_BACKEND = origBackend;
         setStorageInstance(null);
     });

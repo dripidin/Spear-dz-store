@@ -182,10 +182,15 @@ module.exports = async (req, res) => {
             console.warn('[Meta CAPI] Dispatch warning:', err.message);
         });
 
-        // Fire Telegram Notification if configured
-        sendOrderNotification(saved, riskResult).catch(err => {
-            console.warn('[Telegram] Notification warning:', err.message);
-        });
+        // Fire Telegram Notification before serverless container freezes
+        try {
+            await Promise.race([
+                sendOrderNotification(saved, riskResult),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Telegram dispatch timeout')), 4000))
+            ]);
+        } catch (tgErr) {
+            console.warn('[Telegram] Notification warning:', tgErr.message);
+        }
 
         console.log('[OrderCreated] Successfully persisted order %s (Phone: %s, Total: %d DZD)', orderId, maskPhone(normalizedPhone), totalPrice);
 

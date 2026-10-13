@@ -412,4 +412,46 @@ describe('Enterprise Admin Hub & Security Tests', () => {
             assert.ok(clientJs.includes("kpiDelivered:"), 'Must translate kpiDelivered');
         });
     });
+
+    // ── 7. Layout Architecture & Apple Cupertino Design System Integrity ────────
+    describe('Layout Architecture & Apple Cupertino Design System Integrity', () => {
+        test('admin.css defines official Apple Cupertino and Launch UI tokens and layout rules', () => {
+            const cssPath = path.join(__dirname, '..', 'public', 'css', 'admin.css');
+            const css = fs.readFileSync(cssPath, 'utf8');
+
+            // Tokens
+            assert.ok(css.includes('--bg-app: #f5f5f7'), 'Must define Apple Cupertino canvas (#f5f5f7)');
+            assert.ok(css.includes('--bg-card: #ffffff'), 'Must define Apple card surface (#ffffff)');
+            assert.ok(css.includes('--primary: #0071e3') || css.includes('--cyan: #0071e3'), 'Must define Apple System Blue accent (#0071e3)');
+            assert.ok(css.includes('--emerald: #34c759'), 'Must define Apple System Green accent (#34c759)');
+            assert.ok(css.includes('--amber: #ff9500'), 'Must define Apple System Orange accent (#ff9500)');
+
+            // Shell layout
+            assert.ok(css.includes('.app-body-container'), 'Must define .app-body-container');
+            assert.ok(css.includes('display: flex') && css.includes('flex-direction: row'), 'Must lay out body container in flex row');
+            assert.ok(css.includes('.app-sidebar'), 'Must define .app-sidebar');
+            assert.ok(css.includes('position: sticky'), 'Sidebar must be sticky');
+            assert.ok(css.includes('.app-main-content'), 'Must define .app-main-content');
+
+            // KPI Grid
+            assert.ok(css.includes('.app-kpi-grid'), 'Must define .app-kpi-grid');
+            assert.ok(css.includes('grid-template-columns: repeat(4'), 'Desktop KPI grid must use 4 balanced columns');
+
+            // Charts row
+            assert.ok(css.includes('.app-charts-row'), 'Must define .app-charts-row');
+            assert.ok(css.includes('.chart-canvas-container'), 'Must style chart canvas container');
+        });
+
+        test('admin.html adheres to structured semantic application shell', () => {
+            const htmlPath = path.join(__dirname, '..', 'admin.html');
+            const html = fs.readFileSync(htmlPath, 'utf8');
+
+            assert.ok(html.includes('<div class="app-body-container">'), 'Must contain .app-body-container');
+            assert.ok(html.includes('<aside class="app-sidebar" id="appSidebar">'), 'Must contain .app-sidebar');
+            assert.ok(html.includes('<main class="app-main-content">'), 'Must contain .app-main-content');
+            assert.ok(html.includes('class="page-header-title"'), 'Must contain section A page title');
+            assert.ok(html.includes('<canvas id="trendChartCanvas"></canvas>'), 'Must contain trend chart canvas');
+            assert.ok(html.includes('<canvas id="wilayaChartCanvas"></canvas>'), 'Must contain wilaya chart canvas');
+        });
+    });
 });
