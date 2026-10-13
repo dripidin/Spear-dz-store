@@ -179,4 +179,46 @@ describe('End-to-End API Order Flow & Security Tests', () => {
         assert.strictEqual(json.success, true);
         assert.strictEqual(json.count, 58);
     });
+
+    test('GET /api/delivery?action=get_all_orders & /api/orders: Returns test orders without silent suppression', async () => {
+        // Merchant submits an order while testing their store using name "test orders01"
+        await mockStorage.saveOrder({
+            orderId: 'SPDZ-TEST-ORDERS-01',
+            fullName: 'test orders01',
+            phone: '0793731312',
+            wilaya: '16 - Alger',
+            deliveryType: 'desk',
+            totalPrice: 22350,
+            status: 'pending'
+        });
+
+        // 1. Check /api/delivery?action=get_all_orders
+        const { req: delReq, res: delRes, getStatus: getDelStatus, getJson: getDelJson } = mockReqRes(
+            'GET',
+            {},
+            { action: 'get_all_orders' },
+            { 'authorization': 'Bearer secret-test-admin-token-12345' }
+        );
+        await deliveryHandler(delReq, delRes);
+        assert.strictEqual(getDelStatus(), 200);
+        const delJson = getDelJson();
+        assert.strictEqual(delJson.success, true);
+        assert.strictEqual(delJson.count, 1);
+        assert.strictEqual(delJson.data[0].orderId, 'SPDZ-TEST-ORDERS-01');
+
+        // 2. Check /api/orders
+        const { req: ordReq, res: ordRes, getStatus: getOrdStatus, getJson: getOrdJson } = mockReqRes(
+            'GET',
+            {},
+            {},
+            { 'authorization': 'Bearer secret-test-admin-token-12345' }
+        );
+        await ordersHandler(ordReq, ordRes);
+        assert.strictEqual(getOrdStatus(), 200);
+        const ordJson = getOrdJson();
+        assert.strictEqual(ordJson.success, true);
+        assert.strictEqual(ordJson.count, 1);
+        assert.strictEqual(ordJson.data[0].fullName, 'test orders01');
+    });
 });
+
