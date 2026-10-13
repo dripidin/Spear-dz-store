@@ -1,0 +1,35 @@
+# ── Security & Secret Exclusion ───────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.env
+**/.env.local
+**/.env
+
+# Sensitive Keys & Credentials
+*.json.key
+*googlesheet-api*.json
+*service-account*.json
+*.pem
+*.key
+*.cert
+*.p12
+
+# Local Database & Cache
+node_modules/
+.vercel/
+dist/
+*.tmp
+*.log
+data/excel/*.xlsx
+data/json/*.json
+!data/json/.gitkeep
+
+# System & Media Temp
+Thumbs.db
+.DS_Store
+*.prproj
+*.prproj.*
+Adobe Premiere Pro Auto-Save/
+video/*.mp4
+video/*.mov

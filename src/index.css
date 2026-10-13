@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Cupertino Pure Color Tokens (from stitch_spear_dz_high_tech_5_in_1_store/DESIGN.md) */
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-low: #f4f3f8;
+    --color-surface-container: #eeedf3;
+    --color-surface-container-high: #e9e7ed;
+    --color-surface-container-highest: #e3e2e7;
+    --color-on-surface: #1a1b1f;
+    --color-on-surface-variant: #4c4546;
+    --color-primary: #000000;
+    --color-on-primary: #ffffff;
+    --color-secondary: #5f5e60;
+    --color-on-secondary-fixed: #1b1b1d;
+    --color-outline: #7e7576;
+    --color-outline-variant: #cfc4c5;
+
+    /* Apple & Parchment Reference Tokens */
+    --color-canvas-parchment: #f5f5f7;
+    --color-ink-primary: #1d1d1f;
+    --color-apple-blue: #0071e3;
+    
+    --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-arabic: 'Cairo', 'Tajawal', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  html, body {
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    background-color: #ffffff;
+    color: #1a1b1f;
+    font-family: var(--font-inter);
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  [dir="rtl"] body {
+    font-family: var(--font-arabic), var(--font-inter);
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Cupertino Pure Utilities */
+.bg-surface-container-lowest {
+  background-color: #ffffff;
+}
+
+.bg-surface-container-low {
+  background-color: #f4f3f8;
+}
+
+.bg-surface-container {
+  background-color: #eeedf3;
+}
+
+.text-primary {
+  color: #000000;
+}
+
+.bg-primary {
+  background-color: #000000;
+}
+
+.text-on-primary {
+  color: #ffffff;
+}
+
+.text-secondary {
+  color: #5f5e60;
+}
+
+.text-on-surface {
+  color: #1a1b1f;
+}
+
+.text-on-secondary-fixed {
+  color: #1b1b1d;
+}
+
+.bg-on-secondary-fixed {
+  background-color: #1b1b1d;
+}
+
+.placeholder-outline-variant::placeholder {
+  color: #cfc4c5;
+}
+
+/* Cupertino Typographic Scale */
+.font-display {
+  font-family: var(--font-inter);
+  font-size: 40px;
+  line-height: 44px;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+
+.font-title-lg {
+  font-family: var(--font-inter);
+  font-size: 28px;
+  line-height: 34px;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+.font-title-md {
+  font-family: var(--font-inter);
+  font-size: 22px;
+  line-height: 28px;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+
+.font-title-sm {
+  font-family: var(--font-inter);
+  font-size: 17px;
+  line-height: 22px;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+.font-body-md {
+  font-family: var(--font-inter);
+  font-size: 15px;
+  line-height: 20px;
+  letter-spacing: -0.005em;
+  font-weight: 400;
+}
+
+.font-label-lg {
+  font-family: var(--font-inter);
+  font-size: 13px;
+  line-height: 18px;
+  letter-spacing: 0em;
+  font-weight: 500;
+}
+
+.font-label-md {
+  font-family: var(--font-inter);
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.01em;
+  font-weight: 500;
+}
+
+.font-caption {
+  font-family: var(--font-inter);
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.02em;
+  font-weight: 400;
+}
+
+.px-margin-sm {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.px-margin {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}

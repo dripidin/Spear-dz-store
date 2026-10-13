@@ -1,0 +1,120 @@
+{
+  "store": {
+    "id": "spear_dz",
+    "name_ar": "سبير ديزاد — متجر التكنولوجيا الفاخرة",
+    "name_fr": "Spear-dz — High-Tech Store",
+    "slogan_ar": "أحدث عروض التكنولوجيا مع الضمان والدفع عند الاستلام عبر 58 ولاية",
+    "slogan_fr": "Les meilleures offres High-Tech avec garantie et paiement à la livraison",
+    "domain": "spear-dz.com",
+    "phone": "0555000000",
+    "whatsapp_number": "213555000000",
+    "support_hours_ar": "يومياً من 9:00 صباحاً إلى 20:00 مساءً",
+    "support_hours_fr": "Tous les jours de 9h00 à 20h00"
+  },
+  "branding": {
+    "primary_color": "#0ea5e9",
+    "secondary_color": "#10b981",
+    "dark_bg": "#0f172a",
+    "card_bg": "#1e293b",
+    "accent_gold": "#f59e0b",
+    "font_family": "'Tajawal', 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif"
+  },
+  "bundle": {
+    "id": "pack_hightech_5in1",
+    "title_ar": "عرض النخبة 5 في 1 (PACK HIGH-TECH 5 EN 1)",
+    "title_fr": "PACK HIGH-TECH 5 EN 1 (Offre Élite)",
+    "badge_ar": "العرض الأكثر طلباً • كمية محدودة",
+    "badge_fr": "Offre Exclusive • Stock Limité",
+    "price": 21900,
+    "currency": "د.ج",
+    "currency_symbol_fr": "DZD",
+    "internal_cost": 17800,
+    "main_image": "/images/products/pack.jpg",
+    "gallery": [
+      "/images/products/pack.jpg",
+      "/images/products/Smartphone.jpg",
+      "/images/products/Headphones.jpg",
+      "/images/products/Power bank.jpg",
+      "/images/products/Charger.jpg",
+      "/images/products/Cable.jpg",
+      "/images/bundle/Close_up_product_angle_display_2K_20261013015650.jpg"
+    ],
+    "components": [
+      {
+        "id": "smartphone",
+        "name_ar": "هاتف الذكي Buzz Prime+ 7",
+        "name_fr": "Smartphone Buzz Prime+ 7",
+        "specs_ar": "سعة تخزين 128GB مع ذاكرة رام 10GB (3GB رام فعلية + 7GB رام افتراضية ممتدة)، شاشة عالية الدقة، يدعم شريحتين مع شبكة 4G LTE وكاميرا متطورة.",
+        "specs_fr": "Stockage 128 Go, RAM 10 Go (3 Go physique + 7 Go mémoire virtuelle étendue), écran immersif haute résolution, double SIM 4G LTE.",
+        "image": "/images/products/Smartphone.jpg",
+        "verified": true,
+        "internal_cost": 15500
+      },
+      {
+        "id": "headphones",
+        "name_ar": "سماعات الرأس اللاسلكية P9",
+        "name_fr": "Casque Sans Fil P9 Hi-Fi",
+        "specs_ar": "صوت نقي عالي الدقة (Hi-Fi)، اتصال بلوتوث لاسلكي سريع ومستقر، وسائد أذن مريحة للاستخدام الطويل مع أزرار تحكم مدمجة وبطارية تدوم طويلاً.",
+        "specs_fr": "Audio haute fidélité sans fil Bluetooth, coussinets ergonomiques respirants, commandes multimédias physiques intégrées.",
+        "image": "/images/products/Headphones.jpg",
+        "verified": true,
+        "internal_cost": 750
+      },
+      {
+        "id": "charger",
+        "name_ar": "شاحن سريع جداري 25W بمخرج USB-C",
+        "name_fr": "Adaptateur Charge Rapide 25W USB-C",
+        "specs_ar": "قدرة شحن سريعة تصل إلى 25 واط متوافقة مع أحدث بروتوكولات الشحن السريع وحماية من الجهد الزائد والحرارة.",
+        "specs_fr": "Chargeur rapide 25W Type-C avec protection thermique et contre les surtensions.",
+        "image": "/images/products/Charger.jpg",
+        "verified": true,
+        "internal_cost": 300
+      },
+      {
+        "id": "powerbank",
+        "name_ar": "باور بانك HOCO J200 بسعة 10,000 mAh",
+        "name_fr": "Batterie Externe HOCO J200 (10 000 mAh)",
+        "specs_ar": "سعة حقيقية 10,000 ملي أمبير، منافذ شحن مزدوجة لشحن جهازين في وقت واحد، مؤشر طاقة LED، وتصميم متين مناسب للسفر والاستخدام اليومي.",
+        "specs_fr": "Capacité réelle 10 000 mAh, double port de sortie pour charger deux appareils simultanément, indicateur LED de charge.",
+        "image": "/images/products/Power bank.jpg",
+        "verified": true,
+        "internal_cost": 1000
+      },
+      {
+        "id": "cable",
+        "name_ar": "كابل شحن سريع متعدد 3 في 1",
+        "name_fr": "Câble Fast-Charging 3-en-1",
+        "specs_ar": "رؤوس شحن ثلاثية (Type-C / Lightning / Micro-USB) متوافقة مع جميع أنواع الهواتف والأجهزة، تصميم مضاد للقطع ومقاوم للثني والانحناء، مواصفة معلنة تصل حتى 120 واط.",
+        "specs_fr": "Connecteurs Type-C, Lightning et Micro-USB pour charger tous types d'appareils, câble tressé renforcé anti-torsion.",
+        "image": "/images/products/Cable.jpg",
+        "verified": true,
+        "internal_cost": 250
+      }
+    ]
+  },
+  "shipping": {
+    "default_courier": "manual",
+    "supported_couriers": ["manual", "redex", "yalidine", "zrexpress"],
+    "home_fee_default": 700,
+    "desk_fee_default": 450,
+    "estimated_days_north": "24 - 48 ساعة",
+    "estimated_days_south": "48 - 72 ساعة"
+  },
+  "anti_fraud": {
+    "rate_limit_max_orders_per_24h": 2,
+    "honeypot_field": "website_url_hp",
+    "phone_regex": "^0[567]\\d{8}$",
+    "min_form_duration_ms": 3000
+  },
+  "marketing": {
+    "meta_pixel_id": "",
+    "track_view_content": true,
+    "track_initiate_checkout": true,
+    "track_purchase": true,
+    "use_server_capi": true
+  },
+  "storage": {
+    "default_provider": "google_sheets",
+    "allowed_providers": ["google_sheets", "supabase", "memory_mock"]
+  }
+}
