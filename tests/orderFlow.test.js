@@ -81,15 +81,17 @@ describe('End-to-End API Order Flow & Security Tests', () => {
         assert.ok(json);
         assert.strictEqual(json.success, true);
         assert.ok(json.orderId);
-        // Unit price 21,900 + Algiers Home Shipping 500 = 22,400
+        // Dynamic check based on official Alger rates (Ecotrack live rates)
+        const expectedShippingFee = require('../config/shippingRates.json')['16']?.home || 700;
+        const expectedTotal = 21900 + expectedShippingFee;
         assert.strictEqual(json.subtotal, 21900);
-        assert.strictEqual(json.shippingFee, 500);
-        assert.strictEqual(json.totalPrice, 22400);
+        assert.strictEqual(json.shippingFee, expectedShippingFee);
+        assert.strictEqual(json.totalPrice, expectedTotal);
 
         // Verify persistence in storage
         const saved = await mockStorage.findOrderById(json.orderId);
         assert.ok(saved);
-        assert.strictEqual(saved.totalPrice, 22400);
+        assert.strictEqual(saved.totalPrice, expectedTotal);
     });
 
     test('POST /api/send-order: Rejects invalid phone number with 400', async () => {

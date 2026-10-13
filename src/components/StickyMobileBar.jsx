@@ -26,26 +26,22 @@ export default function StickyMobileBar({
       id="floatingBar"
       className="fixed bottom-0 inset-x-0 z-30 pb-safe pt-2 px-margin-sm md:px-margin bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/95 to-transparent backdrop-blur-md transition-all duration-500 transform translate-y-0 flex flex-col items-center"
     >
-      <div className="w-full max-w-xl pb-3 flex flex-col gap-2">
+      <div className="w-full max-w-xl pb-2 flex flex-col gap-1.5">
         {/* Quick Pricing & In-stock Indicator */}
-        <div className="flex items-center justify-between px-2">
-          <span className="font-caption text-caption text-secondary">
-            {isAr ? 'عرض النخبة 5 في 1 الفاخر' : bundleName}
-          </span>
-          <span className="font-title-sm text-title-sm text-primary tracking-tight font-mono">
-            {price}
-          </span>
+        <div className="flex items-center justify-between px-2 text-[11px] text-secondary">
+          <span>عرض النخبة 5 في 1 الفاخر</span>
+          <span className="font-mono font-bold text-primary">21,900 DZD</span>
         </div>
 
-        {/* Black Pill Button CTA (exact from code.html line 21) */}
+        {/* Black Pill Button CTA */}
         <button
           id="mainCtaBtn"
           type="button"
           onClick={handleClick}
           className="w-full h-12 bg-primary text-on-primary rounded-full font-label-lg text-label-lg font-medium flex items-center justify-center gap-2 shadow-sm transition-transform duration-150 active:scale-[0.98] cursor-pointer group"
         >
-          <span>{isAr ? 'اطلب الآن (الدفع عند الاستلام)' : 'Order Now'}</span>
-          <span className={`material-symbols-outlined text-[18px] transition-transform ${isAr ? 'rotate-180 group-hover:-translate-x-0.5' : 'group-hover:translate-x-0.5'}`}>
+          <span>اطلب الآن (الدفع عند الاستلام)</span>
+          <span className="material-symbols-outlined text-[18px] rotate-180 group-hover:-translate-x-0.5 transition-transform">
             arrow_forward
           </span>
         </button>

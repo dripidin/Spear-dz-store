@@ -849,7 +849,13 @@
                     <i class="fa-solid fa-map-location-dot text-amber"></i>
                     <h3 data-i18n="modalTariffsTitle">Grille Tarifaire des 58 Wilayas d'Algérie</h3>
                 </div>
-                <button class="modal-close-btn" onclick="storeAdmin.closeModal('tariffsModal')"><i class="fa-solid fa-xmark"></i></button>
+                <div class="modal-header-actions" style="display:flex; align-items:center; gap:10px;">
+                    <button type="button" class="app-btn app-btn-primary btn-sm" id="btnSyncTariffs" onclick="storeAdmin.syncEcotrackTariffs()" title="تحديث الأسعار من Ecotrack">
+                        <i class="fa-solid fa-arrows-rotate" id="syncTariffsIcon"></i>
+                        <span id="syncTariffsText">تحديث من Ecotrack</span>
+                    </button>
+                    <button class="modal-close-btn" onclick="storeAdmin.closeModal('tariffsModal')"><i class="fa-solid fa-xmark"></i></button>
+                </div>
             </div>
             <div class="app-modal-body">
                 <div class="table-responsive max-h-400">
@@ -866,7 +872,10 @@
                     </table>
                 </div>
             </div>
-            <div class="app-modal-footer">
+            <div class="app-modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+                <div class="tariffs-meta-info" style="font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-cloud-arrow-down"></i> <span id="tariffsSyncStatus">المصدر: Ecotrack Redex API (58 ولاية)</span>
+                </div>
                 <button type="button" class="app-btn app-btn-secondary" onclick="storeAdmin.closeModal('tariffsModal')" data-i18n="btnClose">Fermer</button>
             </div>
         </div>

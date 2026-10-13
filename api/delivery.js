@@ -37,7 +37,8 @@ module.exports = async (req, res) => {
     }
 
     const query = req.query || {};
-    const action = query.action;
+    const body = req.body || {};
+    const action = query.action || body.action;
 
     try {
         // ── 0. Admin: Get All Orders (for YamahaSac admin.js compatibility) ────
@@ -51,7 +52,6 @@ module.exports = async (req, res) => {
 
         // ── 0b. Admin: Login (for YamahaSac admin.js fallback) ────────────────
         if (action === 'login' || action === 'auth') {
-            const body = req.body || {};
             const pass = (body.password || body.token || '').toString().trim();
             const configuredToken = (process.env.ADMIN_API_TOKEN || process.env.ADMIN_PASSWORD || 'L3abedstore2026').trim();
             if (timingSafeCompare(pass, configuredToken) || pass === configuredToken) {
@@ -66,16 +66,23 @@ module.exports = async (req, res) => {
 
         // ── 0c. Admin: Delete Order ──────────────────────────────────────────
         if (action === 'delete') {
-            const targetId = sanitizeString(query.id || query.orderId || (req.body && (req.body.id || req.body.orderId)), 50);
-            if (!targetId) {
+            const rawIds = body.ids || body.orderIds || query.id || query.orderId || body.id || body.orderId;
+            const targetIds = Array.isArray(rawIds) ? rawIds : (rawIds ? [rawIds] : []);
+            if (targetIds.length === 0) {
                 res.writeHead(400, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ success: false, error: 'Missing id to delete' }));
                 return;
             }
-            const storage = getStorage();
-            await storage.deleteOrder(targetId);
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: true, message: `Order ${targetId} deleted successfully` }));
+            try {
+                const storage = getStorage();
+                const result = await storage.deleteOrders(targetIds);
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: true, message: `Orders deleted successfully`, deletedIds: result.deletedIds }));
+            } catch (delErr) {
+                console.error('[api/delivery] Delete order error:', delErr.message);
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, error: delErr.message }));
+            }
             return;
         }
 
@@ -110,21 +117,59 @@ module.exports = async (req, res) => {
             return;
         }
 
-        // ── 1. Public: 58 Wilayas Tariffs ─────────────────────────────────────
+        // ── 1. Public: 58 Wilayas Tariffs (with Ecotrack rates) ──────────────
         if (action === 'tariffs') {
+            try {
+                ratesData = JSON.parse(fs.readFileSync(shippingRatesPath, 'utf8'));
+            } catch (e) {}
+
             const list = wilayasData.map(w => {
-                const rate = ratesData[String(w.code)] || { home: 700, desk: 450, time: '24 - 48 H' };
+                const rate = ratesData[String(w.code)] || { home: 700, desk: 450, stopdeskAvailable: true, time: '24 - 48 H' };
                 return {
                     code: w.code,
+                    wilaya_code: w.code,
                     name: w.name,
                     nameAr: w.nameAr,
                     homePrice: rate.home,
+                    home_fee: rate.home,
                     deskPrice: rate.desk,
-                    estimatedTime: rate.time
+                    desk_fee: rate.desk,
+                    stopdeskAvailable: rate.stopdeskAvailable !== false,
+                    estimatedTime: rate.time || '24 - 48 H'
                 };
             });
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: true, count: list.length, data: list }));
+            res.end(JSON.stringify({
+                success: true,
+                count: list.length,
+                rates: ratesData,
+                data: list
+            }));
+            return;
+        }
+
+        // ── 1b. Admin/Internal: Sync Tariffs from Ecotrack ────────────────────
+        if (action === 'sync_tariffs') {
+            try {
+                const ecotrack = getCourier('redex');
+                const result = await ecotrack.syncTariffs();
+                ratesData = result.rates;
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: true,
+                    message: 'تم تحديث تعريفات التوصيل من Ecotrack بنجاح',
+                    count: result.count,
+                    updatedAt: result.updatedAt,
+                    rates: result.rates
+                }));
+            } catch (syncErr) {
+                console.error('[api/delivery] sync_tariffs error:', syncErr.message);
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: false,
+                    error: `Erreur lors de la synchronisation Ecotrack: ${syncErr.message}`
+                }));
+            }
             return;
         }
 

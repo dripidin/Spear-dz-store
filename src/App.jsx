@@ -33,7 +33,7 @@ export default function App() {
   return (
     <div className={`min-h-screen flex flex-col bg-surface-container-lowest text-on-surface pt-safe pb-safe ${isAr ? 'rtl' : 'ltr'}`}>
       
-      {/* Discrete Top Language Bar (with margin-bottom: 8px) */}
+      {/* Discrete Top Branding Bar */}
       <header
         className="w-full max-w-xl mx-auto px-margin-sm md:px-margin pt-2 flex items-center justify-between text-xs text-secondary z-20"
         style={{ marginBottom: '8px' }}
@@ -42,13 +42,10 @@ export default function App() {
           <span className="font-bold">SPEAR.DZ</span>
           <span className="text-[10px] text-secondary font-normal uppercase tracking-wider">Store</span>
         </div>
-        <button
-          type="button"
-          onClick={() => setLocale(isAr ? 'fr' : 'ar')}
-          className="px-2.5 py-1 rounded-full bg-surface-container-low hover:bg-surface-container text-primary font-label-md text-label-md transition-colors cursor-pointer"
-        >
-          {isAr ? 'Français' : 'العربية'}
-        </button>
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-low text-primary font-label-md text-[11px]">
+          <span>🇩🇿</span>
+          <span>توصيل 58 ولاية • الدفع عند الاستلام</span>
+        </div>
       </header>
 
       {/* Main Container - Single Column Max-w-xl from code.html */}

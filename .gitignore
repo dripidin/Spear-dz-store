@@ -37,6 +37,7 @@ video/*.mov
 .vercel
 .env*
 reference-yamahasac/
+reference-ecotrack/
 launch-ui-main/
 awesome-design-md-main/
 stitch_spear_dz_high_tech_5_in_1_store.zip

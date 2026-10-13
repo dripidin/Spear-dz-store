@@ -36,24 +36,13 @@ export default function Header({ locale, setLocale, onScrollToOrder }) {
 
         {/* Center / Right Controls */}
         <div className="flex items-center gap-3">
-          {/* Language Toggle Pill */}
-          <button
-            type="button"
-            onClick={() => setLocale(isAr ? 'fr' : 'ar')}
-            className="flex items-center gap-1 px-3 py-1 rounded-full bg-[#f5f5f7] hover:bg-[#e8e8ed] border border-[#d2d2d7]/70 text-xs font-medium text-[#1d1d1f] transition-colors cursor-pointer"
-            title="Changer de langue / تغيير اللغة"
-          >
-            <span>🌐</span>
-            <span>{isAr ? 'Français' : 'العربية'}</span>
-          </button>
-
           {/* Apple Blue Pill CTA */}
           <button
             type="button"
             onClick={onScrollToOrder}
             className="px-4 py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-medium text-xs sm:text-sm shadow-xs transition-all active:scale-95 cursor-pointer"
           >
-            {isAr ? 'اطلب الآن (COD)' : 'Acheter'}
+            اطلب الآن (الدفع عند الاستلام)
           </button>
         </div>
       </div>

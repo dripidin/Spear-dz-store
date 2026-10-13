@@ -96,8 +96,16 @@ module.exports = async (req, res) => {
         const unitPrice = (storeConfig && storeConfig.bundle && storeConfig.bundle.price) || 21900;
         const subtotal = unitPrice * quantity;
 
-        const wRate = shippingRates[String(wilayaCode)] || { home: 700, desk: 450 };
-        const shippingFee = deliveryType === 'desk' ? wRate.desk : wRate.home;
+        let liveRates = shippingRates;
+        try {
+            const fs = require('fs');
+            const path = require('path');
+            liveRates = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'config', 'shippingRates.json'), 'utf8'));
+        } catch (e) {}
+
+        const wRate = liveRates[String(wilayaCode)] || { home: 700, desk: 450 };
+        const isDesk = deliveryType === 'desk' || deliveryType === 'stopdesk' || body.deliveryType === 'stopdesk';
+        const shippingFee = isDesk ? (wRate.desk || wRate.home) : wRate.home;
         const totalPrice = subtotal + shippingFee;
 
         // Unique Order ID

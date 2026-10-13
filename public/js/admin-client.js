@@ -273,6 +273,7 @@
             this.populateWilayaDropdowns();
             this.fetchOrders();
             this.fetchAnalytics();
+            this.fetchTariffs();
 
             // Auto-refresh every 20 seconds
             if (!autoSyncInterval) {
@@ -281,7 +282,7 @@
         },
 
         getStoredCarrierToken: function () {
-            return localStorage.getItem('spdz_carrier_token') || localStorage.getItem('orva_carrier_token') || '';
+            return localStorage.getItem('spdz_carrier_token') || localStorage.getItem('orva_carrier_token') || 'vfHGTRGC2FvzRSpBoQ37ANI6lR6OTUUearWjaSHHBjqnicYSGLHyS0ZFJK7P';
         },
 
         getStoredCarrierBaseUrl: function () {
@@ -1250,8 +1251,8 @@
             const type = document.getElementById('formDeliveryType')?.value || 'home';
             const banner = document.getElementById('tariffDisplayPrice');
 
-            const tariff = WILAYAS_MAP[wCode] || { home: 500, desk: 350 };
-            const price = type === 'stopdesk' ? tariff.desk : tariff.home;
+            const tariff = WILAYAS_MAP[wCode] || { home: 700, desk: 450, stopdeskAvailable: true };
+            const price = type === 'stopdesk' ? (tariff.stopdeskAvailable !== false ? tariff.desk : tariff.home) : tariff.home;
 
             if (banner) {
                 banner.textContent = `${price} DZD`;
@@ -1336,16 +1337,43 @@
                 : `هل أنت متأكد من حذف الطلبية ${orderId}؟`;
             if (!confirm(confirmMsg)) return;
 
+            // Optimistic UI update
+            const prevOrders = ordersList.slice();
+            ordersList = ordersList.filter(o => o.orderId !== orderId && o.id !== orderId);
+            this.renderTable();
+            this.updateKPIs();
+            this.renderCharts();
+
             try {
-                let res = await fetch(`/api/delivery?action=delete&id=${orderId}`, { method: 'DELETE', headers: this.getAuthHeaders() });
-                if (!res.ok) {
-                    res = await fetch(`/api/orders?orderId=${orderId}`, { method: 'DELETE', headers: this.getAuthHeaders() });
+                let res = await fetch(`/api/delivery?action=delete&id=${encodeURIComponent(orderId)}`, {
+                    method: 'DELETE',
+                    headers: this.getAuthHeaders()
+                });
+                let json = await res.json().catch(() => ({}));
+
+                if (!res.ok || !json.success) {
+                    res = await fetch(`/api/orders?orderId=${encodeURIComponent(orderId)}`, {
+                        method: 'DELETE',
+                        headers: this.getAuthHeaders()
+                    });
+                    json = await res.json().catch(() => ({}));
                 }
-                const json = await res.json();
+
                 if (json.success) {
-                    this.fetchOrders(true);
+                    await this.fetchOrders(false);
+                } else {
+                    // Rollback on failure
+                    ordersList = prevOrders;
+                    this.renderTable();
+                    this.updateKPIs();
+                    this.renderCharts();
+                    alert(currentLang === 'fr' ? 'Erreur lors de la suppression: ' + (json.error || 'Erreur serveur') : 'حدث خطأ أثناء الحذف: ' + (json.error || 'خطأ في السيرفر'));
                 }
             } catch (e) {
+                ordersList = prevOrders;
+                this.renderTable();
+                this.updateKPIs();
+                this.renderCharts();
                 alert('Erreur: ' + e.message);
             }
         },
@@ -1385,6 +1413,88 @@
             document.getElementById(modalId)?.classList.remove('active');
         },
 
+        fetchTariffs: async function () {
+            try {
+                const res = await fetch('/api/delivery?action=tariffs');
+                const json = await res.json();
+                if (json.success && json.rates) {
+                    for (let i = 1; i <= 58; i++) {
+                        const r = json.rates[String(i)];
+                        if (r && WILAYAS_MAP[i]) {
+                            WILAYAS_MAP[i].home = r.home;
+                            WILAYAS_MAP[i].desk = r.desk;
+                            WILAYAS_MAP[i].stopdeskAvailable = r.stopdeskAvailable !== false;
+                            WILAYAS_MAP[i].time = r.time || WILAYAS_MAP[i].time;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('[StoreAdmin] Tariffs fetch notice:', e.message);
+            }
+        },
+
+        syncEcotrackTariffs: async function () {
+            const btn = document.getElementById('btnSyncTariffs');
+            const icon = document.getElementById('syncTariffsIcon');
+            const text = document.getElementById('syncTariffsText');
+            const status = document.getElementById('tariffsSyncStatus');
+
+            if (icon) icon.classList.add('fa-spin');
+            if (btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.7';
+            }
+            if (text) {
+                text.textContent = currentLang === 'fr' ? 'Synchronisation...' : 'جاري التحديث...';
+            }
+
+            try {
+                const res = await fetch('/api/delivery?action=sync_tariffs', {
+                    method: 'POST',
+                    headers: this.getAuthHeaders()
+                });
+                const json = await res.json();
+
+                if (json.success) {
+                    if (json.rates) {
+                        for (let i = 1; i <= 58; i++) {
+                            const r = json.rates[String(i)];
+                            if (r && WILAYAS_MAP[i]) {
+                                WILAYAS_MAP[i].home = r.home;
+                                WILAYAS_MAP[i].desk = r.desk;
+                                WILAYAS_MAP[i].stopdeskAvailable = r.stopdeskAvailable !== false;
+                            }
+                        }
+                    }
+                    this.openTariffsModal();
+                    if (status) {
+                        const timeStr = new Date().toLocaleTimeString();
+                        status.textContent = currentLang === 'fr' 
+                            ? `✓ Synchronisé avec succès à ${timeStr} (${json.count || 58} wilayas Ecotrack)`
+                            : `✓ تم التحديث بنجاح في ${timeStr} (${json.count || 58} ولاية من Ecotrack)`;
+                        status.style.color = 'var(--emerald)';
+                    }
+                    alert(currentLang === 'fr' 
+                        ? `Tarifs Ecotrack synchronisés avec succès (${json.count || 58} wilayas) !`
+                        : `تم تحديث تعريفات التوصيل من Ecotrack بنجاح (${json.count || 58} ولاية)!`);
+                } else {
+                    alert(json.error || 'Erreur lors de la synchronisation des tarifs');
+                }
+            } catch (err) {
+                console.error('[Sync Ecotrack Tariffs Error]:', err);
+                alert('Erreur: ' + err.message);
+            } finally {
+                if (icon) icon.classList.remove('fa-spin');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                }
+                if (text) {
+                    text.textContent = currentLang === 'fr' ? 'Synchroniser Ecotrack' : 'تحديث من Ecotrack';
+                }
+            }
+        },
+
         openTariffsModal: function () {
             const tbody = document.getElementById('tariffsTableBody');
             if (tbody) {
@@ -1394,11 +1504,14 @@
                     if (!w) continue;
                     const tr = document.createElement('tr');
                     const wName = currentLang === 'fr' ? w.nameFr : w.nameAr;
+                    const deskBadge = w.stopdeskAvailable === false
+                        ? `<span class="status-badge" style="background:rgba(239,68,68,0.15); color:#ef4444;">${currentLang === 'fr' ? 'Non disponible' : 'غير متوفر'}</span>`
+                        : `<span style="color:var(--primary); font-weight:700;">${w.desk} DZD</span>`;
                     tr.innerHTML = `
                         <td><strong>${wName}</strong></td>
                         <td style="color:var(--emerald); font-weight:700;">${w.home} DZD</td>
-                        <td style="color:var(--primary); font-weight:700;">${w.desk} DZD</td>
-                        <td><span class="status-badge badge-delivered">58 Wilayas</span></td>
+                        <td>${deskBadge}</td>
+                        <td><span class="status-badge badge-delivered">${w.time || '24 - 48 H'}</span></td>
                     `;
                     tbody.appendChild(tr);
                 }
