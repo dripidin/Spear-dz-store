@@ -47,7 +47,8 @@ describe('Meta Conversions API (CAPI) Normalization Tests', () => {
         const adminHtml = fs.readFileSync(path.join(__dirname, '..', 'admin.html'), 'utf8');
         const storeConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'config', 'store.config.json'), 'utf8'));
 
-        // Domain verification meta tag
+        // Domain verification meta tags
+        assert.ok(indexHtml.includes('name="facebook-domain-verification" content="lzuh8krch3d5nv6p3itr4aweqn4fcj"'), 'New domain verification meta tag missing');
         assert.ok(indexHtml.includes('name="facebook-domain-verification" content="s9bo2czrcqynrmjzo5uji6yzcjktit"'), 'Domain verification meta tag missing');
 
         // Meta Pixel script and initialization
