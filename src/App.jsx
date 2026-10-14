@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import CupertinoVideoHero from './components/CupertinoVideoHero';
 import OrderForm from './components/OrderForm';
 import StickyMobileBar from './components/StickyMobileBar';
@@ -88,6 +89,9 @@ export default function App() {
           onClose={() => setCompletedOrder(null)}
         />
       )}
+
+      {/* Vercel Speed Insights */}
+      <SpeedInsights />
 
     </div>
   );
