@@ -1,8 +1,13 @@
 'use strict';
 
-const { getCourier, getAvailableCouriers } = require('../../lib/delivery');
+const { getCourier, getAvailableCouriers, locationResolver } = require('../../lib/delivery');
 const { getStorage } = require('../../lib/storage');
-const { authenticateAdmin, applyCorsHeaders, sanitizeString } = require('../../lib/security');
+const {
+    authenticateAdmin,
+    applyCorsHeaders,
+    sanitizeString,
+    normalizeAlgerianPhone
+} = require('../../lib/security');
 
 module.exports = async (req, res) => {
     applyCorsHeaders(req, res);
@@ -83,16 +88,164 @@ module.exports = async (req, res) => {
         // ── POST: Create and dispatch parcel to carrier ───────────────────────
         if (req.method === 'POST') {
             const body = req.body || {};
-            const orderId = sanitizeString(body.orderId, 50);
+            const rawOrderId = sanitizeString(body.orderId, 50);
+            const isManual = Boolean(body.isManual || !rawOrderId);
             const courierId = sanitizeString(body.courierId || 'manual', 30).toLowerCase();
             const operatorNotes = sanitizeString(body.notes || '', 200);
 
-            if (!orderId) {
-                res.writeHead(400, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: false, error: 'orderId is required' }));
+            // Verify courier configuration / credentials
+            const courier = getCourier(courierId);
+            if (courierId !== 'manual') {
+                if (typeof courier.isConfigured === 'function' && !courier.isConfigured()) {
+                    res.writeHead(422, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
+                        success: false,
+                        error: `MISSING_CREDENTIALS: Le transporteur ${courier.name} n'est pas configuré. Veuillez vérifier les clés API d'intégration.`
+                    }));
+                    return;
+                }
+            }
+
+            // ─────────────────────────────────────────────────────────────────
+            // WORKFLOW B: Independent Manual Order Dispatch
+            // ─────────────────────────────────────────────────────────────────
+            if (isManual) {
+                const manualFullName = sanitizeString(body.fullName || body.clientName, 100);
+                const rawPhone = sanitizeString(body.phone || body.clientPhone, 30);
+                const normalizedPhone = normalizeAlgerianPhone(rawPhone);
+
+                if (!manualFullName || manualFullName.length < 2) {
+                    res.writeHead(422, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Nom complet du destinataire obligatoire (au moins 2 caractères)' }));
+                    return;
+                }
+
+                if (!normalizedPhone) {
+                    res.writeHead(422, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Numéro de téléphone algérien invalide (doit commencer par 05, 06 ou 07)' }));
+                    return;
+                }
+
+                const wilayaInput = body.wilayaCode || body.wilaya || 16;
+                const wilayaObj = locationResolver.resolveWilaya(wilayaInput);
+                const wCode = wilayaObj.code;
+
+                const manualCommune = sanitizeString(body.commune || body.communeSelect || 'Centre Ville', 60);
+                const manualAddress = sanitizeString(body.address || '', 200);
+                const chosenDeliveryType = (body.deliveryType || 'home').toLowerCase();
+                const normalizedDeliveryType = (chosenDeliveryType === 'desk' || chosenDeliveryType === 'stopdesk') ? 'desk' : 'home';
+
+                // Verify delivery availability against carrier catalogue
+                const availability = locationResolver.verifyDeliveryAvailability(wCode, manualCommune, normalizedDeliveryType, courierId);
+                if (normalizedDeliveryType === 'desk' && !availability.available) {
+                    res.writeHead(422, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
+                        success: false,
+                        error: availability.message || `Stop desk non disponible pour la commune "${manualCommune}". Veuillez sélectionner la livraison à domicile.`
+                    }));
+                    return;
+                }
+
+                const codAmount = Number(body.price || body.totalPrice);
+                if (!codAmount || isNaN(codAmount) || codAmount <= 0) {
+                    res.writeHead(422, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Montant COD invalide pour la commande manuelle' }));
+                    return;
+                }
+
+                // Internal manual order ID (preventing duplicate creations if retrying)
+                const manualOrderId = sanitizeString(body.manualOrderId, 50) || ('SPDZ-MAN-' + Date.now().toString().slice(-6) + '-' + Math.floor(1000 + Math.random() * 9000));
+
+                let existingOrder = await storage.findOrderById(manualOrderId);
+                if (!existingOrder) {
+                    const manualRecord = {
+                        orderId: manualOrderId,
+                        storeId: 'spear_dz',
+                        fullName: manualFullName,
+                        phone: normalizedPhone,
+                        wilaya: `${wilayaObj.code} - ${wilayaObj.name} (${wilayaObj.nameAr})`,
+                        wilayaCode: wilayaObj.code,
+                        commune: availability.commune || manualCommune,
+                        address: manualAddress || availability.commune || manualCommune,
+                        deliveryType: normalizedDeliveryType,
+                        productName: sanitizeString(body.productName, 100) || 'PACK HIGH-TECH 5 EN 1',
+                        quantity: Math.max(1, parseInt(body.quantity, 10) || 1),
+                        unitPrice: codAmount,
+                        shippingFee: 0,
+                        totalPrice: codAmount,
+                        status: 'pending',
+                        courier: courierId,
+                        trackingCode: '',
+                        notes: operatorNotes || 'Commande manuelle administrateur',
+                        source: 'admin_manual',
+                        createdAt: new Date().toISOString()
+                    };
+                    await storage.saveOrder(manualRecord);
+                    existingOrder = manualRecord;
+                }
+
+                const shipmentPayload = {
+                    orderId: manualOrderId,
+                    fullName: manualFullName,
+                    phone: normalizedPhone,
+                    wilaya: `${wilayaObj.code} - ${wilayaObj.name}`,
+                    wilayaCode: wCode,
+                    commune: availability.commune || manualCommune,
+                    address: manualAddress || availability.commune || manualCommune,
+                    deliveryType: normalizedDeliveryType,
+                    totalPrice: codAmount,
+                    productName: existingOrder.productName || 'PACK HIGH-TECH 5 EN 1',
+                    notes: operatorNotes || existingOrder.notes || ''
+                };
+
+                let shipmentRes;
+                try {
+                    shipmentRes = await courier.createShipment(shipmentPayload);
+                } catch (courierErr) {
+                    res.writeHead(422, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
+                        success: false,
+                        isManual: true,
+                        orderId: manualOrderId,
+                        error: `Erreur du transporteur: ${courierErr.message}`
+                    }));
+                    return;
+                }
+
+                if (!shipmentRes || !shipmentRes.success || !shipmentRes.trackingCode) {
+                    res.writeHead(422, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
+                        success: false,
+                        isManual: true,
+                        orderId: manualOrderId,
+                        error: (shipmentRes && (shipmentRes.error || shipmentRes.message)) || 'Le transporteur a rejeté la création du colis'
+                    }));
+                    return;
+                }
+
+                const trackingCode = String(shipmentRes.trackingCode).trim();
+                const updatedOrder = await storage.updateOrderStatus(manualOrderId, 'shipped', {
+                    trackingCode,
+                    courier: courierId,
+                    notes: operatorNotes || existingOrder.notes
+                });
+
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: true,
+                    isManual: true,
+                    orderId: manualOrderId,
+                    trackingCode,
+                    courier: courierId,
+                    order: updatedOrder
+                }));
                 return;
             }
 
+            // ─────────────────────────────────────────────────────────────────
+            // WORKFLOW A: Existing Stored Order Dispatch
+            // ─────────────────────────────────────────────────────────────────
+            const orderId = rawOrderId;
             const order = await storage.findOrderById(orderId);
             if (!order) {
                 res.writeHead(404, { 'Content-Type': 'application/json' });
@@ -108,19 +261,6 @@ module.exports = async (req, res) => {
                     error: `La commande est déjà expédiée avec le code ${order.trackingCode} (${order.courier}). Cochez 'forceReassign' pour remplacer.`
                 }));
                 return;
-            }
-
-            // Verify courier configuration / credentials
-            const courier = getCourier(courierId);
-            if (courierId !== 'manual') {
-                if (typeof courier.isConfigured === 'function' && !courier.isConfigured()) {
-                    res.writeHead(422, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({
-                        success: false,
-                        error: `MISSING_CREDENTIALS: Le transporteur ${courier.name} n'est pas configuré. Veuillez vérifier les clés API d'intégration.`
-                    }));
-                    return;
-                }
             }
 
             // Authoritative recipient data validation
@@ -158,16 +298,35 @@ module.exports = async (req, res) => {
                 wCode = m ? parseInt(m[1], 10) : 16;
             }
 
-            // Construct payload using strictly authoritative order data
+            // Delivery method precedence:
+            // Admin form selection (body.deliveryType) overrides stored order preference if explicitly provided!
+            const chosenDeliveryType = (body.deliveryType || order.deliveryType || 'home').toLowerCase();
+            const normalizedDeliveryType = (chosenDeliveryType === 'desk' || chosenDeliveryType === 'stopdesk') ? 'desk' : 'home';
+
+            // Verify delivery availability against carrier catalogue
+            const currentCommune = order.commune || 'Centre Ville';
+            const availability = locationResolver.verifyDeliveryAvailability(wCode, currentCommune, normalizedDeliveryType, courierId);
+            if (normalizedDeliveryType === 'desk' && !availability.available) {
+                res.writeHead(422, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: false,
+                    error: availability.message || `Stop desk non disponible pour la commune "${currentCommune}". Veuillez sélectionner la livraison à domicile.`
+                }));
+                return;
+            }
+
+            const resolvedCommuneName = availability.commune || currentCommune;
+
+            // Construct payload using authoritative order data and verified commune
             const shipmentPayload = {
                 orderId: order.orderId,
                 fullName: order.fullName,
                 phone: order.phone,
                 wilaya: order.wilaya,
                 wilayaCode: wCode,
-                commune: order.commune || 'Centre Ville',
-                address: order.address || order.commune || '',
-                deliveryType: order.deliveryType || body.deliveryType || 'home',
+                commune: resolvedCommuneName,
+                address: order.address || resolvedCommuneName,
+                deliveryType: normalizedDeliveryType,
                 totalPrice: codAmount,
                 productName: order.productName || 'PACK HIGH-TECH 5 EN 1',
                 notes: operatorNotes || order.notes || ''
@@ -202,6 +361,7 @@ module.exports = async (req, res) => {
                 updatedOrder = await storage.updateOrderStatus(orderId, 'shipped', {
                     trackingCode,
                     courier: courierId,
+                    deliveryType: normalizedDeliveryType,
                     notes: operatorNotes || order.notes
                 });
             } catch (dbUpdateErr) {
@@ -218,67 +378,44 @@ module.exports = async (req, res) => {
                 return;
             }
 
-            // 2. Record status history in Supabase
+            // 2. Audit Trail: Insert dispatch event if Supabase client available
             if (typeof storage.getClient === 'function') {
                 try {
                     const client = storage.getClient();
-                    await client.from('order_status_history').insert([{
-                        order_id: orderId,
-                        from_status: order.status,
-                        to_status: 'shipped',
-                        changed_by: 'admin',
-                        notes: courierId === 'manual'
-                            ? `Expédition manuelle enregistrée [Réf: ${trackingCode}]`
-                            : `Expédié via ${courier.name} [Tracking: ${trackingCode}]`
-                    }]);
-
-                    // 3. Record courier tracking event
-                    await client.from('courier_tracking_events').insert([{
+                    await client.from('courier_tracking_events').insert({
                         order_id: orderId,
                         courier: courierId,
                         tracking_code: trackingCode,
-                        status: 'dispatched',
-                        status_description: courierId === 'manual'
-                            ? 'Expédition manuelle assignée'
-                            : 'Colis créé et accepté par le transporteur',
-                        location: order.wilaya || 'Alger',
-                        raw_payload: shipmentRes
-                    }]);
-                } catch (dbErr) {
-                    console.warn('[api/admin/dispatch] Supabase tracking event notice:', dbErr.message);
+                        event_type: 'dispatched',
+                        description: `Colis expédié avec succès via ${courier.name} (${normalizedDeliveryType === 'desk' ? 'Stop Desk' : 'À Domicile'})`,
+                        raw_payload: shipmentRes.raw || null
+                    });
+                } catch (eventErr) {
+                    console.warn('[api/admin/dispatch] Tracking event audit log non-fatal error:', eventErr.message);
                 }
             }
 
-            // 4. Record audit log
-            try {
-                await storage.recordAuditLog('DISPATCH_PARCEL', 'order', orderId, 'admin', {
-                    courier: courierId,
-                    trackingCode,
-                    amount: codAmount
-                });
-            } catch (_) {}
-
+            const isManualCourier = courierId === 'manual';
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({
                 success: true,
-                isManual: Boolean(shipmentRes.isManual || courierId === 'manual'),
-                message: shipmentRes.isManual || courierId === 'manual'
-                    ? 'Expédition manuelle enregistrée avec succès'
-                    : `Colis créé avec succès auprès de ${courier.name}`,
                 orderId,
-                courier: courierId,
                 trackingCode,
+                courier: courierId,
+                deliveryType: normalizedDeliveryType,
+                isManual: isManualCourier ? true : undefined,
+                message: isManualCourier ? `Expédition manuelle enregistrée avec succès (Réf: ${trackingCode})` : 'Colis expédié avec succès',
                 order: updatedOrder
             }));
             return;
         }
 
         res.writeHead(405, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Method Not Allowed' }));
+        res.end(JSON.stringify({ success: false, error: 'Method Not Allowed' }));
 
     } catch (err) {
-        console.error('[api/admin/dispatch] Error:', err.message);
+        console.error('[api/admin/dispatch] Fatal error:', err.message);
         res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: false, error: err.message }));
+        res.end(JSON.stringify({ success: false, error: `INTERNAL_ERROR: ${err.message}` }));
     }
 };

@@ -67,14 +67,11 @@
 
                 <!-- Desktop / Tablet Store Quick Links (inline flex, non-overlapping) -->
                 <nav class="store-quick-nav hide-on-tablet" aria-label="Liens rapides boutique">
-                    <a href="/" target="_blank" class="store-nav-pill" title="زيارة المتجر الرئيسي">
+                    <a href="/" target="_blank" class="store-nav-pill" title="المتجر الرئيسي">
                         <i class="fa-solid fa-house"></i> <span>المتجر الرئيسي</span>
                     </a>
-                    <a href="/#orderForm" target="_blank" class="store-nav-pill" title="استمارة الطلب">
-                        <i class="fa-solid fa-bag-shopping"></i> <span>طلب العرض (21,900 دج)</span>
-                    </a>
-                    <a href="#orders" class="store-nav-pill" onclick="storeAdmin.switchTab('orders')" title="إدارة الطلبيات">
-                        <i class="fa-solid fa-boxes-packing"></i> <span>سجل الطلبيات</span>
+                    <a href="/#orderForm" target="_blank" class="store-nav-pill" title="صفحة المنتج">
+                        <i class="fa-solid fa-bag-shopping"></i> <span>صفحة المنتج</span>
                     </a>
                 </nav>
 
@@ -196,15 +193,11 @@
                 <div class="mobile-storefront-links">
                     <a href="/" target="_blank" class="mobile-nav-item">
                         <div class="m-nav-icon text-primary"><i class="fa-solid fa-house"></i></div>
-                        <span>المتجر الرئيسي (Boutique)</span>
+                        <span>المتجر الرئيسي</span>
                     </a>
                     <a href="/#orderForm" target="_blank" class="mobile-nav-item">
                         <div class="m-nav-icon text-amber"><i class="fa-solid fa-bag-shopping"></i></div>
-                        <span>طلب العرض (21,900 دج)</span>
-                    </a>
-                    <a href="#orders" class="mobile-nav-item" onclick="storeAdmin.switchTab('orders'); storeAdmin.closeMobileNav();">
-                        <div class="m-nav-icon text-emerald"><i class="fa-solid fa-boxes-packing"></i></div>
-                        <span>سجل الطلبيات</span>
+                        <span>صفحة المنتج</span>
                     </a>
                 </div>
 
@@ -500,23 +493,23 @@
                         <div class="app-kpi-grid mb-4" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
                             <div class="analytics-col-card" style="padding:10px 14px;">
                                 <small style="color:var(--text-muted); font-size:10px; font-weight:700;">VISITEURS UNIQUES</small>
-                                <h3 style="font-size:18px; font-weight:800; color:var(--primary);" id="anTotalVisitors">1,480</h3>
-                                <small style="color:var(--emerald); font-size:9px; font-weight:700;"><i class="fa-solid fa-arrow-trend-up"></i> +18.4% cette semaine</small>
+                                <h3 style="font-size:18px; font-weight:800; color:var(--primary);" id="anTotalVisitors">--</h3>
+                                <small style="color:var(--text-muted); font-size:9px; font-weight:600;" id="anVisitorsPeriod"><i class="fa-solid fa-chart-line"></i> Période sélectionnée</small>
                             </div>
                             <div class="analytics-col-card" style="padding:10px 14px;">
                                 <small style="color:var(--text-muted); font-size:10px; font-weight:700;">PAGES VUES (TOTAL)</small>
-                                <h3 style="font-size:18px; font-weight:800; color:var(--cyan);" id="anPageViews">4,620</h3>
-                                <small style="color:var(--cyan); font-size:9px; font-weight:700;"><i class="fa-solid fa-eye"></i> 3.1 pages / visiteur</small>
+                                <h3 style="font-size:18px; font-weight:800; color:var(--cyan);" id="anPageViews">--</h3>
+                                <small style="color:var(--text-muted); font-size:9px; font-weight:600;" id="anPageviewsPeriod"><i class="fa-solid fa-eye"></i> Période sélectionnée</small>
                             </div>
                             <div class="analytics-col-card" style="padding:10px 14px;">
                                 <small style="color:var(--text-muted); font-size:10px; font-weight:700;">TAUX DE CONVERSION</small>
-                                <h3 style="font-size:18px; font-weight:800; color:var(--emerald);" id="anConversionRate">3.8%</h3>
-                                <small style="color:var(--emerald); font-size:9px; font-weight:700;"><i class="fa-solid fa-check-double"></i> Élevé (E-com DZ)</small>
+                                <h3 style="font-size:18px; font-weight:800; color:var(--emerald);" id="anConversionRate">--</h3>
+                                <small style="color:var(--text-muted); font-size:9px; font-weight:600;" id="anConversionSub"><i class="fa-solid fa-check-double"></i> Commandes confirmées / Visiteurs</small>
                             </div>
                             <div class="analytics-col-card" style="padding:10px 14px;">
                                 <small style="color:var(--text-muted); font-size:10px; font-weight:700;">DURÉE MOYENNE</small>
-                                <h3 style="font-size:18px; font-weight:800; color:var(--purple);" id="anAvgDuration">2m 45s</h3>
-                                <small style="color:var(--purple); font-size:9px; font-weight:700;"><i class="fa-solid fa-stopwatch"></i> Engagement optimal</small>
+                                <h3 style="font-size:16px; font-weight:800; color:var(--text-muted);" id="anAvgDuration">Non mesuré</h3>
+                                <small style="color:var(--text-muted); font-size:9px; font-weight:600;"><i class="fa-solid fa-circle-info"></i> Non supporté par Vercel Analytics</small>
                             </div>
                         </div>
 
@@ -525,10 +518,7 @@
                             <div class="analytics-col-card">
                                 <h5 class="analytics-subtitle"><i class="fa-solid fa-share-nodes text-primary"></i> <span data-i18n="lblReferrers">Sources de Trafic (Référents)</span></h5>
                                 <div class="analytics-list" id="referrersList">
-                                    <div class="analytics-row"><span>Facebook Ads / Instagram (CAPI)</span><strong>64%</strong></div>
-                                    <div class="analytics-row"><span>TikTok Ads Algérie</span><strong>24%</strong></div>
-                                    <div class="analytics-row"><span>Lien Direct / WhatsApp</span><strong>8%</strong></div>
-                                    <div class="analytics-row"><span>Google Search DZ (Organique)</span><strong>4%</strong></div>
+                                    <div class="analytics-row"><span style="color:var(--text-muted); font-size:12px;">En attente de données réelles</span><strong>--</strong></div>
                                 </div>
                             </div>
 
@@ -536,9 +526,7 @@
                             <div class="analytics-col-card">
                                 <h5 class="analytics-subtitle"><i class="fa-solid fa-mobile-screen-button text-emerald"></i> <span data-i18n="lblDevices">Appareils & Systèmes</span></h5>
                                 <div class="analytics-list" id="devicesList">
-                                    <div class="analytics-row"><span>Smartphones (Android)</span><strong>82%</strong></div>
-                                    <div class="analytics-row"><span>iPhone (Apple iOS)</span><strong>11%</strong></div>
-                                    <div class="analytics-row"><span>Ordinateurs (Windows PC / Mac)</span><strong>7%</strong></div>
+                                    <div class="analytics-row"><span style="color:var(--text-muted); font-size:12px;">En attente de données réelles</span><strong>--</strong></div>
                                 </div>
                             </div>
 
@@ -546,10 +534,7 @@
                             <div class="analytics-col-card">
                                 <h5 class="analytics-subtitle"><i class="fa-solid fa-map-location-dot text-amber"></i> <span data-i18n="lblTopCities">Villes & Wilayas Principales</span></h5>
                                 <div class="analytics-list" id="citiesList">
-                                    <div class="analytics-row"><span>16 - Alger (العاصمة)</span><strong>32%</strong></div>
-                                    <div class="analytics-row"><span>31 - Oran (وهران)</span><strong>16%</strong></div>
-                                    <div class="analytics-row"><span>25 - Constantine (قسنطينة)</span><strong>11%</strong></div>
-                                    <div class="analytics-row"><span>19 - Sétif & 09 - Blida</span><strong>17%</strong></div>
+                                    <div class="analytics-row"><span style="color:var(--text-muted); font-size:12px;">En attente de données réelles</span><strong>--</strong></div>
                                 </div>
                             </div>
 
@@ -557,10 +542,7 @@
                             <div class="analytics-col-card">
                                 <h5 class="analytics-subtitle"><i class="fa-solid fa-compass text-purple"></i> <span data-i18n="lblBrowsers">Navigateurs & Réseau Edge</span></h5>
                                 <div class="analytics-list" id="browsersList">
-                                    <div class="analytics-row"><span>Chrome Mobile DZ</span><strong>54%</strong></div>
-                                    <div class="analytics-row"><span>Facebook In-App Browser</span><strong>28%</strong></div>
-                                    <div class="analytics-row"><span>Safari Mobile (iOS)</span><strong>11%</strong></div>
-                                    <div class="analytics-row"><span>TikTok In-App & Autres</span><strong>7%</strong></div>
+                                    <div class="analytics-row"><span style="color:var(--text-muted); font-size:12px;">En attente de données réelles</span><strong>--</strong></div>
                                 </div>
                             </div>
                         </div>
@@ -572,10 +554,19 @@
                 <!-- ================================================================= -->
                 <section class="app-card table-section-card" id="ordersSection">
                     <div class="app-card-header table-header-flex">
-                        <div class="header-left-title">
+                        <div class="header-left-title" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                             <i class="fa-solid fa-table-list text-primary"></i>
                             <h4 data-i18n="tableTitle">Journal des Commandes & Expéditions</h4>
                             <span class="count-badge" id="tableOrdersCount">0 commandes</span>
+                            <div class="header-status-cards" style="display:inline-flex; gap:6px; align-items:center; flex-wrap:wrap; margin-inline-start:4px;">
+                                <div class="status-card-compact" id="cardStatusCourier" style="display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:var(--radius-sm, 6px); font-size:11px; font-weight:600; background:rgba(16, 185, 129, 0.1); color:#10b981; border:1px solid rgba(16, 185, 129, 0.2);">
+                                    <span class="live-dot pulse-green" style="width:6px; height:6px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+                                    <span id="cardCourierLabel">Yalidine / Redex: Connecté</span>
+                                </div>
+                                <div class="status-card-compact" id="cardStatusSupabase" style="display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:var(--radius-sm, 6px); font-size:11px; font-weight:600; background:rgba(16, 185, 129, 0.1); color:#10b981; border:1px solid rgba(16, 185, 129, 0.2);">
+                                    <span id="cardSupabaseLabel">Supabase: Synchronisé ✅</span>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Status Filter Tabs -->
@@ -591,12 +582,7 @@
 
                     <!-- Table Toolbar -->
                     <div class="table-toolbar">
-                        <div class="toolbar-search">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="tableSearchInput" placeholder="Filtrer par nom, téléphone, commune, code..." onkeyup="storeAdmin.handleSearch(this.value)" data-i18n-placeholder="tableFilterPlaceholder">
-                        </div>
-
-                        <div class="toolbar-actions">
+                        <div class="toolbar-actions" style="margin-inline-start:0; width:100%; justify-content:space-between;">
                             <select id="wilayaFilterSelect" class="app-select" onchange="storeAdmin.filterByWilaya(this.value)">
                                 <option value="" data-i18n="allWilayasOption">Toutes les Wilayas (58 Wilayas)</option>
                             </select>

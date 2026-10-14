@@ -243,16 +243,16 @@
         46: { nameFr: "46 - Aïn Témouchent", nameAr: "46 - عين تموشنت", home: 800, desk: 450 },
         47: { nameFr: "47 - Ghardaïa", nameAr: "47 - غرداية", home: 950, desk: 550 },
         48: { nameFr: "48 - Relizane", nameAr: "48 - غليزان", home: 800, desk: 450 },
-        49: { nameFr: "49 - Timimoun", nameAr: "49 - تيميمون", home: 1100, desk: 700 },
-        50: { nameFr: "50 - Bordj Badji Mokhtar", nameAr: "50 - برج باجي مختار", home: 1600, desk: 1100 },
-        51: { nameFr: "51 - Ouled Djellal", nameAr: "51 - أولاد جلال", home: 900, desk: 500 },
-        52: { nameFr: "52 - Béni Abbès", nameAr: "52 - بني عباس", home: 1100, desk: 700 },
-        53: { nameFr: "53 - In Salah", nameAr: "53 - عين صالح", home: 1400, desk: 900 },
-        54: { nameFr: "54 - In Guezzam", nameAr: "54 - عين قزام", home: 1600, desk: 1100 },
-        55: { nameFr: "55 - Touggourt", nameAr: "55 - تقرت", home: 950, desk: 550 },
-        56: { nameFr: "56 - Djanet", nameAr: "56 - جانت", home: 1500, desk: 1000 },
-        57: { nameFr: "57 - El M'Ghair", nameAr: "57 - المغير", home: 950, desk: 550 },
-        58: { nameFr: "58 - El Meniaa", nameAr: "58 - المنيعة", home: 1100, desk: 700 }
+        49: { nameFr: "49 - Timimoun", nameAr: "49 - تيميمون", home: 1100, desk: null, stopdeskAvailable: false },
+        50: { nameFr: "50 - Bordj Badji Mokhtar", nameAr: "50 - برج باجي مختار", home: 1600, desk: null, stopdeskAvailable: false },
+        51: { nameFr: "51 - Ouled Djellal", nameAr: "51 - أولاد جلال", home: 900, desk: null, stopdeskAvailable: false },
+        52: { nameFr: "52 - Béni Abbès", nameAr: "52 - بني عباس", home: 1100, desk: null, stopdeskAvailable: false },
+        53: { nameFr: "53 - In Salah", nameAr: "53 - عين صالح", home: 1400, desk: null, stopdeskAvailable: false },
+        54: { nameFr: "54 - In Guezzam", nameAr: "54 - عين قزام", home: 1600, desk: null, stopdeskAvailable: false },
+        55: { nameFr: "55 - Touggourt", nameAr: "55 - تقرت", home: 950, desk: null, stopdeskAvailable: false },
+        56: { nameFr: "56 - Djanet", nameAr: "56 - جانت", home: 1500, desk: null, stopdeskAvailable: false },
+        57: { nameFr: "57 - El M'Ghair", nameAr: "57 - المغير", home: 950, desk: null, stopdeskAvailable: false },
+        58: { nameFr: "58 - El Meniaa", nameAr: "58 - المنيعة", home: 1100, desk: null, stopdeskAvailable: false }
     };
 
     // State Variables
@@ -263,6 +263,8 @@
     let currentLang = 'fr';
     let activeCourierId = 'redex';
     let autoSyncInterval = null;
+    let isFetchingOrders = false;
+    let ordersAbortController = null;
 
     // ── 3. Main Controller Object ────────────────────────────────────────────
     const storeAdmin = {
@@ -719,13 +721,33 @@
         },
 
         fetchOrders: async function (showAnimation = false) {
+            if (isFetchingOrders) {
+                return;
+            }
+            isFetchingOrders = true;
+
             const icon = document.getElementById('refreshIcon');
             if (showAnimation && icon) icon.classList.add('fa-spin');
 
+            if (ordersAbortController) {
+                try { ordersAbortController.abort(); } catch (e) {}
+            }
+            ordersAbortController = new AbortController();
+            const signal = ordersAbortController.signal;
+            const timeoutId = setTimeout(() => {
+                if (ordersAbortController) ordersAbortController.abort();
+            }, 12000);
+
             try {
-                let res = await fetch('/api/delivery?action=get_all_orders', { headers: this.getAuthHeaders() });
+                let res = await fetch('/api/delivery?action=get_all_orders', {
+                    headers: this.getAuthHeaders(),
+                    signal
+                });
                 if (!res.ok) {
-                    res = await fetch('/api/orders', { headers: this.getAuthHeaders() });
+                    res = await fetch('/api/orders', {
+                        headers: this.getAuthHeaders(),
+                        signal
+                    });
                 }
                 const json = await res.json().catch(() => ({}));
                 const orders = Array.isArray(json.data) ? json.data : (Array.isArray(json.orders) ? json.orders : []);
@@ -735,7 +757,7 @@
                     this.updateKPIs();
                     this.renderCharts();
                     this.populateAutoFillDropdown();
-                    this.fetchAnalytics();
+                    this.updateIntegrationCards(true, true);
 
                     // If opened directly from Telegram notification with ?orderId=
                     try {
@@ -751,12 +773,55 @@
                     } catch (e) {
                         console.warn('[StoreAdmin] Query param parse error:', e);
                     }
+                } else {
+                    this.updateIntegrationCards(true, false);
                 }
             } catch (err) {
-                console.warn('[StoreAdmin] Fetch orders error:', err);
+                if (err.name !== 'AbortError') {
+                    console.warn('[StoreAdmin] Fetch orders error:', err);
+                    this.updateIntegrationCards(false, false);
+                }
             } finally {
+                clearTimeout(timeoutId);
+                isFetchingOrders = false;
                 if (showAnimation && icon) {
                     setTimeout(() => icon.classList.remove('fa-spin'), 600);
+                }
+            }
+        },
+
+        updateIntegrationCards: function (courierOk, supabaseOk) {
+            const courierCard = document.getElementById('cardStatusCourier');
+            const courierLabel = document.getElementById('cardCourierLabel');
+            const supabaseCard = document.getElementById('cardStatusSupabase');
+            const supabaseLabel = document.getElementById('cardSupabaseLabel');
+
+            if (courierCard && courierLabel) {
+                const cName = activeCourierId === 'yalidine' ? 'Yalidine' : 'Redex';
+                if (courierOk) {
+                    courierCard.style.background = 'rgba(16, 185, 129, 0.1)';
+                    courierCard.style.color = '#10b981';
+                    courierCard.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+                    courierLabel.textContent = `${cName}: Connecté`;
+                } else {
+                    courierCard.style.background = 'rgba(239, 68, 68, 0.1)';
+                    courierCard.style.color = '#ef4444';
+                    courierCard.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+                    courierLabel.textContent = `${cName}: Déconnecté`;
+                }
+            }
+
+            if (supabaseCard && supabaseLabel) {
+                if (supabaseOk) {
+                    supabaseCard.style.background = 'rgba(16, 185, 129, 0.1)';
+                    supabaseCard.style.color = '#10b981';
+                    supabaseCard.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+                    supabaseLabel.textContent = 'Supabase: Synchronisé ✅';
+                } else {
+                    supabaseCard.style.background = 'rgba(245, 158, 11, 0.1)';
+                    supabaseCard.style.color = '#f59e0b';
+                    supabaseCard.style.borderColor = 'rgba(245, 158, 11, 0.2)';
+                    supabaseLabel.textContent = 'Supabase: Non synchronisé ⚠️';
                 }
             }
         },
@@ -893,9 +958,7 @@
                         visitors = rawData.value;
                     }
                     if (pageviews === null && typeof rawData.value === 'number') {
-                        pageviews = Math.round(rawData.value * 2.8);
-                    } else if (pageviews === null && visitors !== null) {
-                        pageviews = Math.round(visitors * 2.8);
+                        pageviews = rawData.value;
                     }
 
                     if (visitors !== null) {
@@ -905,6 +968,25 @@
                     if (pageviews !== null) {
                         const pvEl = document.getElementById('anPageViews');
                         if (pvEl) pvEl.textContent = Number(pageviews).toLocaleString();
+                    }
+
+                    // Real Conversion Rate calculation based on confirmed orders (shipped + delivered) vs visitors
+                    const crEl = document.getElementById('anConversionRate');
+                    if (crEl) {
+                        const confirmedOrders = ordersList.filter(o => o.status === 'delivered' || o.status === 'shipped').length;
+                        if (visitors && visitors > 0) {
+                            crEl.textContent = ((confirmedOrders / visitors) * 100).toFixed(1) + '%';
+                        } else if (ordersList.length > 0) {
+                            const deliveredCount = ordersList.filter(o => o.status === 'delivered').length;
+                            crEl.textContent = ((deliveredCount / ordersList.length) * 100).toFixed(1) + '%';
+                        } else {
+                            crEl.textContent = '0.0%';
+                        }
+                    }
+
+                    const durEl = document.getElementById('anAvgDuration');
+                    if (durEl) {
+                        durEl.textContent = 'Non mesuré';
                     }
 
                     // Query dimension breakdowns (referrers, devices, browsers, countries)
@@ -1010,72 +1092,42 @@
         loadFallbackAnalytics: async function () {
             try {
                 const res = await fetch('/api/delivery?action=analytics', { headers: this.getAuthHeaders() });
-                const json = await res.json();
-                if (!json.success) return;
+                const json = await res.json().catch(() => ({}));
 
-                if (json.overview) {
-                    const visEl = document.getElementById('anTotalVisitors');
-                    if (visEl) visEl.textContent = Number(json.overview.totalVisitors).toLocaleString();
+                const visEl = document.getElementById('anTotalVisitors');
+                if (visEl) visEl.textContent = '--';
 
-                    const pvEl = document.getElementById('anPageViews');
-                    if (pvEl) pvEl.textContent = Number(json.overview.pageViews).toLocaleString();
+                const pvEl = document.getElementById('anPageViews');
+                if (pvEl) pvEl.textContent = '--';
 
-                    const crEl = document.getElementById('anConversionRate');
-                    if (crEl) crEl.textContent = json.overview.conversionRate || '3.8%';
-
-                    const durEl = document.getElementById('anAvgDuration');
-                    if (durEl) durEl.textContent = json.overview.avgSessionDuration || '2m 45s';
-                }
-
-                if (Array.isArray(json.referrers)) {
-                    const refEl = document.getElementById('referrersList');
-                    if (refEl) {
-                        refEl.innerHTML = json.referrers.map(r => `
-                            <div class="analytics-row">
-                                <span>${r.name}</span>
-                                <strong>${r.share}</strong>
-                            </div>
-                        `).join('');
+                const crEl = document.getElementById('anConversionRate');
+                if (crEl) {
+                    if (json.success && json.overview && json.overview.totalOrders > 0) {
+                        const delivered = json.overview.delivered || 0;
+                        const total = json.overview.totalOrders || 0;
+                        crEl.textContent = ((delivered / total) * 100).toFixed(1) + '%';
+                    } else {
+                        crEl.textContent = '--';
                     }
                 }
 
-                if (Array.isArray(json.devices)) {
-                    const devEl = document.getElementById('devicesList');
-                    if (devEl) {
-                        devEl.innerHTML = json.devices.map(d => `
-                            <div class="analytics-row">
-                                <span>${d.name}</span>
-                                <strong style="color:var(--emerald);">${d.share}</strong>
-                            </div>
-                        `).join('');
-                    }
-                }
+                const durEl = document.getElementById('anAvgDuration');
+                if (durEl) durEl.textContent = 'Non mesuré';
 
-                if (Array.isArray(json.topCities)) {
-                    const cityEl = document.getElementById('citiesList');
-                    if (cityEl) {
-                        cityEl.innerHTML = json.topCities.map(c => `
+                // Display empty state for dimensions
+                ['referrersList', 'devicesList', 'citiesList', 'browsersList'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.innerHTML = `
                             <div class="analytics-row">
-                                <span>${c.city}</span>
-                                <strong style="color:var(--amber);">${c.share}</strong>
+                                <span style="color:var(--text-muted); font-size:12px;">${currentLang === 'fr' ? 'En attente de données réelles' : 'في انتظار البيانات الحقيقية'}</span>
+                                <strong>--</strong>
                             </div>
-                        `).join('');
+                        `;
                     }
-                }
-
-                if (Array.isArray(json.browsers)) {
-                    const brEl = document.getElementById('browsersList');
-                    if (brEl) {
-                        brEl.innerHTML = json.browsers.map(b => `
-                            <div class="analytics-row">
-                                <span>${b.name}</span>
-                                <strong style="color:var(--purple);">${b.share}</strong>
-                            </div>
-                        `).join('');
-                    }
-                }
+                });
             } catch (e) {
-                console.warn('[StoreAdmin] loadFallbackAnalytics error:', e);
+                console.warn('[StoreAdmin] loadFallbackAnalytics notice:', e);
             }
         },
 
@@ -1526,14 +1578,19 @@
 
         // ── 7. Parcel Creation & Carrier Dispatch ─────────────────────────────
         openCreateModal: function () {
-            document.getElementById('packageModalTitle').textContent = I18N[currentLang].modalCreateTitle;
+            document.getElementById('packageModalTitle').textContent = currentLang === 'ar'
+                ? 'إنشاء طلبية يدوية وإرسالها إلى شركة التوصيل'
+                : 'Créer une commande manuelle et expédier';
             document.getElementById('formOrderId').value = '';
             document.getElementById('formClientName').value = '';
             document.getElementById('formClientPhone').value = '';
             document.getElementById('formWilayaCode').value = '16';
             this.onWilayaChange('16');
             document.getElementById('formAddress').value = '';
-            document.getElementById('formPrice').value = '4950';
+            document.getElementById('formPrice').value = '21900';
+            const delivType = document.getElementById('formDeliveryType');
+            if (delivType) delivType.value = 'home';
+            this.updateTariffDisplay();
             document.getElementById('packageModal').classList.add('active');
         },
 
@@ -1551,6 +1608,11 @@
             document.getElementById('formWilayaCode').value = wCode;
             this.onWilayaChange(wCode);
 
+            // Synchronize deliveryType from order
+            const isDesk = o.deliveryType === 'desk' || o.deliveryType === 'stopdesk';
+            const delivSelect = document.getElementById('formDeliveryType');
+            if (delivSelect) delivSelect.value = isDesk ? 'stopdesk' : 'home';
+
             // Auto-select or pre-fill commune if already in the order
             if (o.commune) {
                 const communeSelect = document.getElementById('formCommuneSelect');
@@ -1558,7 +1620,7 @@
                     let matched = false;
                     for (let i = 0; i < communeSelect.options.length; i++) {
                         const optVal = communeSelect.options[i].value;
-                        if (optVal === o.commune || optVal.includes(o.commune) || o.commune.includes(optVal)) {
+                        if (optVal.toLowerCase() === o.commune.toLowerCase() || optVal.toLowerCase().includes(o.commune.toLowerCase()) || o.commune.toLowerCase().includes(optVal.toLowerCase())) {
                             communeSelect.selectedIndex = i;
                             matched = true;
                             break;
@@ -1580,6 +1642,7 @@
             const rawPrice = String(o.totalPrice || o.total_price || o.unitPrice || o.priceNum || o.grandTotal || '').replace(/[^\d]/g, '');
             const priceVal = parseInt(rawPrice, 10) || 21900;
             document.getElementById('formPrice').value = priceVal;
+            this.updateTariffDisplay();
             document.getElementById('packageModal').classList.add('active');
         },
 
@@ -1659,21 +1722,67 @@
             const deliveryType = document.getElementById('formDeliveryType')?.value;
             const notes = document.getElementById('formAddress')?.value || '';
 
-            if (!orderId) {
-                alert(currentLang === 'ar' ? '⚠️ يرجى تحديد طلبية صالحة' : '⚠️ Veuillez sélectionner une commande valide');
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> ${I18N[currentLang].btnSendToCourier}`;
-                }
-                return;
-            }
+            let payload;
+            if (orderId) {
+                // Workflow A: Existing order
+                payload = {
+                    orderId: orderId,
+                    courierId: activeCourierId || 'redex',
+                    deliveryType: (deliveryType === 'stopdesk' || deliveryType === 'desk') ? 'desk' : 'home',
+                    notes: notes
+                };
+            } else {
+                // Workflow B: Manual order dispatch
+                const fullName = (document.getElementById('formClientName')?.value || '').trim();
+                const phone = (document.getElementById('formClientPhone')?.value || '').trim();
+                const wilayaCode = document.getElementById('formWilayaCode')?.value || '16';
+                const commune = (document.getElementById('formCommuneSelect')?.value || '').trim();
+                const price = parseInt(document.getElementById('formPrice')?.value, 10) || 21900;
+                const address = (document.getElementById('formAddress')?.value || '').trim();
 
-            const payload = {
-                orderId: orderId,
-                courierId: activeCourierId || 'redex',
-                deliveryType: deliveryType,
-                notes: notes
-            };
+                if (!fullName || fullName.length < 2) {
+                    alert(currentLang === 'ar' ? '⚠️ يرجى إدخال اسم العميل الكامل' : '⚠️ Veuillez saisir le nom complet du client');
+                    if (btn) { btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> ${I18N[currentLang].btnSendToCourier}`; }
+                    return;
+                }
+                const cleanPhone = phone.replace(/[\s\-\.]/g, '');
+                if (!/^0[567]\d{8}$/.test(cleanPhone)) {
+                    alert(currentLang === 'ar' ? '⚠️ يرجى إدخال رقم هاتف جزائري صالح (05/06/07)' : '⚠️ Numéro de téléphone invalide (05/06/07XXXXXXXX)');
+                    if (btn) { btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> ${I18N[currentLang].btnSendToCourier}`; }
+                    return;
+                }
+                if (!commune) {
+                    alert(currentLang === 'ar' ? '⚠️ يرجى اختيار أو إدخال البلدية' : '⚠️ Veuillez sélectionner ou saisir une commune');
+                    if (btn) { btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> ${I18N[currentLang].btnSendToCourier}`; }
+                    return;
+                }
+
+                const wInfo = WILAYAS_MAP[parseInt(wilayaCode)] || { nameFr: '16 - Alger', nameAr: '16 - الجزائر' };
+                const wilayaName = currentLang === 'fr' ? wInfo.nameFr : wInfo.nameAr;
+
+                payload = {
+                    isManual: true,
+                    courierId: activeCourierId || 'redex',
+                    customer: {
+                        name: fullName,
+                        phone: cleanPhone,
+                        address: address || commune
+                    },
+                    shipping: {
+                        wilaya: wilayaName,
+                        wilayaCode: parseInt(wilayaCode, 10),
+                        commune: commune,
+                        address: address || commune,
+                        deliveryType: (deliveryType === 'stopdesk' || deliveryType === 'desk') ? 'desk' : 'home'
+                    },
+                    order: {
+                        totalPrice: price,
+                        deliveryType: (deliveryType === 'stopdesk' || deliveryType === 'desk') ? 'desk' : 'home'
+                    },
+                    deliveryType: (deliveryType === 'stopdesk' || deliveryType === 'desk') ? 'desk' : 'home',
+                    notes: address
+                };
+            }
 
             try {
                 const res = await fetch('/api/admin/dispatch', {
@@ -1706,6 +1815,11 @@
                         : `⚠️ ATTENTION: Le transporteur a accepté le colis (${json.trackingCode || ''}), mais la sauvegarde locale a échoué.\nRéconciliation requise — NE PAS réexpédier à l'aveugle.`;
                     alert(reconcilMsg);
                     await this.fetchOrders(true);
+                } else if (json.code === 'STOPDESK_UNAVAILABLE') {
+                    const stopDeskMsg = currentLang === 'ar'
+                        ? `⚠️ خدمة الاستلام من المكتب (Stop Desk) غير متوفرة في هذه البلدية.\nيرجى تغيير نوع التوصيل إلى (توصيل إلى المنزل) للمتابعة.`
+                        : `⚠️ Stop Desk non disponible pour cette commune.\nVeuillez sélectionner "Livraison à domicile" pour expédier.`;
+                    alert(stopDeskMsg);
                 } else if (json.error && json.error.includes('MISSING_CREDENTIALS')) {
                     const credMsg = currentLang === 'ar'
                         ? `❌ خطأ في الإعدادات: بيانات اعتماد شركة التوصيل مفقودة أو غير صالحة.`

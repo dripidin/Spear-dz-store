@@ -289,60 +289,61 @@
   },
   "49": {
     "home": 1300,
-    "desk": 1300,
+    "desk": null,
     "stopdeskAvailable": false,
     "time": "48 - 96 H"
   },
   "50": {
     "home": 1600,
-    "desk": 1000,
+    "desk": null,
+    "stopdeskAvailable": false,
     "time": "48 - 96 H"
   },
   "51": {
     "home": 550,
-    "desk": 550,
+    "desk": null,
     "stopdeskAvailable": false,
     "time": "24 - 72 H"
   },
   "52": {
     "home": 1300,
-    "desk": 1300,
+    "desk": null,
     "stopdeskAvailable": false,
     "time": "48 - 96 H"
   },
   "53": {
     "home": 1300,
-    "desk": 1300,
+    "desk": null,
     "stopdeskAvailable": false,
     "time": "48 - 96 H"
   },
   "54": {
     "home": 1700,
-    "desk": 1700,
+    "desk": null,
     "stopdeskAvailable": false,
     "time": "48 - 96 H"
   },
   "55": {
     "home": 950,
-    "desk": 950,
+    "desk": null,
     "stopdeskAvailable": false,
     "time": "24 - 72 H"
   },
   "56": {
     "home": 1700,
-    "desk": 1700,
+    "desk": null,
     "stopdeskAvailable": false,
     "time": "48 - 96 H"
   },
   "57": {
     "home": 950,
-    "desk": 950,
+    "desk": null,
     "stopdeskAvailable": false,
     "time": "24 - 72 H"
   },
   "58": {
     "home": 1100,
-    "desk": 1100,
+    "desk": null,
     "stopdeskAvailable": false,
     "time": "24 - 72 H"
   }

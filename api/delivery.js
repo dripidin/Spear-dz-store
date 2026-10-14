@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { getCourier, getAvailableCouriers } = require('../lib/delivery');
+const { getCourier, getAvailableCouriers, locationResolver } = require('../lib/delivery');
 const { getStorage } = require('../lib/storage');
 const {
     authenticateAdmin,
@@ -193,7 +193,16 @@ module.exports = async (req, res) => {
                 res.end(JSON.stringify({ success: false, error: 'wilayaCode is required' }));
                 return;
             }
-            const filtered = communesData.filter(c => c.wilayaCode === wCode);
+            const stopDeskList = locationResolver ? locationResolver.getStopDeskCommunesForWilaya(wCode) : [];
+            const stopDeskSet = new Set(stopDeskList.map(s => s.toLowerCase()));
+
+            const filtered = communesData
+                .filter(c => c.wilayaCode === wCode)
+                .map(c => ({
+                    ...c,
+                    hasStopDesk: stopDeskSet.has((c.name || '').toLowerCase()) || stopDeskSet.has((c.nameAr || '').toLowerCase())
+                }));
+
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ success: true, count: filtered.length, data: filtered }));
             return;
