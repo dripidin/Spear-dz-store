@@ -1631,6 +1631,27 @@ body {
     display: none !important;
 }
 
+/* Base & Desktop: Mobile Search Row is strictly hidden on desktop viewports */
+.navbar-mobile-search-row {
+    display: none;
+}
+
+@media (min-width: 769px) {
+    .navbar-mobile-search-row,
+    .app-navbar.search-open .navbar-mobile-search-row,
+    #navbarMobileSearchRow {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        max-height: 0 !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        pointer-events: none !important;
+    }
+}
+
 @media (max-width: 1024px) {
     .hide-on-tablet {
         display: none !important;
@@ -1663,12 +1684,16 @@ body {
         justify-content: space-between;
     }
 
-    /* Expandable mobile search row */
+    /* Expandable mobile search row (Mobile Viewports <= 768px Only) */
     .navbar-mobile-search-row {
         display: none;
         width: 100%;
         padding: 6px 0 10px 0;
         border-top: 1px solid var(--border-color);
+        height: auto !important;
+        max-height: none !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
     }
 
     .app-navbar.search-open .navbar-mobile-search-row {

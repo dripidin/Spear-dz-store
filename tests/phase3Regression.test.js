@@ -106,6 +106,9 @@ describe('PHASE 3: Responsive Navbar, Order Actions & Checkout UX Regression Sui
             assert.ok(html.includes('id="mobileSearchToggleBtn"'), 'Must contain mobile search toggle button');
             assert.ok(js.includes('toggleMobileSearch'), 'admin-client.js must define toggleMobileSearch');
             assert.ok(js.includes('clearSearch'), 'admin-client.js must define clearSearch');
+            // Desktop protection assertion:
+            assert.ok(css.includes('@media (min-width: 769px)'), 'Must include desktop query to isolate mobile search');
+            assert.ok(css.includes('#navbarMobileSearchRow {\n        display: none !important;'), 'Must enforce display: none !important on desktop for mobile search row');
         });
 
         test('RTL/LTR logical properties and overflow prevention are enforced', () => {
