@@ -40,7 +40,8 @@ const routes = {
     '/api/admin/auth': require('./api/admin/auth'),
     '/api/admin/analytics': require('./api/admin/analytics'),
     '/api/admin/tariffs': require('./api/admin/tariffs'),
-    '/api/admin/dispatch': require('./api/admin/dispatch')
+    '/api/admin/dispatch': require('./api/admin/dispatch'),
+    '/api/admin/website-analytics': require('./api/admin/website-analytics')
 };
 
 const MIME_TYPES = {

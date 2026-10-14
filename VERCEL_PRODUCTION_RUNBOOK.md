@@ -3,7 +3,7 @@
 **Production Platform**: Vercel Serverless (Node.js 24.x + Vite Frontend)  
 **Database**: Supabase PostgreSQL (Isolated Production Instance)  
 **Courier Integration**: EcoTrack DZ / Redex  
-**Authoritative Canonical Project**: `speardz` (`prj_XlEo7880PI0zF5Shb0zjSQc3RtDR`)  
+**Authoritative Canonical Project**: `spear.dz` (`prj_4B3Vl8jibrc15mzdw0fZtHiPfgY9`)  
 **Vercel Team**: `dripfree` (`team_QTvZdIUT8BJL4CV3eQYCoZwR`)  
 
 ---
@@ -71,6 +71,9 @@ Configured in **Vercel Dashboard -> Project `speardz` -> Settings -> Environment
 | **`TELEGRAM_CHAT_ID`** | Optional | Production, Preview | Destination chat or channel ID for order alerts |
 | **`META_PIXEL_ID`** | Optional | Production, Preview | Facebook Pixel ID for Meta Conversions CAPI |
 | **`META_ACCESS_TOKEN`** | Optional | Production, Preview | Meta Graph API access token for server-side events |
+| **`VERCEL_TOKEN`** | Optional / Rec. | Production, Preview | Vercel Access Token with read-only analytics scope (enables admin Web Analytics API) |
+| **`VERCEL_PROJECT_ID`** | Optional / Rec. | Production, Preview | Canonical project ID (`prj_4B3Vl8jibrc15mzdw0fZtHiPfgY9`) |
+| **`VERCEL_TEAM_ID`** | Optional / Rec. | Production, Preview | Canonical team ID (`team_QTvZdIUT8BJL4CV3eQYCoZwR`) |
 
 ---
 
@@ -108,6 +111,15 @@ Configured in **Vercel Dashboard -> Project `speardz` -> Settings -> Environment
   3. Verify SSL certificate status in Vercel (typically active in <60 seconds).
   4. Browse to `https://spear-dz-store.vercel.app` and confirm HTTP 200 response.
 
+### Incident 5: Web Analytics Dashboard Returns 503 `ANALYTICS_NOT_CONFIGURED`
+- **Cause**: `VERCEL_TOKEN` has not yet been configured in the Vercel project environment variables.
+- **Resolution**:
+  1. Open Vercel Account Settings -> Tokens (`https://vercel.com/account/tokens`).
+  2. Create a token scoped to team `dripfree` with read-only analytics access.
+  3. Add `VERCEL_TOKEN` into Vercel Project `spear.dz` environment variables.
+  4. Ensure Web Analytics is enabled in the Vercel Dashboard for `spear.dz`.
+  5. Redeploy or restart the deployment to pick up the new variable.
+
 ---
 
 ## 5. Security & Maintenance Checklist
@@ -116,6 +128,26 @@ Configured in **Vercel Dashboard -> Project `speardz` -> Settings -> Environment
 - [x] Admin routes fail closed on unconfigured servers.
 - [x] Carrier gateway blocks synthetic tracking codes.
 - [x] Frontend bundles contain 0 private keys or backend service role credentials.
-- [x] Local workspace linked to canonical project (`speardz`).
+- [x] Local workspace linked to canonical project (`spear.dz`).
 - [ ] Store owner: Detach domain from secondary project and attach to canonical project.
 - [ ] Store owner: Disconnect GitHub webhook on secondary project.
+- [ ] Store owner: Add `VERCEL_TOKEN` to Vercel environment variables for live admin analytics reporting.
+
+---
+
+## 6. Phase 5 — Vercel Web Analytics Operational Status
+
+| Component | Target / File | Status | Description |
+| :--- | :--- | :---: | :--- |
+| Storefront Tracking Package | `@vercel/analytics` (^2.0.1) | **PASS** | Installed and verified with React 19. |
+| Storefront Analytics Component | `src/main.jsx` | **PASS** | Single `<Analytics />` component mounted in root. |
+| Production Bundle Build | `dist/` via `vite build` | **PASS** | Clean build with zero errors. |
+| Server-Side Client Module | `lib/vercelAnalytics.js` | **PASS** | Runtime config checks; safe error mapping without leaks. |
+| Protected Admin Endpoint | `api/admin/website-analytics.js` | **PASS** | Protected by admin session; enforced `Cache-Control: private, no-store`. |
+| Admin Dashboard Integration | `admin.html` & `public/js/admin-client.js` | **PASS** | Dynamic status badge, 7/30 days filters, graceful 503 fallback. |
+| Automated Test Suite | `tests/websiteAnalytics.test.js` | **PASS** | 24 dedicated test cases passing in Node.js test runner. |
+| Full Project Regression Suite | `tests/**/*.test.js` | **PASS** | 147 of 147 test cases passing. |
+| Live Vercel API Credentials | `VERCEL_TOKEN` in production | **BLOCKED** | Pending store owner generation and injection into Vercel settings. |
+| Production Live Deployment | `https://speardz.vercel.app/` | **BLOCKED** | Requires explicit owner deployment authorization. |
+| Custom Events (`track()`) | Storefront Analytics | **NOT TESTED** | Deferred until Vercel Pro/Enterprise plan is confirmed. |
+

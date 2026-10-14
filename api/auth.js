@@ -37,6 +37,8 @@ module.exports = async (req, res) => {
             return;
         }
 
+        const inputPassword = (body.password || body.token || body.apiKey || '').toString().trim();
+
         if (!inputPassword) {
             res.writeHead(400, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ success: false, error: 'MISSING_PASSWORD' }));

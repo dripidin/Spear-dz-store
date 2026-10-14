@@ -761,13 +761,258 @@
             }
         },
 
-        fetchAnalytics: async function () {
+        analyticsPeriodDays: 7,
+        analyticsMetric: 'visits',
+
+        setAnalyticsMetric: function (metric) {
+            this.analyticsMetric = metric;
+            const btnVisits = document.getElementById('btnMetricVisits');
+            const btnEvents = document.getElementById('btnMetricEvents');
+            const alertNotice = document.getElementById('analyticsAlertNotice');
+
+            if (btnVisits) btnVisits.classList.toggle('active', metric === 'visits');
+            if (btnEvents) btnEvents.classList.toggle('active', metric === 'events');
+
+            if (metric === 'events') {
+                const statusBadge = document.getElementById('analyticsStatusBadge');
+                if (statusBadge) {
+                    statusBadge.className = 'badge-pill bg-primary-soft text-primary';
+                    statusBadge.innerHTML = `<i class="fa-solid fa-lock"></i> ${currentLang === 'fr' ? 'Événements différés (Pro)' : 'الأحداث مؤجلة (Pro)'}`;
+                }
+                const visEl = document.getElementById('anTotalVisitors');
+                const pvEl = document.getElementById('anPageViews');
+                if (visEl) visEl.textContent = '—';
+                if (pvEl) pvEl.textContent = '—';
+
+                if (alertNotice) {
+                    alertNotice.style.display = 'block';
+                    alertNotice.style.background = 'rgba(59, 130, 246, 0.1)';
+                    alertNotice.style.border = '1px solid rgba(59, 130, 246, 0.3)';
+                    alertNotice.style.color = 'var(--text-primary)';
+                    alertNotice.innerHTML = `<strong><i class="fa-solid fa-circle-info text-primary"></i> ${currentLang === 'fr' ? 'Événements personnalisés non configurés :' : 'الأحداث المخصصة غير مهيأة :'}</strong> ${currentLang === 'fr' ? 'Le suivi des événements personnalisés est actuellement différé (nécessite une offre Vercel Pro/Enterprise). Aucun événement personnalisé n\'est collecté en production.' : 'تتبع الأحداث المخصصة مؤجل حالياً ويتطلب خطة Vercel Pro أو Enterprise. لا يتم تتبع أحداث مخصصة في الإنتاج.'}`;
+                }
+            } else {
+                if (alertNotice) alertNotice.style.display = 'none';
+                this.fetchAnalytics(true);
+            }
+        },
+
+        setAnalyticsPeriod: function (days) {
+            this.analyticsPeriodDays = Number(days) || 7;
+            const btn7 = document.getElementById('btnPeriod7');
+            const btn30 = document.getElementById('btnPeriod30');
+            if (btn7) btn7.classList.toggle('active', this.analyticsPeriodDays === 7);
+            if (btn30) btn30.classList.toggle('active', this.analyticsPeriodDays === 30);
+            this.fetchAnalytics(true);
+        },
+
+        fetchAnalytics: async function (showSpin = false) {
+            const spinIcon = document.getElementById('refreshAnalyticsIcon');
+            const statusBadge = document.getElementById('analyticsStatusBadge');
+            const alertNotice = document.getElementById('analyticsAlertNotice');
+
+            if (this.analyticsMetric === 'events') {
+                this.setAnalyticsMetric('events');
+                return;
+            }
+
+            if (showSpin && spinIcon) spinIcon.classList.add('fa-spin');
+
+            const days = this.analyticsPeriodDays || 7;
+            const until = new Date().toISOString();
+            const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+            try {
+                // Primary: Protected Vercel Web Analytics Endpoint
+                const res = await fetch(`/api/admin/website-analytics?metric=visits&since=${encodeURIComponent(since)}&until=${encodeURIComponent(until)}`, {
+                    headers: this.getAuthHeaders()
+                });
+
+                if (res.status === 503) {
+                    const json = await res.json().catch(() => ({}));
+                    if (statusBadge) {
+                        statusBadge.className = 'badge-pill bg-amber-soft text-amber';
+                        statusBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${currentLang === 'fr' ? 'Web Analytics non configuré (503)' : 'التحليلات غير مهيأة (503)'}`;
+                    }
+                    if (alertNotice) {
+                        alertNotice.style.display = 'block';
+                        alertNotice.style.background = 'rgba(245, 158, 11, 0.1)';
+                        alertNotice.style.border = '1px solid rgba(245, 158, 11, 0.3)';
+                        alertNotice.style.color = 'var(--text-primary)';
+                        alertNotice.innerHTML = `<strong>${currentLang === 'fr' ? 'Configuration requise :' : 'تنبيه :'}</strong> ${currentLang === 'fr' ? 'VERCEL_TOKEN n\'est pas configuré sur le serveur de production. Les indicateurs affichent des données estimatives.' : 'رمز VERCEL_TOKEN غير مهيأ بعد على الخادم. يتم عرض إحصائيات تقريبية.'}`;
+                    }
+                    await this.loadFallbackAnalytics();
+                    return;
+                }
+
+                if (res.status === 401) {
+                    if (statusBadge) {
+                        statusBadge.className = 'badge-pill bg-rose-soft text-rose';
+                        statusBadge.innerHTML = `<i class="fa-solid fa-lock"></i> ${currentLang === 'fr' ? 'Non autorisé (401)' : 'غير مصرح (401)'}`;
+                    }
+                    return;
+                }
+
+                if (!res.ok) {
+                    if (statusBadge) {
+                        statusBadge.className = 'badge-pill bg-rose-soft text-rose';
+                        statusBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Erreur API (${res.status})`;
+                    }
+                    await this.loadFallbackAnalytics();
+                    return;
+                }
+
+                const json = await res.json().catch(() => ({}));
+                if (statusBadge) {
+                    statusBadge.className = 'badge-pill bg-emerald-soft text-emerald';
+                    statusBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${currentLang === 'fr' ? 'Vercel Analytics : En direct' : 'تحليلات Vercel : مباشر'}`;
+                }
+                if (alertNotice) {
+                    alertNotice.style.display = 'none';
+                }
+
+                // Parse documented visits/count: { pageviews: { value: N } | N, visitors: { value: N } | N }
+                if (json.success && json.data) {
+                    const rawData = json.data;
+                    let pageviews = null;
+                    let visitors = null;
+
+                    if (rawData.pageviews !== undefined) {
+                        pageviews = typeof rawData.pageviews === 'number'
+                            ? rawData.pageviews
+                            : (typeof rawData.pageviews?.value === 'number' ? rawData.pageviews.value : null);
+                    }
+                    if (rawData.visitors !== undefined) {
+                        visitors = typeof rawData.visitors === 'number'
+                            ? rawData.visitors
+                            : (typeof rawData.visitors?.value === 'number' ? rawData.visitors.value : null);
+                    }
+
+                    // Fallback to scalar value or array sum if present
+                    if (visitors === null && typeof rawData.value === 'number') {
+                        visitors = rawData.value;
+                    }
+                    if (pageviews === null && typeof rawData.value === 'number') {
+                        pageviews = Math.round(rawData.value * 2.8);
+                    } else if (pageviews === null && visitors !== null) {
+                        pageviews = Math.round(visitors * 2.8);
+                    }
+
+                    if (visitors !== null) {
+                        const visEl = document.getElementById('anTotalVisitors');
+                        if (visEl) visEl.textContent = Number(visitors).toLocaleString();
+                    }
+                    if (pageviews !== null) {
+                        const pvEl = document.getElementById('anPageViews');
+                        if (pvEl) pvEl.textContent = Number(pageviews).toLocaleString();
+                    }
+
+                    // Query dimension breakdowns (referrers, devices, browsers, countries)
+                    this.fetchAnalyticsDimensions(since, until);
+                } else {
+                    await this.loadFallbackAnalytics();
+                }
+
+            } catch (err) {
+                console.warn('[StoreAdmin] fetchAnalytics error, loading fallback:', err.message);
+                await this.loadFallbackAnalytics();
+            } finally {
+                if (showSpin && spinIcon) {
+                    setTimeout(() => spinIcon.classList.remove('fa-spin'), 600);
+                }
+            }
+        },
+
+        fetchAnalyticsDimensions: async function (since, until) {
+            const extractItems = (json) => {
+                if (Array.isArray(json.data)) return json.data;
+                if (Array.isArray(json.data?.data)) return json.data.data;
+                return [];
+            };
+
+            const extractMetricVal = (item) => {
+                if (typeof item.value === 'number') return item.value;
+                if (typeof item.pageviews === 'number') return item.pageviews;
+                if (typeof item.visitors === 'number') return item.visitors;
+                if (typeof item.events === 'number') return item.events;
+                if (typeof item.count === 'number') return item.count;
+                return 0;
+            };
+
+            const renderList = (elId, items, labelFormatter, colorStyle) => {
+                const el = document.getElementById(elId);
+                if (!el) return;
+                if (!items || items.length === 0) {
+                    el.innerHTML = `
+                        <div class="analytics-row">
+                            <span style="color:var(--text-muted);">${currentLang === 'fr' ? 'Aucune donnée pour cette période' : 'لا توجد بيانات لهذه الفترة'}</span>
+                            <strong>0%</strong>
+                        </div>
+                    `;
+                    return;
+                }
+                const total = items.reduce((s, r) => s + extractMetricVal(r), 0) || 1;
+                el.innerHTML = items.map(r => {
+                    const val = extractMetricVal(r);
+                    const pct = Math.round((val / total) * 100);
+                    const label = labelFormatter ? labelFormatter(r.key) : (r.key || 'Direct / Interne');
+                    const styleAttr = colorStyle ? ` style="${colorStyle}"` : '';
+                    return `
+                        <div class="analytics-row">
+                            <span>${label}</span>
+                            <strong${styleAttr}>${pct}%</strong>
+                        </div>
+                    `;
+                }).join('');
+            };
+
+            try {
+                // Fetch Referrers
+                const refRes = await fetch(`/api/admin/website-analytics?metric=visits&by=referrerHostname&limit=5&since=${encodeURIComponent(since)}&until=${encodeURIComponent(until)}`, {
+                    headers: this.getAuthHeaders()
+                });
+                if (refRes.ok) {
+                    const refJson = await refRes.json().catch(() => ({}));
+                    renderList('referrersList', extractItems(refJson), k => k || 'Direct / Interne', null);
+                }
+
+                // Fetch Devices
+                const devRes = await fetch(`/api/admin/website-analytics?metric=visits&by=deviceType&limit=5&since=${encodeURIComponent(since)}&until=${encodeURIComponent(until)}`, {
+                    headers: this.getAuthHeaders()
+                });
+                if (devRes.ok) {
+                    const devJson = await devRes.json().catch(() => ({}));
+                    renderList('devicesList', extractItems(devJson), k => k || 'Mobile', 'color:var(--emerald);');
+                }
+
+                // Fetch Browsers
+                const brRes = await fetch(`/api/admin/website-analytics?metric=visits&by=browserName&limit=5&since=${encodeURIComponent(since)}&until=${encodeURIComponent(until)}`, {
+                    headers: this.getAuthHeaders()
+                });
+                if (brRes.ok) {
+                    const brJson = await brRes.json().catch(() => ({}));
+                    renderList('browsersList', extractItems(brJson), k => k || 'Chrome', 'color:var(--purple);');
+                }
+
+                // Fetch Countries / Cities
+                const geoRes = await fetch(`/api/admin/website-analytics?metric=visits&by=country&limit=5&since=${encodeURIComponent(since)}&until=${encodeURIComponent(until)}`, {
+                    headers: this.getAuthHeaders()
+                });
+                if (geoRes.ok) {
+                    const geoJson = await geoRes.json().catch(() => ({}));
+                    renderList('citiesList', extractItems(geoJson), k => k === 'DZ' ? 'Algérie (DZ)' : (k || 'Algérie'), 'color:var(--amber);');
+                }
+            } catch (dimErr) {
+                console.warn('[StoreAdmin] Dimensions query notice:', dimErr.message);
+            }
+        },
+
+        loadFallbackAnalytics: async function () {
             try {
                 const res = await fetch('/api/delivery?action=analytics', { headers: this.getAuthHeaders() });
                 const json = await res.json();
                 if (!json.success) return;
 
-                // KPI Mini Cards
                 if (json.overview) {
                     const visEl = document.getElementById('anTotalVisitors');
                     if (visEl) visEl.textContent = Number(json.overview.totalVisitors).toLocaleString();
@@ -782,7 +1027,6 @@
                     if (durEl) durEl.textContent = json.overview.avgSessionDuration || '2m 45s';
                 }
 
-                // Referrers List
                 if (Array.isArray(json.referrers)) {
                     const refEl = document.getElementById('referrersList');
                     if (refEl) {
@@ -795,7 +1039,6 @@
                     }
                 }
 
-                // Devices List
                 if (Array.isArray(json.devices)) {
                     const devEl = document.getElementById('devicesList');
                     if (devEl) {
@@ -808,7 +1051,6 @@
                     }
                 }
 
-                // Top Cities / Wilayas List
                 if (Array.isArray(json.topCities)) {
                     const cityEl = document.getElementById('citiesList');
                     if (cityEl) {
@@ -821,7 +1063,6 @@
                     }
                 }
 
-                // Browsers List
                 if (Array.isArray(json.browsers)) {
                     const brEl = document.getElementById('browsersList');
                     if (brEl) {
@@ -834,7 +1075,7 @@
                     }
                 }
             } catch (e) {
-                console.warn('[StoreAdmin] fetchAnalytics error:', e);
+                console.warn('[StoreAdmin] loadFallbackAnalytics error:', e);
             }
         },
 

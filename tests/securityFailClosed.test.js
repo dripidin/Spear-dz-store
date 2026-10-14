@@ -112,15 +112,28 @@ describe('PHASE 4A: Security Fail-Closed Regression Suite', () => {
         assert.match(json.error, /ADMIN_AUTH_MISCONFIGURED/);
     });
 
-    test('4. Configured ADMIN_API_TOKEN rejects invalid credentials and accepts valid token', () => {
+    test('4. Configured ADMIN_API_TOKEN rejects invalid credentials and accepts valid token', async () => {
         process.env.ADMIN_API_TOKEN = 'spear-dz-super-secret-token-2026';
 
-        // Rejection
+        // Rejection in authenticateAdmin
         assert.strictEqual(authenticateAdmin({ headers: { 'authorization': 'Bearer wrong-pass' } }), false);
         assert.strictEqual(authenticateAdmin({ headers: { 'authorization': 'Bearer L3abedstore2026' } }), false);
 
-        // Acceptance
+        // Acceptance in authenticateAdmin
         assert.strictEqual(authenticateAdmin({ headers: { 'authorization': 'Bearer spear-dz-super-secret-token-2026' } }), true);
+
+        // Acceptance in api/auth POST login
+        const { req: rOk, res: resOk, getStatus: sOk, getJson: jOk } = mockReqRes('POST', { password: 'spear-dz-super-secret-token-2026' });
+        await authHandler(rOk, resOk);
+        assert.strictEqual(sOk(), 200);
+        assert.strictEqual(jOk().success, true);
+        assert.strictEqual(jOk().message, 'AUTHENTICATED');
+
+        // Rejection in api/auth POST login
+        const { req: rBad, res: resBad, getStatus: sBad, getJson: jBad } = mockReqRes('POST', { password: 'wrong-pass' });
+        await authHandler(rBad, resBad);
+        assert.strictEqual(sBad(), 401);
+        assert.strictEqual(jBad().success, false);
     });
 
     test('5. Unauthenticated requests to legacy delivery endpoints are blocked (401)', async () => {

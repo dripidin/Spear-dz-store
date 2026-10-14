@@ -472,17 +472,30 @@
                 <!-- 3. WEBSITE ANALYTICS & VERCEL TELEMETRY                           -->
                 <!-- ================================================================= -->
                 <section class="app-card analytics-section-card" id="analyticsSection">
-                    <div class="app-card-header">
+                    <div class="app-card-header table-header-flex">
                         <div class="card-title-wrap">
                             <i class="fa-solid fa-chart-simple text-cyan"></i>
                             <h4 data-i18n="analyticsTitle">Website Analytics</h4>
+                            <span class="badge-pill bg-primary-soft" id="analyticsStatusBadge"><i class="fa-solid fa-bolt"></i> Vercel Web Analytics</span>
                         </div>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span class="badge-pill bg-primary-soft"><i class="fa-solid fa-bolt"></i> Vercel Edge: Actif</span>
-                            <span class="badge-pill bg-emerald-soft"><i class="fa-brands fa-facebook"></i> Meta CAPI: Connecté</span>
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <div class="status-filter-tabs" style="margin:0;">
+                                <button type="button" class="tab-btn active" id="btnMetricVisits" onclick="storeAdmin.setAnalyticsMetric('visits')">Visites</button>
+                                <button type="button" class="tab-btn" id="btnMetricEvents" onclick="storeAdmin.setAnalyticsMetric('events')" title="Événements personnalisés non configurés (Fonctionnalité Vercel Pro/Enterprise en attente)" style="opacity:0.75;">
+                                    <i class="fa-solid fa-lock" style="font-size:10px; margin-right:3px;"></i> Événements
+                                </button>
+                            </div>
+                            <div class="status-filter-tabs" style="margin:0;">
+                                <button type="button" class="tab-btn active" id="btnPeriod7" onclick="storeAdmin.setAnalyticsPeriod(7)">7 Jours</button>
+                                <button type="button" class="tab-btn" id="btnPeriod30" onclick="storeAdmin.setAnalyticsPeriod(30)">30 Jours</button>
+                            </div>
+                            <button type="button" class="app-btn app-btn-sm app-btn-secondary" onclick="storeAdmin.fetchAnalytics(true)" title="Rafraîchir les données de trafic">
+                                <i class="fa-solid fa-arrows-rotate" id="refreshAnalyticsIcon"></i>
+                            </button>
                         </div>
                     </div>
                     <div class="app-card-body">
+                        <div id="analyticsAlertNotice" style="display:none; margin-bottom:14px; padding:10px 14px; border-radius:var(--radius-sm); font-size:12px;"></div>
                         <!-- Vercel KPI Mini Row -->
                         <div class="app-kpi-grid mb-4" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
                             <div class="analytics-col-card" style="padding:10px 14px;">
