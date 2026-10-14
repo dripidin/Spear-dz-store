@@ -88,13 +88,34 @@ describe('Stitch Cupertino Pure & Clean Video Transition Tests', () => {
         assert.ok(content.includes("marginBottom: '8px'"), 'Must set header marginBottom to 8px');
     });
 
-    it('StickyMobileBar implements floating glass bar with 21,900 DZD and black pill CTA', () => {
+    it('StickyMobileBar implements floating glass bar with 21,900 DZD, black pill CTA and docking transition', () => {
         assert.ok(fs.existsSync(BAR_JSX), 'StickyMobileBar.jsx must exist');
         const content = fs.readFileSync(BAR_JSX, 'utf8');
 
         assert.ok(content.includes('floatingBar'), 'Must contain floatingBar id');
         assert.ok(content.includes('21,900 DZD'), 'Must show 21,900 DZD');
         assert.ok(content.includes('bg-primary text-on-primary rounded-full'), 'Must use black pill CTA button');
+        assert.ok(content.includes('translate-y-full opacity-0 pointer-events-none'), 'Must support smooth docking hide');
+        assert.ok(content.includes('hidden = false') || content.includes('hidden'), 'Must accept hidden prop');
+    });
+
+    it('OrderForm docks floating CTA via visibility observer and fires client Purchase event with eventID', () => {
+        assert.ok(fs.existsSync(FORM_JSX), 'OrderForm.jsx must exist');
+        const content = fs.readFileSync(FORM_JSX, 'utf8');
+
+        assert.ok(content.includes('onButtonVisibilityChange'), 'OrderForm must accept onButtonVisibilityChange callback');
+        assert.ok(content.includes('submitBtnRef'), 'OrderForm must attach submitBtnRef to submit button');
+        assert.ok(content.includes("fbq('track', 'Purchase'"), 'OrderForm must track client-side Purchase event on success');
+        assert.ok(content.includes('eventID: data.orderId'), 'Must provide matching eventID for Meta CAPI deduplication');
+    });
+
+    it('App binds form button visibility to dock StickyMobileBar when user reaches form button', () => {
+        assert.ok(fs.existsSync(APP_JSX), 'App.jsx must exist');
+        const content = fs.readFileSync(APP_JSX, 'utf8');
+
+        assert.ok(content.includes('isFormButtonVisible'), 'App must manage isFormButtonVisible state');
+        assert.ok(content.includes('onButtonVisibilityChange={setIsFormButtonVisible}'), 'App must wire visibility callback to OrderForm');
+        assert.ok(content.includes('hidden={isFormButtonVisible}'), 'App must pass hidden prop to StickyMobileBar');
     });
 
     it('HTTP Server streams video-products-bundl.mp4 with 206 Partial Content', async () => {

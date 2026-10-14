@@ -8,6 +8,7 @@ export default function App() {
   const [locale, setLocale] = useState('ar'); // Default Arabic or French
   const [completedOrder, setCompletedOrder] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFormButtonVisible, setIsFormButtonVisible] = useState(false);
   const formRef = useRef(null);
 
   const isAr = locale === 'ar';
@@ -19,16 +20,32 @@ export default function App() {
 
   const handleFloatingCta = () => {
     if (isSubmitting) return; // Strictly ignore duplicate clicks
-    if (formRef.current) {
-      if (typeof formRef.current.requestSubmit === 'function') {
-        formRef.current.requestSubmit();
+    const form = formRef.current || document.getElementById('orderForm');
+    const formEl = document.getElementById('commander') || form;
+
+    const nameInput = form?.querySelector('input[name="fullName"], #fullName');
+    const phoneInput = form?.querySelector('input[name="phoneNumber"], #phoneNumber, #phone');
+    const nameVal = nameInput?.value?.trim();
+    const phoneVal = phoneInput?.value?.trim();
+
+    if (!nameVal || !phoneVal) {
+      if (formEl) {
+        formEl.scrollIntoView({ behavior: 'smooth' });
+        const targetInput = !nameVal ? nameInput : phoneInput;
+        if (targetInput) setTimeout(() => targetInput.focus(), 350);
+      }
+      return;
+    }
+
+    if (form) {
+      if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit();
       } else {
-        const submitBtn = formRef.current.querySelector('button[type="submit"]') || formRef.current;
+        const submitBtn = form.querySelector('button[type="submit"]') || form;
         submitBtn.click();
       }
     } else {
-      const el = document.getElementById('commander');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      if (formEl) formEl.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -66,6 +83,7 @@ export default function App() {
             formRef={formRef}
             onSubmittingChange={setIsSubmitting}
             onOrderSuccess={(orderData) => setCompletedOrder(orderData)}
+            onButtonVisibilityChange={setIsFormButtonVisible}
           />
 
         </div>
@@ -77,6 +95,7 @@ export default function App() {
           bundleName="Pack High-Tech 5 en 1"
           isSubmitting={isSubmitting}
           onSubmitOrder={handleFloatingCta}
+          hidden={isFormButtonVisible}
         />
       </main>
 

@@ -5,7 +5,8 @@ export default function StickyMobileBar({
   price = '21,900 DZD',
   bundleName = 'Pack High-Tech 5 en 1',
   isSubmitting = false,
-  onSubmitOrder
+  onSubmitOrder,
+  hidden = false
 }) {
   const isAr = locale === 'ar';
 
@@ -26,7 +27,12 @@ export default function StickyMobileBar({
   return (
     <div
       id="floatingBar"
-      className="fixed bottom-0 inset-x-0 z-30 pb-safe pt-2 px-margin-sm md:px-margin bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/95 to-transparent backdrop-blur-md transition-all duration-500 transform translate-y-0 flex flex-col items-center"
+      aria-hidden={hidden}
+      className={`fixed bottom-0 inset-x-0 z-30 pb-safe pt-2 px-margin-sm md:px-margin bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/95 to-transparent backdrop-blur-md transition-all duration-300 ease-in-out transform flex flex-col items-center ${
+        hidden
+          ? 'translate-y-full opacity-0 pointer-events-none'
+          : 'translate-y-0 opacity-100 pointer-events-auto'
+      }`}
     >
       <div className="w-full max-w-xl pb-2 flex flex-col gap-1.5">
         {/* Quick Pricing & In-stock Indicator */}
@@ -40,6 +46,7 @@ export default function StickyMobileBar({
           id="mainCtaBtn"
           type="button"
           disabled={isSubmitting}
+          tabIndex={hidden ? -1 : 0}
           onClick={handleClick}
           className={`w-full h-12 bg-primary text-on-primary rounded-full font-label-lg text-label-lg font-medium flex items-center justify-center gap-2 shadow-sm transition-all duration-150 active:scale-[0.98] cursor-pointer group ${
             isSubmitting ? 'opacity-85 cursor-wait' : ''

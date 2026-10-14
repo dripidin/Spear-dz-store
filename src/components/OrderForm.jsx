@@ -1,11 +1,17 @@
-import React, { useState, useId, useEffect } from 'react';
+import React, { useState, useId, useEffect, useRef } from 'react';
 import wilayas from '../../config/wilayas.json';
 import communes from '../../config/communes.json';
 import shippingRates from '../../config/shippingRates.json';
 
 const BASE_BUNDLE_PRICE = 21900;
 
-export default function OrderForm({ locale = 'fr', onOrderSuccess, onSubmittingChange, formRef }) {
+export default function OrderForm({
+  locale = 'fr',
+  onOrderSuccess,
+  onSubmittingChange,
+  formRef,
+  onButtonVisibilityChange
+}) {
   const isAr = locale === 'ar';
   const nameId = useId();
   const phoneId = useId();
@@ -26,6 +32,65 @@ export default function OrderForm({ locale = 'fr', onOrderSuccess, onSubmittingC
   const [errorMsg, setErrorMsg] = useState('');
   const [errorField, setErrorField] = useState('');
   const [shakeActive, setShakeActive] = useState(false);
+
+  const submitBtnRef = useRef(null);
+  const hasTrackedCheckout = useRef(false);
+
+  // Monitor form submit button position to dock/hide floatingBar seamlessly
+  useEffect(() => {
+    const el = submitBtnRef.current;
+    if (!el || !onButtonVisibilityChange) return;
+
+    const checkVisibility = () => {
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight || document.documentElement.clientHeight || 800;
+      // Button is in view or scrolled past downwards
+      const isAtOrPast = rect.top < vh;
+      onButtonVisibilityChange(isAtOrPast);
+    };
+
+    let observer;
+    if (typeof IntersectionObserver !== 'undefined') {
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          const vh = window.innerHeight || document.documentElement.clientHeight || 800;
+          const isAtOrPast = entry.isIntersecting || (entry.boundingClientRect.top < vh && entry.boundingClientRect.bottom <= 0);
+          onButtonVisibilityChange(isAtOrPast);
+        },
+        { root: null, threshold: [0, 0.1, 0.5, 1.0] }
+      );
+      observer.observe(el);
+    }
+
+    window.addEventListener('scroll', checkVisibility, { passive: true });
+    window.addEventListener('resize', checkVisibility, { passive: true });
+    checkVisibility();
+
+    return () => {
+      if (observer) observer.disconnect();
+      window.removeEventListener('scroll', checkVisibility);
+      window.removeEventListener('resize', checkVisibility);
+    };
+  }, [onButtonVisibilityChange]);
+
+  // Track InitiateCheckout on customer engagement with form
+  const handleFieldFocus = () => {
+    if (!hasTrackedCheckout.current) {
+      hasTrackedCheckout.current = true;
+      if (typeof window !== 'undefined' && typeof window.fbq === 'function') {
+        try {
+          const currentFee = (deliveryType && rates[String(wilayaCode)])
+            ? (deliveryType === 'domicile' ? rates[String(wilayaCode)].home : rates[String(wilayaCode)].desk)
+            : 0;
+          window.fbq('track', 'InitiateCheckout', {
+            content_name: 'PACK HIGH-TECH 5 EN 1',
+            value: BASE_BUNDLE_PRICE + (currentFee || 0),
+            currency: 'DZD'
+          });
+        } catch (e) {}
+      }
+    }
+  };
 
   // Fetch live Ecotrack tariffs on mount
   useEffect(() => {
@@ -203,6 +268,20 @@ export default function OrderForm({ locale = 'fr', onOrderSuccess, onSubmittingC
         throw new Error(errorDetail);
       }
 
+      // 9b. Fire Meta Pixel Purchase event with matching eventID for server-side deduplication
+      if (typeof window !== 'undefined' && typeof window.fbq === 'function') {
+        try {
+          window.fbq('track', 'Purchase', {
+            content_name: 'PACK HIGH-TECH 5 EN 1',
+            value: data.totalPrice || grandTotal,
+            currency: 'DZD',
+            num_items: 1
+          }, { eventID: data.orderId });
+        } catch (pixelErr) {
+          console.warn('[Pixel] Purchase tracking warning:', pixelErr);
+        }
+      }
+
       // 10. For fast responses, maintain visual processing state for ~600-800ms
       const elapsed = Date.now() - submitStartTime;
       const MIN_DISPLAY_MS = 700;
@@ -359,6 +438,7 @@ export default function OrderForm({ locale = 'fr', onOrderSuccess, onSubmittingC
         ref={formRef}
         id="orderForm"
         onSubmit={handleSubmit}
+        onFocus={handleFieldFocus}
         className="flex flex-col gap-3.5"
       >
         {/* Anti-bot Honeypot */}
@@ -583,6 +663,7 @@ export default function OrderForm({ locale = 'fr', onOrderSuccess, onSubmittingC
         <button
           type="submit"
           id="orderFormSubmitBtn"
+          ref={submitBtnRef}
           disabled={isSubmitting}
           className={`w-full h-12 rounded-full font-label-lg text-label-lg font-medium flex items-center justify-center gap-2 shadow-sm transition-all duration-200 cursor-pointer ${
             isSubmitting
