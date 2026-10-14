@@ -106,7 +106,7 @@ describe('Stitch Cupertino Pure & Clean Video Transition Tests', () => {
         assert.ok(content.includes('onButtonVisibilityChange'), 'OrderForm must accept onButtonVisibilityChange callback');
         assert.ok(content.includes('submitBtnRef'), 'OrderForm must attach submitBtnRef to submit button');
         assert.ok(content.includes("fbq('track', 'Purchase'"), 'OrderForm must track client-side Purchase event on success');
-        assert.ok(content.includes('eventID: data.orderId'), 'Must provide matching eventID for Meta CAPI deduplication');
+        assert.ok(content.includes('eventID: data.orderId') || content.includes('eventID: resolvedOrderId'), 'Must provide matching eventID for Meta CAPI deduplication');
     });
 
     it('App binds form button visibility to dock StickyMobileBar when user reaches form button', () => {

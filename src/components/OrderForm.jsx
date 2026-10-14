@@ -228,7 +228,11 @@ export default function OrderForm({
     const submitStartTime = Date.now();
 
     try {
+      // Pre-generate unique order identifier to synchronize client & server deduplication
+      const clientOrderId = 'SPDZ-' + Date.now().toString().slice(-8) + '-' + Math.floor(1000 + Math.random() * 9000);
+
       const payload = {
+        orderId: clientOrderId,
         fullName: fullName.trim(),
         phone: cleanPhone,
         wilaya: `${selectedWilayaObj.code} - ${selectedWilayaObj.name} (${selectedWilayaObj.nameAr})`,
@@ -269,6 +273,7 @@ export default function OrderForm({
       }
 
       // 9b. Fire Meta Pixel Purchase event with matching eventID for server-side deduplication
+      const resolvedOrderId = data.orderId || clientOrderId;
       if (typeof window !== 'undefined' && typeof window.fbq === 'function') {
         try {
           window.fbq('track', 'Purchase', {
@@ -276,7 +281,7 @@ export default function OrderForm({
             value: data.totalPrice || grandTotal,
             currency: 'DZD',
             num_items: 1
-          }, { eventID: data.orderId });
+          }, { eventID: data.orderId || clientOrderId });
         } catch (pixelErr) {
           console.warn('[Pixel] Purchase tracking warning:', pixelErr);
         }

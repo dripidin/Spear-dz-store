@@ -109,9 +109,10 @@ module.exports = async (req, res) => {
         const shippingFee = isDesk ? (wRate.desk || wRate.home) : wRate.home;
         const totalPrice = subtotal + shippingFee;
 
-        // Unique Order ID
+        // Unique Order ID (Preserve clientOrderId if properly formatted for 1:1 CAPI/Pixel deduplication)
         const randSuffix = typeof crypto.randomInt === 'function' ? crypto.randomInt(1000, 9999) : Math.floor(1000 + Math.random() * 9000);
-        const orderId = body.orderId || ('SPDZ-' + Date.now().toString().slice(-8) + '-' + randSuffix);
+        const isValidClientOrderId = body.orderId && typeof body.orderId === 'string' && /^SPDZ-[\w-]+$/.test(body.orderId);
+        const orderId = isValidClientOrderId ? body.orderId : ('SPDZ-' + Date.now().toString().slice(-8) + '-' + randSuffix);
 
         // Evaluate Risk
         const riskResult = await evaluateOrderRisk({
