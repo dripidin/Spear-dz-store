@@ -39,4 +39,27 @@ describe('Meta Conversions API (CAPI) Normalization Tests', () => {
         assert.strictEqual(res.skipped, true);
         assert.strictEqual(res.reason, 'META_CREDENTIALS_NOT_CONFIGURED');
     });
+
+    test('Storefront index.html contains verified Meta Pixel and domain verification', () => {
+        const fs = require('fs');
+        const path = require('path');
+        const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+        const adminHtml = fs.readFileSync(path.join(__dirname, '..', 'admin.html'), 'utf8');
+        const storeConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'config', 'store.config.json'), 'utf8'));
+
+        // Domain verification meta tag
+        assert.ok(indexHtml.includes('name="facebook-domain-verification" content="s9bo2czrcqynrmjzo5uji6yzcjktit"'), 'Domain verification meta tag missing');
+
+        // Meta Pixel script and initialization
+        assert.ok(indexHtml.includes("fbq('init', '3409753005871295')"), 'Pixel init missing in index.html');
+        assert.ok(indexHtml.includes("fbq('track', 'PageView')"), 'Pixel PageView tracking missing in index.html');
+        assert.ok(indexHtml.includes('https://www.facebook.com/tr?id=3409753005871295'), 'Pixel noscript fallback missing in index.html');
+
+        // Store config
+        assert.strictEqual(storeConfig.marketing.meta_pixel_id, '3409753005871295');
+
+        // Ensure admin.html is clean (no pixel)
+        assert.ok(!adminHtml.includes('fbq('), 'admin.html must not contain Meta Pixel');
+    });
 });
+
