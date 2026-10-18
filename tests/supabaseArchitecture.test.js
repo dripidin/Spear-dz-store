@@ -65,9 +65,9 @@ describe('Supabase-First Architecture & Persistence Tests', () => {
             deliveryType: 'home',
             productName: 'PACK HIGH-TECH 5 EN 1',
             quantity: 1,
-            unitPrice: 21900,
+            unitPrice: 20400,
             shippingFee: 500,
-            totalPrice: 22400,
+            totalPrice: 20900,
             status: 'pending',
             courier: 'manual'
         };
@@ -81,8 +81,8 @@ describe('Supabase-First Architecture & Persistence Tests', () => {
             const fetched = await storage.findOrderById(testOrderId);
             assert.ok(fetched, 'Must be retrievable from Supabase');
             assert.equal(fetched.orderId, testOrderId);
-            assert.equal(fetched.totalPrice, 22400);
-            assert.equal(fetched.unitPrice, 21900);
+            assert.equal(fetched.totalPrice, 20900);
+            assert.equal(fetched.unitPrice, 20400);
             assert.equal(fetched.phone, '0555998877');
         } finally {
             try {

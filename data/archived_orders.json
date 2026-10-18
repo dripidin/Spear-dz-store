@@ -927,7 +927,7 @@
   },
   {
     "orderId": "SPDZ-DEL-TEST-001",
-    "archivedAt": "2026-10-13T17:22:20.982Z",
+    "archivedAt": "2026-10-18T00:42:33.255Z",
     "archivedBy": "admin",
     "reason": "manual_admin_delete",
     "orderSnapshot": {
@@ -936,22 +936,22 @@
       "phone": "0555123456",
       "wilaya": "Alger",
       "commune": "Bab El Oued",
-      "totalPrice": 21900,
+      "totalPrice": 20400,
       "status": "pending",
-      "unitPrice": 21900,
-      "priceNum": 21900,
-      "grandTotal": "21,900 DZD",
+      "unitPrice": 20400,
+      "priceNum": 20400,
+      "grandTotal": "20,400 DZD",
       "riskScore": 0,
       "riskLevel": "LOW",
       "riskDecision": "ALLOW",
       "riskReasons": [],
-      "createdAt": "2026-10-13T17:22:20.973Z",
-      "updatedAt": "2026-10-13T17:22:20.974Z"
+      "createdAt": "2026-10-18T00:42:33.254Z",
+      "updatedAt": "2026-10-18T00:42:33.254Z"
     }
   },
   {
     "orderId": "SPDZ-BULK-001",
-    "archivedAt": "2026-10-13T17:22:21.002Z",
+    "archivedAt": "2026-10-18T00:42:33.272Z",
     "archivedBy": "admin",
     "reason": "test_bulk_removal",
     "orderSnapshot": {
@@ -961,20 +961,20 @@
       "wilaya": "Oran",
       "totalPrice": 15000,
       "status": "pending",
-      "unitPrice": 21900,
-      "priceNum": 21900,
+      "unitPrice": 20400,
+      "priceNum": 20400,
       "grandTotal": "15,000 DZD",
       "riskScore": 0,
       "riskLevel": "LOW",
       "riskDecision": "ALLOW",
       "riskReasons": [],
-      "createdAt": "2026-10-13T17:22:20.998Z",
-      "updatedAt": "2026-10-13T17:22:20.998Z"
+      "createdAt": "2026-10-18T00:42:33.271Z",
+      "updatedAt": "2026-10-18T00:42:33.271Z"
     }
   },
   {
     "orderId": "SPDZ-BULK-002",
-    "archivedAt": "2026-10-13T17:22:21.002Z",
+    "archivedAt": "2026-10-18T00:42:33.272Z",
     "archivedBy": "admin",
     "reason": "test_bulk_removal",
     "orderSnapshot": {
@@ -984,20 +984,20 @@
       "wilaya": "Oran",
       "totalPrice": 15000,
       "status": "pending",
-      "unitPrice": 21900,
-      "priceNum": 21900,
+      "unitPrice": 20400,
+      "priceNum": 20400,
       "grandTotal": "15,000 DZD",
       "riskScore": 0,
       "riskLevel": "LOW",
       "riskDecision": "ALLOW",
       "riskReasons": [],
-      "createdAt": "2026-10-13T17:22:20.999Z",
-      "updatedAt": "2026-10-13T17:22:20.999Z"
+      "createdAt": "2026-10-18T00:42:33.272Z",
+      "updatedAt": "2026-10-18T00:42:33.272Z"
     }
   },
   {
     "orderId": "SPDZ-BULK-003",
-    "archivedAt": "2026-10-13T17:22:21.002Z",
+    "archivedAt": "2026-10-18T00:42:33.272Z",
     "archivedBy": "admin",
     "reason": "test_bulk_removal",
     "orderSnapshot": {
@@ -1007,15 +1007,15 @@
       "wilaya": "Oran",
       "totalPrice": 15000,
       "status": "pending",
-      "unitPrice": 21900,
-      "priceNum": 21900,
+      "unitPrice": 20400,
+      "priceNum": 20400,
       "grandTotal": "15,000 DZD",
       "riskScore": 0,
       "riskLevel": "LOW",
       "riskDecision": "ALLOW",
       "riskReasons": [],
-      "createdAt": "2026-10-13T17:22:21.000Z",
-      "updatedAt": "2026-10-13T17:22:21.000Z"
+      "createdAt": "2026-10-18T00:42:33.272Z",
+      "updatedAt": "2026-10-18T00:42:33.272Z"
     }
   },
   {

@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function StickyMobileBar({
   locale = 'fr',
-  price = '21,900 DZD',
+  price = '20,400 DZD',
   bundleName = 'Pack High-Tech 5 en 1',
   isSubmitting = false,
   onSubmitOrder,

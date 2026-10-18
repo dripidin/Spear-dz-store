@@ -48,16 +48,16 @@ describe('Meta Conversions API (CAPI) Normalization Tests', () => {
         const storeConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'config', 'store.config.json'), 'utf8'));
 
         // Domain verification meta tags
-        assert.ok(indexHtml.includes('name="facebook-domain-verification" content="lzuh8krch3d5nv6p3itr4aweqn4fcj"'), 'New domain verification meta tag missing');
-        assert.ok(indexHtml.includes('name="facebook-domain-verification" content="s9bo2czrcqynrmjzo5uji6yzcjktit"'), 'Domain verification meta tag missing');
+        assert.ok(indexHtml.includes('name="facebook-domain-verification" content="t6yvwmu1amary622149o3yx8z8q1ob"'), 'Target domain verification meta tag missing');
+        assert.ok(indexHtml.includes('name="facebook-domain-verification" content="lzuh8krch3d5nv6p3itr4aweqn4fcj"'), 'Domain verification meta tag missing');
 
         // Meta Pixel script and initialization
-        assert.ok(indexHtml.includes("fbq('init', '3409753005871295')"), 'Pixel init missing in index.html');
+        assert.ok(indexHtml.includes("fbq('init', '1865890014396791')"), 'Pixel init missing in index.html');
         assert.ok(indexHtml.includes("fbq('track', 'PageView')"), 'Pixel PageView tracking missing in index.html');
-        assert.ok(indexHtml.includes('https://www.facebook.com/tr?id=3409753005871295'), 'Pixel noscript fallback missing in index.html');
+        assert.ok(indexHtml.includes('https://www.facebook.com/tr?id=1865890014396791'), 'Pixel noscript fallback missing in index.html');
 
         // Store config
-        assert.strictEqual(storeConfig.marketing.meta_pixel_id, '3409753005871295');
+        assert.strictEqual(storeConfig.marketing.meta_pixel_id, '1865890014396791');
 
         // Ensure admin.html is clean (no pixel)
         assert.ok(!adminHtml.includes('fbq('), 'admin.html must not contain Meta Pixel');
@@ -119,6 +119,43 @@ describe('Meta Conversions API (CAPI) Normalization Tests', () => {
         assert.ok(sendOrderCode.includes("sendMetaEvent({"), 'send-order.js must dispatch sendMetaEvent');
         assert.ok(sendOrderCode.includes("eventName: 'Purchase'"), 'send-order.js must use Purchase event name');
         assert.ok(sendOrderCode.includes("eventId: orderId"), 'send-order.js must use matching eventId');
+    });
+
+    test('buildMetaEventPayload matches exact user-specified CAPI payload structure', () => {
+        const { buildMetaEventPayload } = require('../lib/metaCAPI');
+        const userProvidedSpec = {
+            eventName: 'Purchase',
+            eventTime: 1792073997,
+            actionSource: 'website',
+            em: ['7b17fb0bd173f625b58636fb796407c22b3d16fc78302d79f0fd30c2fc2fc068'],
+            ph: [null],
+            attributionData: {
+                attribution_share: '0.3'
+            },
+            currency: 'USD',
+            value: '142.52',
+            originalEventData: {
+                event_name: 'Purchase',
+                event_time: 1792073997
+            }
+        };
+
+        const singleEvent = buildMetaEventPayload(userProvidedSpec);
+        const topLevelEnvelope = {
+            data: [singleEvent]
+        };
+
+        // Assert exact structure matches requested specification
+        assert.strictEqual(singleEvent.event_name, 'Purchase');
+        assert.strictEqual(singleEvent.event_time, 1792073997);
+        assert.strictEqual(singleEvent.action_source, 'website');
+        assert.deepStrictEqual(singleEvent.user_data.em, ['7b17fb0bd173f625b58636fb796407c22b3d16fc78302d79f0fd30c2fc2fc068']);
+        assert.deepStrictEqual(singleEvent.user_data.ph, [null]);
+        assert.deepStrictEqual(singleEvent.attribution_data, { attribution_share: '0.3' });
+        assert.strictEqual(singleEvent.custom_data.currency, 'USD');
+        assert.strictEqual(String(singleEvent.custom_data.value), '142.52');
+        assert.deepStrictEqual(singleEvent.original_event_data, { event_name: 'Purchase', event_time: 1792073997 });
+        assert.strictEqual(topLevelEnvelope.data.length, 1);
     });
 });
 

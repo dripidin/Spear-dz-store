@@ -54,7 +54,7 @@ async function main() {
         wilayaName: 'Alger',
         commune: 'Bab Ezzouar',
         deliveryType: 'home',
-        totalPrice: 21900,
+        totalPrice: 20400,
         riskScore: 10,
         riskLevel: 'LOW'
     };

@@ -221,7 +221,7 @@ VALUES (
   'pack-high-tech-5-en-1',
   'PACK HIGH-TECH 5 EN 1 SPEAR-DZ',
   'Pack exclusif réunissant Smartwatch Ultra 2 AMOLED, Écouteurs TWS ANC Pro, Batterie 20000mAh 65W, Station MagSafe 3-en-1, et Câble Kevlar 100W.',
-  21900,
+  20400,
   29500,
   13500,
   true,

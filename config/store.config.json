@@ -25,7 +25,7 @@
     "title_fr": "PACK HIGH-TECH 5 EN 1 (Offre Élite)",
     "badge_ar": "العرض الأكثر طلباً • كمية محدودة",
     "badge_fr": "Offre Exclusive • Stock Limité",
-    "price": 21900,
+    "price": 20400,
     "currency": "د.ج",
     "currency_symbol_fr": "DZD",
     "internal_cost": 17800,
@@ -107,7 +107,7 @@
     "min_form_duration_ms": 3000
   },
   "marketing": {
-    "meta_pixel_id": "3409753005871295",
+    "meta_pixel_id": "1865890014396791",
     "track_view_content": true,
     "track_initiate_checkout": true,
     "track_purchase": true,

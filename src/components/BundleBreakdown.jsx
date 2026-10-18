@@ -135,11 +135,11 @@ export default function BundleBreakdown({ locale }) {
                 {isAr ? 'قيمة الباك الكلية' : 'Avantage Exclusif'}
               </span>
               <h3 className="font-semibold text-xl text-[#1d1d1f] tracking-tight mb-2">
-                {isAr ? 'وفر 7,600 دج مقارنة بالشراء المنفصل' : 'Économisez 7,600 DZD sur le lot complet'}
+                {isAr ? 'وفر 9,100 دج مقارنة بالشراء المنفصل' : 'Économisez 9,100 DZD sur le lot complet'}
               </h3>
               <p className="text-xs sm:text-sm text-[#86868b] leading-relaxed mb-4">
                 {isAr
-                  ? 'شراء هذه الأجهزة كل على حدة يكلفك 29,500 دج. احصل على التشكيلة الكاملة في علبة هدايا واحدة بسعر 21,900 دج فقط.'
+                  ? 'شراء هذه الأجهزة كل على حدة يكلفك 29,500 دج. احصل على التشكيلة الكاملة في علبة هدايا واحدة بسعر 20,400 دج فقط.'
                   : 'Achetés séparément, ces équipements vous coûteraient 29,500 DZD. Profitez du tarif préférentiel groupé avec livraison 58 Wilayas.'}
               </p>
             </div>
@@ -147,7 +147,7 @@ export default function BundleBreakdown({ locale }) {
             <div className="pt-4 border-t border-[#e5e5e7] space-y-3">
               <div className="flex justify-between items-baseline">
                 <span className="text-xs text-[#86868b]">{isAr ? 'السعر النهائي:' : 'Tarif groupé :'}</span>
-                <span className="text-2xl font-bold text-[#1d1d1f] font-mono">21,900 DZD</span>
+                <span className="text-2xl font-bold text-[#1d1d1f] font-mono">20,400 DZD</span>
               </div>
               <div className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1.5">
                 <span>✓</span>

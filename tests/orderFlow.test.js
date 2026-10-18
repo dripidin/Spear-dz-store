@@ -83,8 +83,8 @@ describe('End-to-End API Order Flow & Security Tests', () => {
         assert.ok(json.orderId);
         // Dynamic check based on official Alger rates (Ecotrack live rates)
         const expectedShippingFee = require('../config/shippingRates.json')['16']?.home || 700;
-        const expectedTotal = 21900 + expectedShippingFee;
-        assert.strictEqual(json.subtotal, 21900);
+        const expectedTotal = 20400 + expectedShippingFee;
+        assert.strictEqual(json.subtotal, 20400);
         assert.strictEqual(json.shippingFee, expectedShippingFee);
         assert.strictEqual(json.totalPrice, expectedTotal);
 
@@ -229,20 +229,20 @@ describe('End-to-End API Order Flow & Security Tests', () => {
             wilaya: '18 - Jijel (جيجل)',
             commune: 'Oudjana',
             deliveryType: 'desk',
-            unitPrice: 21900,
+            unitPrice: 20400,
             shippingFee: 450,
-            totalPrice: 22350,
+            totalPrice: 20850,
             status: 'pending'
         });
 
         const orders = await mockStorage.getAllOrders();
         const o = orders.find(item => item.orderId === 'SPDZ-242674-133');
         assert.ok(o);
-        assert.strictEqual(o.unitPrice, 21900);
+        assert.strictEqual(o.unitPrice, 20400);
         assert.strictEqual(o.shippingFee, 450);
-        assert.strictEqual(o.totalPrice, 22350);
-        assert.strictEqual(o.priceNum, 21900);
-        assert.ok(o.grandTotal.includes('22,350 DZD'));
+        assert.strictEqual(o.totalPrice, 20850);
+        assert.strictEqual(o.priceNum, 20400);
+        assert.ok(o.grandTotal.includes('20,850 DZD'));
         assert.ok(!o.grandTotal.includes('undefined'));
     });
 
@@ -254,9 +254,9 @@ describe('End-to-End API Order Flow & Security Tests', () => {
             wilaya: '18 - Jijel (جيجل)',
             commune: 'Oudjana',
             deliveryType: 'desk',
-            unitPrice: 21900,
+            unitPrice: 20400,
             shippingFee: 450,
-            totalPrice: 22350,
+            totalPrice: 20850,
             status: 'pending'
         };
 

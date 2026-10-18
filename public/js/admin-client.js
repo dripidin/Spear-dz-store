@@ -581,7 +581,7 @@
                     badgeLabel = currentLang === 'fr' ? 'Confirmé' : 'مؤكد';
                 }
 
-                const codVal = Number(o.totalPrice != null ? o.totalPrice : (o.total_price != null ? o.total_price : (o.unitPrice || 21900))) || 21900;
+                const codVal = Number(o.totalPrice != null ? o.totalPrice : (o.total_price != null ? o.total_price : (o.unitPrice || 20400))) || 20400;
                 const formattedCod = codVal.toLocaleString() + ' DZD';
 
                 return `
@@ -1244,7 +1244,7 @@
                 // Risk & Trust Badge (Risk Shield Paused by Admin)
                 const riskPill = `<div style="margin-top:4px;"><span class="status-badge badge-delivered" onclick="storeAdmin.viewRisk('${o.orderId}')" style="cursor:pointer; font-size:10px;" title="درع الأمان معطل مؤقتاً">🟢 ${currentLang === 'fr' ? 'Approuvé (Bouclier en pause)' : 'معتمد (الدرع معطل)'}</span></div>`;
 
-                const unitPrice = Number(o.unitPrice != null ? o.unitPrice : (o.unit_price != null ? o.unit_price : 21900)) || 21900;
+                const unitPrice = Number(o.unitPrice != null ? o.unitPrice : (o.unit_price != null ? o.unit_price : 20400)) || 20400;
                 const shippingFee = Number(o.shippingFee != null ? o.shippingFee : (o.shipping_fee != null ? o.shipping_fee : 0)) || 0;
                 let totalAmount = Number(o.totalPrice != null ? o.totalPrice : (o.total_price != null ? o.total_price : 0));
                 if (!totalAmount || isNaN(totalAmount)) {
@@ -1305,10 +1305,10 @@
         updateKPIs: function () {
             const total = ordersList.length;
             const rev = ordersList.reduce((sum, o) => {
-                const totalAmt = Number(o.totalPrice != null ? o.totalPrice : (o.total_price != null ? o.total_price : (o.unitPrice || 21900)));
+                const totalAmt = Number(o.totalPrice != null ? o.totalPrice : (o.total_price != null ? o.total_price : (o.unitPrice || 20400)));
                 if (totalAmt && !isNaN(totalAmt)) return sum + totalAmt;
                 const raw = String(o.grandTotal || o.priceNum || 0).replace(/[^\d]/g, '');
-                return sum + (parseInt(raw, 10) || 21900);
+                return sum + (parseInt(raw, 10) || 20400);
             }, 0);
             const pending = ordersList.filter(o => !o.in_redex && (o.status === 'pending' || o.status === 'قيد الانتظار')).length;
             const shipped = ordersList.filter(o => o.in_redex || o.status === 'shipped' || (o.status && o.status.includes('Redex'))).length;
@@ -1587,7 +1587,7 @@
             document.getElementById('formWilayaCode').value = '16';
             this.onWilayaChange('16');
             document.getElementById('formAddress').value = '';
-            document.getElementById('formPrice').value = '21900';
+            document.getElementById('formPrice').value = '20400';
             const delivType = document.getElementById('formDeliveryType');
             if (delivType) delivType.value = 'home';
             this.updateTariffDisplay();
@@ -1640,7 +1640,7 @@
             
             // Clean price parsing for modal prefill
             const rawPrice = String(o.totalPrice || o.total_price || o.unitPrice || o.priceNum || o.grandTotal || '').replace(/[^\d]/g, '');
-            const priceVal = parseInt(rawPrice, 10) || 21900;
+            const priceVal = parseInt(rawPrice, 10) || 20400;
             document.getElementById('formPrice').value = priceVal;
             this.updateTariffDisplay();
             document.getElementById('packageModal').classList.add('active');
@@ -1737,7 +1737,7 @@
                 const phone = (document.getElementById('formClientPhone')?.value || '').trim();
                 const wilayaCode = document.getElementById('formWilayaCode')?.value || '16';
                 const commune = (document.getElementById('formCommuneSelect')?.value || '').trim();
-                const price = parseInt(document.getElementById('formPrice')?.value, 10) || 21900;
+                const price = parseInt(document.getElementById('formPrice')?.value, 10) || 20400;
                 const address = (document.getElementById('formAddress')?.value || '').trim();
 
                 if (!fullName || fullName.length < 2) {
@@ -2227,7 +2227,7 @@
 
             const lblAmountText = document.getElementById('lblAmountText');
             if (lblAmountText) {
-                const total = Number(o.totalPrice != null ? o.totalPrice : (o.total_price != null ? o.total_price : (o.unitPrice || 21900))) || 21900;
+                const total = Number(o.totalPrice != null ? o.totalPrice : (o.total_price != null ? o.total_price : (o.unitPrice || 20400))) || 20400;
                 lblAmountText.textContent = total.toLocaleString() + ' DZD';
             }
 

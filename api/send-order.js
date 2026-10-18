@@ -94,7 +94,7 @@ module.exports = async (req, res) => {
         }
 
         // Server-side Price Calculation (Never Trust Client Prices)
-        const unitPrice = (storeConfig && storeConfig.bundle && storeConfig.bundle.price) || 21900;
+        const unitPrice = (storeConfig && storeConfig.bundle && storeConfig.bundle.price) || 20400;
         const subtotal = unitPrice * quantity;
 
         let liveRates = shippingRates;

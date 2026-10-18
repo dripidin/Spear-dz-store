@@ -226,7 +226,7 @@ export default function ProductDemoVideo({
       <div className="absolute bottom-3 left-4 right-4 sm:bottom-4 sm:left-6 sm:right-6 z-10 flex items-center justify-between text-xs text-slate-300">
         <span className="font-medium text-white drop-shadow">Pack 5 en 1 — Test Réel en Algérie</span>
         <span className="font-mono text-cyan-300 font-bold bg-black/60 px-2 py-0.5 rounded border border-cyan-500/20">
-          21,900 DZD
+          20,400 DZD
         </span>
       </div>
     </div>

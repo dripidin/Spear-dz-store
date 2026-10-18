@@ -35,7 +35,7 @@ html = html.replace(/Google Sheets et Facebook Meta CAPI/g, 'Supabase PostgreSQL
 html = html.replace(/Google Cloud Sheets API \+ Base Locale Excel \(\.xlsx\) Synchronisés/g, 'Supabase PostgreSQL Cloud Database + Sauvegarde Locale');
 
 // Default price & product in modals
-html = html.replace(/value="4400"/g, 'value="21900"');
+html = html.replace(/value="4400"/g, 'value="20400"');
 html = html.replace(/Sac Banane Moto Yamaha \(كرطابل يماها\)/g, 'PACK HIGH-TECH 5 EN 1 (Smartwatch + Écouteurs ANC + Powerbank + Câble + Chargeur 65W)');
 
 // Quick Store Navigation
@@ -45,7 +45,7 @@ const newQuickNav = `<div class="store-quick-nav">
                     <i class="fa-solid fa-house"></i> <span>المتجر الرئيسي</span>
                 </a>
                 <a href="/#orderForm" target="_blank" class="store-nav-pill" title="استمارة الطلب">
-                    <i class="fa-solid fa-bag-shopping"></i> <span>طلب العرض (21,900 دج)</span>
+                    <i class="fa-solid fa-bag-shopping"></i> <span>طلب العرض (20,400 دج)</span>
                 </a>
                 <a href="#orders" class="store-nav-pill" onclick="storeAdmin.switchTab('orders')" title="إدارة الطلبيات">
                     <i class="fa-solid fa-boxes-packing"></i> <span>سجل الطلبيات</span>

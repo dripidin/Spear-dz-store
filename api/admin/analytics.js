@@ -58,7 +58,7 @@ module.exports = async (req, res) => {
         // Average Order Value (AOV)
         const avgOrderValue = deliveredOrders.length > 0
             ? Math.round(grossDeliveredRevenue / deliveredOrders.length)
-            : (total > 0 ? Math.round(totalOrderValue / total) : 21900);
+            : (total > 0 ? Math.round(totalOrderValue / total) : 20400);
 
         // Precision Rates
         // Eligible orders exclude deliberate honeypot/spam bot blocks

@@ -11,7 +11,7 @@ describe('Store Configuration Validation Tests', () => {
         assert.ok(config);
         assert.strictEqual(config.store.id, 'spear_dz');
         assert.strictEqual(config.bundle.id, 'pack_hightech_5in1');
-        assert.strictEqual(config.bundle.price, 21900);
+        assert.strictEqual(config.bundle.price, 20400);
         assert.strictEqual(config.bundle.components.length, 5);
     });
 

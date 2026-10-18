@@ -70,7 +70,7 @@ describe('Apple Redesign & Mobile 3:4 Video Player Tests', () => {
         assert.ok(content.includes('block lg:hidden'), 'Must isolate mobile smartphone experience (< 1024px)');
         assert.ok(content.includes('hidden lg:grid') || content.includes('hidden lg:block'), 'Must isolate desktop product viewer');
         assert.ok(content.includes('<MobileHeroVideo'), 'Must render MobileHeroVideo on mobile');
-        assert.ok(content.includes('21,900'), 'Must present the 21,900 DZD offer');
+        assert.ok(content.includes('20,400'), 'Must present the 20,400 DZD offer');
     });
 
     it('Off-white Apple parchment theme (#f5f5f7) is defined in CSS design tokens', () => {

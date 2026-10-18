@@ -152,13 +152,13 @@ export default function Hero({ locale, onScrollToOrder }) {
                 {isAr ? 'السعر الترويجي الخاص' : 'Prix Pack Complet'}
               </span>
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3]">
-                {isAr ? 'توفير 7,600 دج' : 'Économie 7,600 DZD'}
+                {isAr ? 'توفير 9,100 دج' : 'Économie 9,100 DZD'}
               </span>
             </div>
 
             <div className="flex items-baseline justify-center gap-2">
               <span className="text-3xl font-bold text-[#1d1d1f] tracking-tight font-mono">
-                21,900
+                20,400
               </span>
               <span className="text-sm font-semibold text-[#86868b]">DZD</span>
               <span className="text-sm line-through text-[#a1a1a6] font-mono ml-2">
@@ -292,7 +292,7 @@ export default function Hero({ locale, onScrollToOrder }) {
                   </span>
                   <div className="flex items-baseline gap-2">
                     <span className="text-4xl font-bold text-[#1d1d1f] tracking-tight font-mono">
-                      21,900
+                      20,400
                     </span>
                     <span className="text-sm font-semibold text-[#86868b]">DZD</span>
                   </div>
@@ -306,7 +306,7 @@ export default function Hero({ locale, onScrollToOrder }) {
                     29,500 DZD
                   </span>
                   <span className="inline-block mt-1 text-[11px] font-semibold text-[#0071e3] bg-[#0071e3]/10 px-2 py-0.5 rounded-full">
-                    {isAr ? 'توفير 7,600 دج' : 'Économie 7,600 DZD'}
+                    {isAr ? 'توفير 9,100 دج' : 'Économie 9,100 DZD'}
                   </span>
                 </div>
               </div>

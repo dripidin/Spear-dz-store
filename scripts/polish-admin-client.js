@@ -29,7 +29,7 @@ code = code.replace(
 
 code = code.replace(
     "o.grandTotal || (o.priceNum ? (o.priceNum + ' DZD') : '4,900 DZD');",
-    "o.grandTotal || (o.priceNum ? (o.priceNum + ' DZD') : '21,900 DZD');"
+    "o.grandTotal || (o.priceNum ? (o.priceNum + ' DZD') : '20,400 DZD');"
 );
 
 code = code.replace(

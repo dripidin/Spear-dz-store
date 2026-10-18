@@ -103,7 +103,7 @@ describe('Order Data Cleanup, Grid View & Order Management Tests', () => {
                 phone: '0555123456',
                 wilaya: 'Alger',
                 commune: 'Bab El Oued',
-                totalPrice: 21900,
+                totalPrice: 20400,
                 status: 'pending'
             };
             await mockStorage.saveOrder(testOrder);

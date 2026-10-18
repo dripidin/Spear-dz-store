@@ -170,7 +170,7 @@ describe('PHASE 4A: Security Fail-Closed Regression Suite', () => {
         delete process.env.TELEGRAM_BOT_TOKEN;
         delete process.env.TELEGRAM_CHAT_ID;
 
-        const result = await sendOrderNotification({ orderId: 'SPDZ-SAFE-001', totalPrice: 21900 });
+        const result = await sendOrderNotification({ orderId: 'SPDZ-SAFE-001', totalPrice: 20400 });
         assert.strictEqual(result.success, false);
         assert.strictEqual(result.skipped, true);
         assert.strictEqual(result.reason, 'Telegram bot credentials not configured');

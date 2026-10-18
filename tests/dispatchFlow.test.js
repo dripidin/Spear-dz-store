@@ -294,9 +294,9 @@ describe('Courier Dispatch Regression Suite (Phase 1 Fix)', () => {
             fullName: 'Nabil Bentaleb',
             phone: '0661223344',
             wilaya: '15 - Tizi Ouzou',
-            unitPrice: 21900,
+            unitPrice: 20400,
             shippingFee: 450,
-            totalPrice: 22350,
+            totalPrice: 20850,
             status: 'pending'
         });
 
@@ -319,8 +319,8 @@ describe('Courier Dispatch Regression Suite (Phase 1 Fix)', () => {
             await dispatchHandler(req, res);
             assert.strictEqual(getStatus(), 200);
             assert.ok(capturedPayload);
-            // Server MUST pass authoritative COD amount 22,350 to courier, not 100
-            assert.strictEqual(capturedPayload.totalPrice, 22350);
+            // Server MUST pass authoritative COD amount 20,850 to courier, not 100
+            assert.strictEqual(capturedPayload.totalPrice, 20850);
         } finally {
             ecotrackCourier.createShipment = originalCreate;
         }

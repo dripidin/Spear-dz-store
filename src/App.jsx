@@ -91,7 +91,7 @@ export default function App() {
         {/* 3. Floating Bottom Glass Bar with White Blur & Black Pill CTA */}
         <StickyMobileBar
           locale={locale}
-          price="21,900 DZD"
+          price="20,400 DZD"
           bundleName="Pack High-Tech 5 en 1"
           isSubmitting={isSubmitting}
           onSubmitOrder={handleFloatingCta}

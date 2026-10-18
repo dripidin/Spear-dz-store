@@ -130,7 +130,7 @@ describe('Enterprise Admin Hub & Security Tests', () => {
                 wilaya: '16 - Alger',
                 wilayaName: 'Alger',
                 wilayaCode: 16,
-                totalPrice: 21900,
+                totalPrice: 20400,
                 status: 'delivered',
                 createdAt: new Date().toISOString()
             });
@@ -175,7 +175,7 @@ describe('Enterprise Admin Hub & Security Tests', () => {
                 wilaya: '19 - Setif',
                 wilayaName: 'Setif',
                 wilayaCode: 19,
-                totalPrice: 21900,
+                totalPrice: 20400,
                 status: 'returned',
                 createdAt: new Date().toISOString()
             });
@@ -204,9 +204,9 @@ describe('Enterprise Admin Hub & Security Tests', () => {
             assert.strictEqual(kpis.returnedOrders, 1);
 
             // Financial KPIs
-            assert.strictEqual(kpis.grossDeliveredRevenue, 21900);
+            assert.strictEqual(kpis.grossDeliveredRevenue, 20400);
             assert.strictEqual(kpis.pendingCodValue, 22400 + 22500); // Shipped + Pending
-            assert.strictEqual(kpis.avgOrderValue, 21900);
+            assert.strictEqual(kpis.avgOrderValue, 20400);
 
             // Rates calculation
             // Confirmed/progressed: delivered (1) + shipped (1) + returned (1) = 3 out of 4 non-spam = 75.0%
@@ -292,7 +292,7 @@ describe('Enterprise Admin Hub & Security Tests', () => {
                 wilaya: '09 - Blida',
                 wilayaName: 'Blida',
                 wilayaCode: 9,
-                totalPrice: 21900,
+                totalPrice: 20400,
                 status: 'confirmed',
                 deliveryType: 'home'
             });
@@ -344,7 +344,7 @@ describe('Enterprise Admin Hub & Security Tests', () => {
                 wilaya: '16 - Alger',
                 wilayaName: 'Alger',
                 wilayaCode: 16,
-                totalPrice: 21900,
+                totalPrice: 20400,
                 status: 'shipped',
                 courier: 'manual',
                 trackingCode: 'MAN-SPDZ-TRACK-001'

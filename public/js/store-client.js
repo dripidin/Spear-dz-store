@@ -6,7 +6,7 @@
 (function () {
     'use strict';
 
-    const BUNDLE_BASE_PRICE = 21900;
+    const BUNDLE_BASE_PRICE = 20400;
     const pageLoadTime = Date.now();
 
     const I18N = {
