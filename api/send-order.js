@@ -189,6 +189,14 @@ module.exports = async (req, res) => {
             fbp,
             fbc,
             productName: orderRecord.productName
+        }).then(capiRes => {
+            if (capiRes && capiRes.success) {
+                console.log('[Meta CAPI] Purchase event dispatched successfully for order %s (eventsReceived: %d)', orderId, capiRes.eventsReceived || 1);
+            } else if (capiRes && capiRes.skipped) {
+                console.log('[Meta CAPI] Skipped for order %s (%s)', orderId, capiRes.reason);
+            } else {
+                console.warn('[Meta CAPI] Dispatch warning for order %s: %s', orderId, capiRes && capiRes.error);
+            }
         }).catch(err => {
             console.warn('[Meta CAPI] Dispatch warning:', err.message);
         });

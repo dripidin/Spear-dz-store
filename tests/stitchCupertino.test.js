@@ -48,17 +48,17 @@ describe('Stitch Cupertino Pure & Clean Video Transition Tests', () => {
         assert.ok(data.length >= 1500, `Must have >= 1500 communes (actual: ${data.length})`);
     });
 
-    it('CupertinoVideoHero binds automatic playback and last frame 16-9 freeze with 180deg gradient', () => {
+    it('CupertinoVideoHero renders static 16-9 image hero without video element and with 180deg gradient', () => {
         assert.ok(fs.existsSync(HERO_JSX), 'CupertinoVideoHero.jsx must exist');
         const content = fs.readFileSync(HERO_JSX, 'utf8');
 
-        // Target media
-        assert.ok(content.includes('/videos/video-products-bundl.mp4'), 'Must play video-products-bundl.mp4');
-        assert.ok(content.includes('/images/last-frame-16-9.jpg'), 'Must overlay last-frame-16-9.jpg');
+        // Target media: 16-9 image showcase
+        assert.ok(content.includes('/images/last-frame-16-9.jpg'), 'Must display last-frame-16-9.jpg');
 
-        // Freeze logic
-        assert.ok(content.includes('onEnded={handleEnded}'), 'Must bind onEnded');
-        assert.ok(content.includes('isEnded'), 'Must track isEnded state');
+        // Clean static image: NO video element or video handlers
+        assert.ok(!content.includes('<video'), 'Must NOT contain any <video> element');
+        assert.ok(!content.includes('videoRef'), 'Must NOT contain videoRef');
+        assert.ok(!content.includes('onEnded'), 'Must NOT contain onEnded handler');
 
         // Strict: NO overlay buttons or replay controls
         assert.ok(!content.includes('<button'), 'Must NOT contain any button elements');
@@ -66,7 +66,7 @@ describe('Stitch Cupertino Pure & Clean Video Transition Tests', () => {
 
         // White gradient merge
         assert.ok(content.includes('linear-gradient(rgba(255, 255, 255, 0) 30%, rgb(255, 255, 255) 60%)'), 'Must feature white linear gradient merge');
-        assert.ok(content.includes("height: '80%'"), 'Must set video and last frame image height to 80%');
+        assert.ok(content.includes("height: '80%'"), 'Must set image height to 80%');
     });
 
     it('OrderForm implements exact headline, Stopdesk label, 40px margin, and dynamic communes', () => {

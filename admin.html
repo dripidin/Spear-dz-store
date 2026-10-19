@@ -546,6 +546,48 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- 4. Meta Conversions API (CAPI) & Pixel Telemetry Card -->
+                        <div class="analytics-col-card" style="margin-top: 16px; border: 1px solid rgba(59, 130, 246, 0.25); background: rgba(59, 130, 246, 0.02); border-radius: var(--radius-sm); padding: 14px 18px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <div style="width:28px; height:28px; border-radius:6px; background:#1877f2; display:flex; align-items:center; justify-content:center; color:#fff;">
+                                        <i class="fa-brands fa-facebook-f"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="analytics-subtitle" style="margin:0; font-size:13px; font-weight:700;">Meta Conversions API (CAPI) & Pixel Telemetry</h5>
+                                        <small style="color:var(--text-muted); font-size:10px;">Suivi direct serveur v19.0 • Déduplication 1:1 eventID</small>
+                                    </div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span class="badge-pill bg-emerald-soft text-emerald" id="capiStatusBadge">
+                                        <i class="fa-solid fa-circle-check"></i> <span id="capiStatusText">CAPI v19.0 Connecté</span>
+                                    </span>
+                                    <button type="button" class="app-btn app-btn-xs app-btn-secondary" id="btnTestCapi" onclick="storeAdmin.testCapiEvent()" title="Envoyer un événement Purchase test à Meta Graph API">
+                                        <i class="fa-solid fa-paper-plane" id="testCapiIcon"></i> <span>Tester CAPI</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="app-kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); margin-top:12px; gap:12px;">
+                                <div style="background:var(--bg-surface); padding:8px 12px; border-radius:var(--radius-xs); border:1px solid var(--border-light);">
+                                    <small style="color:var(--text-muted); font-size:9px; font-weight:700;">PIXEL ID OFFICIEL</small>
+                                    <div style="font-weight:700; font-family:var(--font-mono); font-size:12px;" id="capiPixelId">1865890014396791</div>
+                                </div>
+                                <div style="background:var(--bg-surface); padding:8px 12px; border-radius:var(--radius-xs); border:1px solid var(--border-light);">
+                                    <small style="color:var(--text-muted); font-size:9px; font-weight:700;">DÉDUPLICATION (BROWSER / SERVER)</small>
+                                    <div style="font-weight:700; color:var(--emerald); font-size:12px;"><i class="fa-solid fa-link"></i> 1:1 eventID Actif</div>
+                                </div>
+                                <div style="background:var(--bg-surface); padding:8px 12px; border-radius:var(--radius-xs); border:1px solid var(--border-light);">
+                                    <small style="color:var(--text-muted); font-size:9px; font-weight:700;">PARAMÈTRES EMQ (EVENT MATCH QUALITY)</small>
+                                    <div style="font-size:11px; color:var(--text-secondary);"><i class="fa-solid fa-fingerprint text-primary"></i> Phone (+213), Name, Wilaya, FBP, FBC</div>
+                                </div>
+                                <div style="background:var(--bg-surface); padding:8px 12px; border-radius:var(--radius-xs); border:1px solid var(--border-light);">
+                                    <small style="color:var(--text-muted); font-size:9px; font-weight:700;">CONTRÔLE TEST EN DIRECT</small>
+                                    <div style="font-size:11px; font-weight:600;" id="capiTestFeedback">Prêt pour diagnostic</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
 

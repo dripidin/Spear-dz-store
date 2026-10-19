@@ -71,10 +71,9 @@ export default function App() {
       <main className="flex flex-col relative w-full bg-surface-container-lowest flex-1">
         <div className="flex flex-col w-full max-w-xl mx-auto pb-28">
           
-          {/* 1. Cinematic Video Frame (video products - bundl.mp4 -> last frame 16-9.jpg) */}
+          {/* 1. Product Showcase Image Frame (Instant-loading High-Res 16:9 Pack Showcase) */}
           <CupertinoVideoHero
-            videoSrc="/videos/video-products-bundl.mp4"
-            lastFrameSrc="/images/last-frame-16-9.jpg"
+            imageSrc="/images/last-frame-16-9.jpg"
           />
 
           {/* 2. Cupertino Minimalist Order Form with DZShip Wilayas & Communes */}

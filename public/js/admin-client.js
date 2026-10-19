@@ -275,6 +275,7 @@
             this.populateWilayaDropdowns();
             this.fetchOrders();
             this.fetchAnalytics();
+            this.fetchCapiStatus();
             this.fetchTariffs();
 
             // Auto-refresh every 20 seconds
@@ -938,7 +939,10 @@
 
                 // Parse documented visits/count: { pageviews: { value: N } | N, visitors: { value: N } | N }
                 if (json.success && json.data) {
-                    const rawData = json.data;
+                    // Unpack nested Vercel response structure { version: 1, query: {...}, data: { visitors, pageviews } }
+                    const rawData = (json.data && json.data.data !== undefined && json.data.data !== null && typeof json.data.data === 'object')
+                        ? json.data.data
+                        : json.data;
                     let pageviews = null;
                     let visitors = null;
 
@@ -961,11 +965,11 @@
                         pageviews = rawData.value;
                     }
 
-                    if (visitors !== null) {
+                    if (visitors !== null && visitors !== undefined) {
                         const visEl = document.getElementById('anTotalVisitors');
                         if (visEl) visEl.textContent = Number(visitors).toLocaleString();
                     }
-                    if (pageviews !== null) {
+                    if (pageviews !== null && pageviews !== undefined) {
                         const pvEl = document.getElementById('anPageViews');
                         if (pvEl) pvEl.textContent = Number(pageviews).toLocaleString();
                     }
@@ -991,6 +995,7 @@
 
                     // Query dimension breakdowns (referrers, devices, browsers, countries)
                     this.fetchAnalyticsDimensions(since, until);
+                    this.fetchCapiStatus();
                 } else {
                     await this.loadFallbackAnalytics();
                 }
@@ -1128,6 +1133,68 @@
                 });
             } catch (e) {
                 console.warn('[StoreAdmin] loadFallbackAnalytics notice:', e);
+            } finally {
+                this.fetchCapiStatus();
+            }
+        },
+
+        fetchCapiStatus: async function () {
+            try {
+                const res = await fetch('/api/admin/analytics', { headers: this.getAuthHeaders() });
+                if (!res.ok) return;
+                const json = await res.json().catch(() => ({}));
+                if (json.success && json.metaCapi) {
+                    const capi = json.metaCapi;
+                    const badge = document.getElementById('capiStatusBadge');
+                    const text = document.getElementById('capiStatusText');
+                    const pixel = document.getElementById('capiPixelId');
+                    if (pixel && capi.pixelId) pixel.textContent = capi.pixelId;
+                    if (badge && text) {
+                        if (capi.configured) {
+                            badge.className = 'badge-pill bg-emerald-soft text-emerald';
+                            text.textContent = 'CAPI v19.0 Connecté ✅';
+                        } else {
+                            badge.className = 'badge-pill bg-amber-soft text-amber';
+                            text.textContent = 'CAPI Token non configuré ⚠️';
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn('[StoreAdmin] fetchCapiStatus error:', err.message);
+            }
+        },
+
+        testCapiEvent: async function () {
+            const btn = document.getElementById('btnTestCapi');
+            const icon = document.getElementById('testCapiIcon');
+            const feedback = document.getElementById('capiTestFeedback');
+
+            if (btn) btn.disabled = true;
+            if (icon) icon.className = 'fa-solid fa-spinner fa-spin';
+            if (feedback) {
+                feedback.innerHTML = '<span style="color:var(--text-muted);">Envoi vers Meta Graph API...</span>';
+            }
+
+            try {
+                const res = await fetch('/api/admin/analytics?action=test_capi', { headers: this.getAuthHeaders() });
+                const json = await res.json().catch(() => ({}));
+                if (res.ok && json.success && json.testResult && json.testResult.success) {
+                    if (feedback) {
+                        feedback.innerHTML = `<span style="color:var(--emerald); font-weight:700;"><i class="fa-solid fa-circle-check"></i> Succès (Événements reçus: ${json.testResult.eventsReceived || 1})</span>`;
+                    }
+                } else {
+                    const errMsg = json.testResult?.error || json.error || `Erreur (${res.status})`;
+                    if (feedback) {
+                        feedback.innerHTML = `<span style="color:var(--rose); font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> ${errMsg}</span>`;
+                    }
+                }
+            } catch (err) {
+                if (feedback) {
+                    feedback.innerHTML = `<span style="color:var(--rose); font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> ${err.message}</span>`;
+                }
+            } finally {
+                if (btn) btn.disabled = false;
+                if (icon) icon.className = 'fa-solid fa-paper-plane';
             }
         },
 

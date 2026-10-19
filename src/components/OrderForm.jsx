@@ -5,6 +5,29 @@ import shippingRates from '../../config/shippingRates.json';
 
 const BASE_BUNDLE_PRICE = 20400;
 
+// Read Cookie by Name for Meta CAPI (_fbp, _fbc)
+function getCookie(name) {
+  if (typeof document === 'undefined') return null;
+  const val = `; ${document.cookie}`;
+  const parts = val.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
+
+// Resolve Facebook Click ID (fbc) from URL or cookie
+function getMetaFbc() {
+  const existingCookie = getCookie('_fbc');
+  if (existingCookie) return existingCookie;
+  if (typeof window !== 'undefined' && window.location && window.location.search) {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const fbclid = params.get('fbclid');
+      if (fbclid) return `fb.1.${Date.now()}.${fbclid}`;
+    } catch (_) {}
+  }
+  return null;
+}
+
 export default function OrderForm({
   locale = 'fr',
   onOrderSuccess,
@@ -244,7 +267,9 @@ export default function OrderForm({
         notes: address.trim(),
         website_url: honeypot,
         quantity: 1,
-        clientSubmissionTime: submitStartTime
+        clientSubmissionTime: submitStartTime,
+        fbp: getCookie('_fbp') || undefined,
+        fbc: getMetaFbc() || undefined
       };
 
       // 7. Send the real order request immediately

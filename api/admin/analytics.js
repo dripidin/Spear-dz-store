@@ -21,7 +21,34 @@ module.exports = async (req, res) => {
     const storage = getStorage();
 
     try {
-        const query = req.query || {};
+        const query = req.query || (req.url && req.url.includes('?') ? Object.fromEntries(new URL(req.url, 'http://localhost').searchParams) : {});
+
+        // Support live Meta CAPI diagnostic testing from admin panel
+        const pixelId = (process.env.META_PIXEL_ID || '').trim();
+        const hasMetaToken = Boolean((process.env.META_ACCESS_TOKEN || '').trim());
+        const isCapiConfigured = Boolean(pixelId && hasMetaToken);
+
+        if (query.action === 'test_capi') {
+            const { sendMetaEvent } = require('../../lib/metaCAPI');
+            const testResult = await sendMetaEvent({
+                eventName: 'Purchase',
+                eventId: 'TEST-DIAG-' + Date.now(),
+                value: 20400,
+                currency: 'DZD',
+                fullName: 'Diagnostic Admin Test',
+                phone: '0555000000',
+                wilaya: '16 - Alger'
+            });
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+                success: true,
+                testResult,
+                configured: isCapiConfigured,
+                pixelId: pixelId || null
+            }));
+            return;
+        }
+
         const days = Math.min(90, parseInt(query.days, 10) || 7);
 
         // Fetch orders from Supabase (or active storage provider)
@@ -164,6 +191,15 @@ module.exports = async (req, res) => {
                     counts: topWilayas.map(w => w.count)
                 },
                 statusDistribution
+            },
+            metaCapi: {
+                configured: isCapiConfigured,
+                pixelId: pixelId || '1865890014396791',
+                apiVersion: 'v19.0',
+                provider: 'directGraphApi',
+                deduplication: '1:1 (eventID)',
+                matchedParameters: ['phone', 'name', 'wilaya', 'commune', 'fbp', 'fbc'],
+                totalOrdersTracked: total
             }
         }));
 
