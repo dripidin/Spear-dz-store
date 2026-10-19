@@ -83,8 +83,10 @@ module.exports = async (req, res) => {
         if (!since || !until) {
             const now = new Date();
             const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            // Add 1 day to 'until' so Vercel's UTC date boundary truncation covers today's full traffic
+            const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
             since = since || sevenDaysAgo.toISOString();
-            until = until || now.toISOString();
+            until = until || tomorrow.toISOString();
         }
 
         // Validate date bounds (caps at 30/31 days, since <= until)

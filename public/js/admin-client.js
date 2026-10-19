@@ -885,8 +885,9 @@
             if (showSpin && spinIcon) spinIcon.classList.add('fa-spin');
 
             const days = this.analyticsPeriodDays || 7;
-            const until = new Date().toISOString();
-            const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+            // Span through tomorrow so Vercel's UTC date boundary rounding captures today's full traffic
+            const until = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+            const since = new Date(Date.now() - (days - 1) * 24 * 60 * 60 * 1000).toISOString();
 
             try {
                 // Primary: Protected Vercel Web Analytics Endpoint
