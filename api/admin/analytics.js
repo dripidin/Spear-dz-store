@@ -24,7 +24,11 @@ module.exports = async (req, res) => {
         const query = req.query || (req.url && req.url.includes('?') ? Object.fromEntries(new URL(req.url, 'http://localhost').searchParams) : {});
 
         // Support live Meta CAPI diagnostic testing from admin panel
-        const pixelId = (process.env.META_PIXEL_ID || '').trim();
+        let storeConfig = null;
+        try {
+            storeConfig = require('../../config/store.config.json');
+        } catch (_) {}
+        const pixelId = (process.env.META_PIXEL_ID || storeConfig?.marketing?.meta_pixel_id || '1865890014396791').trim();
         const hasMetaToken = Boolean((process.env.META_ACCESS_TOKEN || '').trim());
         const isCapiConfigured = Boolean(pixelId && hasMetaToken);
 

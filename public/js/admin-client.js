@@ -1184,7 +1184,7 @@
                         feedback.innerHTML = `<span style="color:var(--emerald); font-weight:700;"><i class="fa-solid fa-circle-check"></i> Succès (Événements reçus: ${json.testResult.eventsReceived || 1})</span>`;
                     }
                 } else {
-                    const errMsg = json.testResult?.error || json.error || `Erreur (${res.status})`;
+                    const errMsg = json.testResult?.error || json.testResult?.reason || json.error || `Erreur (${res.status})`;
                     if (feedback) {
                         feedback.innerHTML = `<span style="color:var(--rose); font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> ${errMsg}</span>`;
                     }
