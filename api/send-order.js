@@ -94,7 +94,15 @@ module.exports = async (req, res) => {
         }
 
         // Server-side Price Calculation (Never Trust Client Prices)
-        const unitPrice = (storeConfig && storeConfig.bundle && storeConfig.bundle.price) || 20400;
+        const bundleId = body.bundleId || 'pack_hightech_5in1';
+        let unitPrice = (storeConfig && storeConfig.bundle && storeConfig.bundle.price) || 20400;
+        let productName = (storeConfig && storeConfig.bundle && storeConfig.bundle.title_ar) || 'PACK HIGH-TECH 5 EN 1';
+
+        if (bundleId === 'pack_sound_4in1' || bundleId === 'pack_2' || bundleId === 'pack2') {
+            const b2 = storeConfig && storeConfig.bundle_2;
+            unitPrice = (b2 && b2.price) || 6600;
+            productName = (b2 && b2.title_ar) || 'عرض الصوت والطاقة 4 في 1 (PACK SOUND & POWER)';
+        }
         const subtotal = unitPrice * quantity;
 
         let liveRates = shippingRates;
@@ -136,6 +144,7 @@ module.exports = async (req, res) => {
 
         const orderRecord = {
             orderId,
+            bundleId,
             storeId: 'spear_dz',
             fullName,
             phone: normalizedPhone,
@@ -144,7 +153,7 @@ module.exports = async (req, res) => {
             commune: commune || wilaya,
             address: address || commune,
             deliveryType,
-            productName: (storeConfig && storeConfig.bundle && storeConfig.bundle.title_ar) || 'PACK HIGH-TECH 5 EN 1',
+            productName,
             quantity,
             unitPrice,
             shippingFee,

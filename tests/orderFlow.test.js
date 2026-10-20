@@ -268,5 +268,41 @@ describe('End-to-End API Order Flow & Security Tests', () => {
         assert.ok(secondSave);
         assert.strictEqual(secondSave.orderId, 'SPDZ-DUPLICATE-TEST');
     });
+
+    test('POST /api/send-order: Validates Pack 2 (pack_sound_4in1) price enforcement at 6,600 DZD', async () => {
+        const { req, res, getStatus, getJson } = mockReqRes('POST', {
+            bundleId: 'pack_sound_4in1',
+            fullName: 'Karim Ziani',
+            phone: '0661234567',
+            wilaya: '31 - Oran',
+            wilayaCode: 31,
+            commune: 'Bir El Djir',
+            deliveryType: 'home',
+            // Attempt to forge price
+            price: 1000,
+            grandTotal: 1500
+        });
+
+        await sendOrderHandler(req, res);
+
+        assert.strictEqual(getStatus(), 200);
+        const json = getJson();
+        assert.ok(json);
+        assert.strictEqual(json.success, true);
+        assert.ok(json.orderId);
+
+        const expectedShippingFee = require('../config/shippingRates.json')['31']?.home || 750;
+        const expectedTotal = 6600 + expectedShippingFee;
+        assert.strictEqual(json.subtotal, 6600);
+        assert.strictEqual(json.shippingFee, expectedShippingFee);
+        assert.strictEqual(json.totalPrice, expectedTotal);
+
+        const saved = await mockStorage.findOrderById(json.orderId);
+        assert.ok(saved);
+        assert.strictEqual(saved.unitPrice, 6600);
+        assert.strictEqual(saved.totalPrice, expectedTotal);
+        assert.strictEqual(saved.bundleId, 'pack_sound_4in1');
+        assert.strictEqual(saved.productName, 'عرض الصوت والطاقة 4 في 1 (PACK SOUND & POWER)');
+    });
 });
 

@@ -149,6 +149,17 @@ function appHandler(req, res) {
         return;
     }
 
+    // Pack 2 Landing Page (6,600 DZD Pack)
+    if (pathname === '/pack2' || pathname === '/pack-2' || pathname === '/pack2.html') {
+        const distPack2 = path.join(DIST_DIR, 'pack2.html');
+        if (fs.existsSync(distPack2)) {
+            serveFile(req, res, distPack2);
+        } else {
+            serveFile(req, res, path.join(ROOT_DIR, 'pack2.html'));
+        }
+        return;
+    }
+
     // Check public directory for media & assets (e.g. /css/..., /js/..., /videos/..., /images/...)
     let publicPath = path.join(PUBLIC_DIR, pathname);
     if (fs.existsSync(publicPath) && fs.statSync(publicPath).isFile()) {

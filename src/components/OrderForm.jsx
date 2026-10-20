@@ -33,9 +33,15 @@ export default function OrderForm({
   onOrderSuccess,
   onSubmittingChange,
   formRef,
-  onButtonVisibilityChange
+  onButtonVisibilityChange,
+  bundleId = 'pack_hightech_5in1',
+  basePrice = 20400,
+  bundleName = 'عرض النخبة 5 في 1 الفاخر',
+  bundleShortName = 'باك النخبة',
+  headline = 'باك جامي يجي في بالك استغل الفرصة !'
 }) {
   const isAr = locale === 'ar';
+  const activeBasePrice = Number(basePrice) || 20400;
   const nameId = useId();
   const phoneId = useId();
   const wilayaId = useId();
@@ -153,7 +159,7 @@ export default function OrderForm({
   const currentRate = rates[String(wilayaCode)] || shippingRates[String(wilayaCode)] || { home: 700, desk: 450, stopdeskAvailable: true, time: '24 - 48 H' };
   const isStopdeskSupported = Boolean(currentRate.desk && currentRate.desk > 0 && currentRate.stopdeskAvailable !== false);
   const shippingFee = deliveryType === 'domicile' ? currentRate.home : (deliveryType === 'stopdesk' ? (isStopdeskSupported ? currentRate.desk : currentRate.home) : 0);
-  const grandTotal = BASE_BUNDLE_PRICE + (deliveryType ? shippingFee : 0);
+  const grandTotal = activeBasePrice + (deliveryType ? shippingFee : 0);
 
   // Auto-switch to domicile if current wilaya does not support stopdesk
   useEffect(() => {
@@ -256,6 +262,8 @@ export default function OrderForm({
 
       const payload = {
         orderId: clientOrderId,
+        bundleId,
+        productName: bundleName,
         fullName: fullName.trim(),
         phone: cleanPhone,
         wilaya: `${selectedWilayaObj.code} - ${selectedWilayaObj.name} (${selectedWilayaObj.nameAr})`,
@@ -302,7 +310,7 @@ export default function OrderForm({
       if (typeof window !== 'undefined' && typeof window.fbq === 'function') {
         try {
           window.fbq('track', 'Purchase', {
-            content_name: 'PACK HIGH-TECH 5 EN 1',
+            content_name: bundleName,
             value: data.totalPrice || grandTotal,
             currency: 'DZD',
             num_items: 1
@@ -350,13 +358,13 @@ export default function OrderForm({
       
       {/* Title (requested headline) */}
       <h3 className="text-2xl sm:text-[28px] font-bold tracking-tight text-primary text-center -mt-6 mb-1 relative z-20">
-        باك جامي يجي في بالك استغل الفرصة !
+        {headline}
       </h3>
 
       {/* Swapped Bundle Price Div: directly bottom of the headline */}
       <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-surface-container-low border border-outline-variant/30">
-        <span className="font-caption text-caption text-secondary font-medium">عرض النخبة 5 في 1 الفاخر</span>
-        <span className="font-title-sm text-title-sm text-primary tracking-tight font-mono font-bold">20,400 DZD</span>
+        <span className="font-caption text-caption text-secondary font-medium">{bundleName}</span>
+        <span className="font-title-sm text-title-sm text-primary tracking-tight font-mono font-bold">{activeBasePrice.toLocaleString()} DZD</span>
       </div>
 
       {/* Mode de réception / Segmented Control */}
@@ -632,16 +640,16 @@ export default function OrderForm({
           </div>
         </div>
 
-        {/* Subtotal & Delivery tariff display: Pack (20400 DA + Delivery Tarifs = Total) */}
+        {/* Subtotal & Delivery tariff display */}
         <div className="p-3.5 rounded-xl bg-surface-container-low border border-outline-variant/30 flex flex-col gap-1.5 font-label-md text-label-md text-secondary">
           <div className="flex items-center justify-between">
             <span className="font-semibold text-primary">
               {deliveryType
-                ? `باك النخبة (20,400 د.ج + التوصيل ${shippingFee} د.ج = ${grandTotal.toLocaleString()} د.ج)`
-                : `باك النخبة (20,400 د.ج + مصاريف التوصيل = الإجمالي)`}
+                ? `${bundleShortName} (${activeBasePrice.toLocaleString()} د.ج + التوصيل ${shippingFee} د.ج = ${grandTotal.toLocaleString()} د.ج)`
+                : `${bundleShortName} (${activeBasePrice.toLocaleString()} د.ج + مصاريف التوصيل = الإجمالي)`}
             </span>
             <span className="font-bold text-primary font-mono text-base">
-              {deliveryType ? `${grandTotal.toLocaleString()} DZD` : '20,400 DZD'}
+              {deliveryType ? `${grandTotal.toLocaleString()} DZD` : `${activeBasePrice.toLocaleString()} DZD`}
             </span>
           </div>
           <div className="text-[11px] text-secondary flex items-center justify-between pt-1 border-t border-outline-variant/20">

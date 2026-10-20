@@ -92,6 +92,66 @@
       }
     ]
   },
+  "bundle_2": {
+    "id": "pack_sound_4in1",
+    "title_ar": "عرض الصوت والطاقة 4 في 1 (PACK SOUND & POWER)",
+    "title_fr": "PACK SOUND & POWER 4 EN 1 (Enceinte + Casque + Power Bank + Câble)",
+    "badge_ar": "العرض الأكثر طلباً • كمية محدودة",
+    "badge_fr": "Offre Exclusive • Stock Limité",
+    "price": 6600,
+    "currency": "د.ج",
+    "currency_symbol_fr": "DZD",
+    "internal_cost": 4900,
+    "main_image": "/images/pack-2.jpg",
+    "gallery": [
+      "/images/pack-2.jpg",
+      "/images/products/Headphones.jpg",
+      "/images/products/Power bank.jpg",
+      "/images/products/Cable.jpg"
+    ],
+    "components": [
+      {
+        "id": "speaker_mic",
+        "name_ar": "مكبر صوت بلوتوث Honba BS-232 مع ميكروفون كاريوكي",
+        "name_fr": "Enceinte Bluetooth Honba BS-232 + Microphone Karaoké",
+        "specs_ar": "مكبر صوت مزدوج قوي مع إضاءة توربينية زرقاء، صوت عالي الدقة وصافي، ميكروفون كاريوكي سلكي، مدخل USB وبطاقة TF وبلوتوث سريع.",
+        "specs_fr": "Double haut-parleur puissant avec rétroéclairage dynamique, microphone karaoké inclus, Bluetooth 5.0, entrées USB et carte mémoire.",
+        "image": "/images/pack-2.jpg",
+        "verified": true,
+        "internal_cost": 2900
+      },
+      {
+        "id": "headphones",
+        "name_ar": "سماعات الرأس اللاسلكية P9 Hi-Fi",
+        "name_fr": "Casque Sans Fil P9 Hi-Fi",
+        "specs_ar": "صوت نقي عالي الدقة، اتصال بلوتوث لاسلكي مستقر، وسائد أذن مريحة للاستخدام الطويل مع أزرار تحكم مدمجة.",
+        "specs_fr": "Audio haute fidélité sans fil Bluetooth, coussinets ergonomiques respirants, commandes multimédias physiques intégrées.",
+        "image": "/images/products/Headphones.jpg",
+        "verified": true,
+        "internal_cost": 750
+      },
+      {
+        "id": "powerbank",
+        "name_ar": "باور بانك HOCO J200 بسعة 10,000 mAh",
+        "name_fr": "Batterie Externe HOCO J200 (10 000 mAh)",
+        "specs_ar": "سعة حقيقية 10,000 ملي أمبير، منافذ شحن مزدوجة لشحن جهازين في وقت واحد، مؤشر طاقة LED، وتصميم متين مناسب للسفر والاستخدام اليومي.",
+        "specs_fr": "Capacité réelle 10 000 mAh, double port de sortie pour charger deux appareils simultanément, indicateur LED de charge.",
+        "image": "/images/products/Power bank.jpg",
+        "verified": true,
+        "internal_cost": 1000
+      },
+      {
+        "id": "cable",
+        "name_ar": "كابل شحن سريع متعدد 3 في 1 (120W / 6A)",
+        "name_fr": "Câble Fast-Charging 3-en-1 (120W / 6A)",
+        "specs_ar": "رؤوس شحن ثلاثية (Type-C / Lightning / Micro-USB) متوافقة مع جميع أنواع الهواتف والأجهزة، تصميم مضاد للقطع ومقاوم للثني والانحناء، شحن فائق السرعة.",
+        "specs_fr": "Connecteurs Type-C, Lightning et Micro-USB pour charger tous types d'appareils, câble tressé renforcé anti-torsion 120W.",
+        "image": "/images/products/Cable.jpg",
+        "verified": true,
+        "internal_cost": 250
+      }
+    ]
+  },
   "shipping": {
     "default_courier": "manual",
     "supported_couriers": ["manual", "redex", "yalidine", "zrexpress"],
