@@ -23,6 +23,11 @@ try {
     console.error('[send-order] Store configuration error:', e.message);
 }
 
+// In-memory idempotency deduplication cache & concurrency barrier
+const recentSubmissions = new Map(); // dedupeKey -> { orderId, totalPrice, subtotal, shippingFee, status, timestamp }
+const inFlightRequests = new Map(); // dedupeKey -> Promise
+const DEDUPE_WINDOW_MS = 10 * 60 * 1000; // 10 minutes window
+
 module.exports = async (req, res) => {
     applyCorsHeaders(req, res);
 
@@ -95,13 +100,35 @@ module.exports = async (req, res) => {
 
         // Server-side Price Calculation (Never Trust Client Prices)
         const bundleId = body.bundleId || 'pack_hightech_5in1';
+        const BUNDLE_CATALOG = {
+            pack_sound_4in1: {
+                config: storeConfig && storeConfig.bundle_2,
+                defaultPrice: 6600,
+                defaultTitle: 'عرض الصوت والطاقة 4 في 1 (PACK SOUND & POWER)'
+            },
+            speaker_mic_bs232: {
+                config: storeConfig && storeConfig.bundle_3,
+                defaultPrice: 4500,
+                defaultTitle: 'مكبر صوت بلوتوث BS-232A مع ميكروفون كاريوكي'
+            }
+        };
+        const BUNDLE_ALIASES = {
+            pack_2: 'pack_sound_4in1',
+            pack2: 'pack_sound_4in1',
+            pack_3: 'speaker_mic_bs232',
+            pack3: 'speaker_mic_bs232',
+            speaker: 'speaker_mic_bs232',
+            speaker_mic: 'speaker_mic_bs232'
+        };
+        const resolvedBundleKey = BUNDLE_ALIASES[bundleId] || bundleId;
+        const matchedBundle = BUNDLE_CATALOG[resolvedBundleKey];
+
         let unitPrice = (storeConfig && storeConfig.bundle && storeConfig.bundle.price) || 20400;
         let productName = (storeConfig && storeConfig.bundle && storeConfig.bundle.title_ar) || 'PACK HIGH-TECH 5 EN 1';
 
-        if (bundleId === 'pack_sound_4in1' || bundleId === 'pack_2' || bundleId === 'pack2') {
-            const b2 = storeConfig && storeConfig.bundle_2;
-            unitPrice = (b2 && b2.price) || 6600;
-            productName = (b2 && b2.title_ar) || 'عرض الصوت والطاقة 4 في 1 (PACK SOUND & POWER)';
+        if (matchedBundle) {
+            unitPrice = (matchedBundle.config && matchedBundle.config.price) || matchedBundle.defaultPrice;
+            productName = (matchedBundle.config && matchedBundle.config.title_ar) || matchedBundle.defaultTitle;
         }
         const subtotal = unitPrice * quantity;
 
@@ -116,6 +143,78 @@ module.exports = async (req, res) => {
         const isDesk = deliveryType === 'desk' || deliveryType === 'stopdesk' || body.deliveryType === 'stopdesk';
         const shippingFee = isDesk ? (wRate.desk || wRate.home) : wRate.home;
         const totalPrice = subtotal + shippingFee;
+
+        // Idempotency & Duplicate Order Prevention (10-minute window per phone + bundle)
+        const storage = getStorage();
+        const dedupeKey = `${normalizedPhone}:${bundleId}`;
+        const now = Date.now();
+
+        // 1. In-flight concurrency lock: join simultaneous request from rapid double-tap
+        if (inFlightRequests.has(dedupeKey)) {
+            console.log('[send-order] In-flight concurrent request joined for %s', maskPhone(normalizedPhone));
+            try {
+                const joined = await inFlightRequests.get(dedupeKey);
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    ...joined,
+                    isDuplicate: true,
+                    message: 'تم استلام وتأكيد طلبك مسبقاً! سنتصل بك هاتفياً لتأكيد الشحن.'
+                }));
+                return;
+            } catch (joinErr) {
+                // If in-flight failed, proceed to normal flow
+            }
+        }
+
+        // 2. In-memory rapid deduplication check
+        const cached = recentSubmissions.get(dedupeKey);
+        if (cached && (now - cached.timestamp < DEDUPE_WINDOW_MS)) {
+            console.log('[send-order] In-memory duplicate blocked for %s (existing order: %s)', maskPhone(normalizedPhone), cached.orderId);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+                success: true,
+                orderId: cached.orderId,
+                totalPrice: cached.totalPrice,
+                subtotal: cached.subtotal,
+                shippingFee: cached.shippingFee,
+                status: cached.status,
+                isDuplicate: true,
+                message: 'تم استلام وتأكيد طلبك مسبقاً! سنتصل بك هاتفياً لتأكيد الشحن.'
+            }));
+            return;
+        }
+
+        // 3. Persistent Storage deduplication check
+        if (typeof storage.findRecentOrderByPhone === 'function') {
+            const existingRecent = await storage.findRecentOrderByPhone(normalizedPhone, 10);
+            const matchesSameProduct = existingRecent && (
+                existingRecent.bundleId === bundleId ||
+                (!existingRecent.bundleId && (!existingRecent.productName || existingRecent.productName === productName))
+            );
+            if (matchesSameProduct) {
+                console.log('[send-order] Storage duplicate blocked for %s (existing order: %s)', maskPhone(normalizedPhone), existingRecent.orderId);
+                recentSubmissions.set(dedupeKey, {
+                    orderId: existingRecent.orderId,
+                    totalPrice: existingRecent.totalPrice,
+                    subtotal,
+                    shippingFee: existingRecent.shippingFee || shippingFee,
+                    status: existingRecent.status,
+                    timestamp: now
+                });
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: true,
+                    orderId: existingRecent.orderId,
+                    totalPrice: existingRecent.totalPrice || totalPrice,
+                    subtotal,
+                    shippingFee: existingRecent.shippingFee || shippingFee,
+                    status: existingRecent.status || 'pending',
+                    isDuplicate: true,
+                    message: 'تم استلام وتأكيد طلبك مسبقاً! سنتصل بك هاتفياً لتأكيد الشحن.'
+                }));
+                return;
+            }
+        }
 
         // Unique Order ID (Preserve clientOrderId if properly formatted for 1:1 CAPI/Pixel deduplication)
         const randSuffix = typeof crypto.randomInt === 'function' ? crypto.randomInt(1000, 9999) : Math.floor(1000 + Math.random() * 9000);
@@ -167,71 +266,100 @@ module.exports = async (req, res) => {
             createdAt: new Date().toISOString()
         };
 
-        // Persist to selected Storage backend
-        const storage = getStorage();
-        const saved = await storage.saveOrder(orderRecord, riskResult);
+        // Execution wrapper for atomic storage and notification with in-flight lock
+        const orderExecution = (async () => {
+            // Persist to selected Storage backend
+            const saved = await storage.saveOrder(orderRecord, riskResult);
 
-        // Record risk event if non-zero
-        if (riskResult.score > 0) {
-            await storage.recordRiskEvent({
-                orderId,
-                phone: normalizedPhone,
-                ipHash: clientIpHash,
-                score: riskResult.score,
-                reasons: riskResult.reasons
-            });
-        }
-
-        // Fire Meta CAPI Purchase / Lead event in background
-        sendMetaEvent({
-            eventName: 'Purchase',
-            eventId: orderId,
-            value: totalPrice,
-            currency: 'DZD',
-            fullName,
-            phone: normalizedPhone,
-            wilaya,
-            commune,
-            clientIp,
-            userAgent: req.headers['user-agent'] || '',
-            eventSourceUrl: req.headers['referer'] || '',
-            fbp,
-            fbc,
-            productName: orderRecord.productName
-        }).then(capiRes => {
-            if (capiRes && capiRes.success) {
-                console.log('[Meta CAPI] Purchase event dispatched successfully for order %s (eventsReceived: %d)', orderId, capiRes.eventsReceived || 1);
-            } else if (capiRes && capiRes.skipped) {
-                console.log('[Meta CAPI] Skipped for order %s (%s)', orderId, capiRes.reason);
-            } else {
-                console.warn('[Meta CAPI] Dispatch warning for order %s: %s', orderId, capiRes && capiRes.error);
+            // Record risk event if non-zero
+            if (riskResult.score > 0) {
+                await storage.recordRiskEvent({
+                    orderId,
+                    phone: normalizedPhone,
+                    ipHash: clientIpHash,
+                    score: riskResult.score,
+                    reasons: riskResult.reasons
+                });
             }
-        }).catch(err => {
-            console.warn('[Meta CAPI] Dispatch warning:', err.message);
-        });
 
-        // Fire Telegram Notification before serverless container freezes
+            // Fire Meta CAPI Purchase / Lead event in background
+            sendMetaEvent({
+                eventName: 'Purchase',
+                eventId: orderId,
+                value: totalPrice,
+                currency: 'DZD',
+                fullName,
+                phone: normalizedPhone,
+                wilaya,
+                commune,
+                clientIp,
+                userAgent: req.headers['user-agent'] || '',
+                eventSourceUrl: req.headers['referer'] || '',
+                fbp,
+                fbc,
+                productName: orderRecord.productName
+            }).then(capiRes => {
+                if (capiRes && capiRes.success) {
+                    console.log('[Meta CAPI] Purchase event dispatched successfully for order %s (eventsReceived: %d)', orderId, capiRes.eventsReceived || 1);
+                } else if (capiRes && capiRes.skipped) {
+                    console.log('[Meta CAPI] Skipped for order %s (%s)', orderId, capiRes.reason);
+                } else {
+                    console.warn('[Meta CAPI] Dispatch warning for order %s: %s', orderId, capiRes && capiRes.error);
+                }
+            }).catch(err => {
+                console.warn('[Meta CAPI] Dispatch warning:', err.message);
+            });
+
+            // Fire Telegram Notification before serverless container freezes
+            try {
+                await Promise.race([
+                    sendOrderNotification(saved, riskResult),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Telegram dispatch timeout')), 4000))
+                ]);
+            } catch (tgErr) {
+                console.warn('[Telegram] Notification warning:', tgErr.message);
+            }
+
+            return {
+                success: true,
+                orderId,
+                totalPrice,
+                subtotal,
+                shippingFee,
+                status: saved.status,
+                message: 'تم تسجيل طلبك بنجاح! سنتصل بك هاتفياً لتأكيد الشحن.'
+            };
+        })();
+
+        inFlightRequests.set(dedupeKey, orderExecution);
+
+        let finalResponse;
         try {
-            await Promise.race([
-                sendOrderNotification(saved, riskResult),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Telegram dispatch timeout')), 4000))
-            ]);
-        } catch (tgErr) {
-            console.warn('[Telegram] Notification warning:', tgErr.message);
+            finalResponse = await orderExecution;
+            recentSubmissions.set(dedupeKey, {
+                orderId: finalResponse.orderId,
+                totalPrice: finalResponse.totalPrice,
+                subtotal: finalResponse.subtotal,
+                shippingFee: finalResponse.shippingFee,
+                status: finalResponse.status,
+                timestamp: Date.now()
+            });
+
+            // Prune cache if it grows large
+            if (recentSubmissions.size > 500) {
+                const pruneCutoff = Date.now() - DEDUPE_WINDOW_MS;
+                for (const [k, v] of recentSubmissions.entries()) {
+                    if (v.timestamp < pruneCutoff) recentSubmissions.delete(k);
+                }
+            }
+        } finally {
+            inFlightRequests.delete(dedupeKey);
         }
 
         console.log('[OrderCreated] Successfully persisted order %s (Phone: %s, Total: %d DZD)', orderId, maskPhone(normalizedPhone), totalPrice);
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({
-            success: true,
-            orderId,
-            totalPrice,
-            subtotal,
-            shippingFee,
-            status: saved.status,
-            message: 'تم تسجيل طلبك بنجاح! سنتصل بك هاتفياً لتأكيد الشحن.'
-        }));
+        res.end(JSON.stringify(finalResponse));
 
     } catch (err) {
         console.error('[send-order] Fatal processing error:', err.message);
@@ -241,4 +369,9 @@ module.exports = async (req, res) => {
             error: 'حدث خطأ غير متوقع أثناء معالجة الطلب. يرجى المحاولة مرة أخرى.'
         }));
     }
+};
+
+module.exports._clearDedupeCacheForTesting = () => {
+    recentSubmissions.clear();
+    inFlightRequests.clear();
 };

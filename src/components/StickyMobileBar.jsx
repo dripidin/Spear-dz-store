@@ -5,6 +5,7 @@ export default function StickyMobileBar({
   price = '20,400 DZD',
   bundleName = 'Pack High-Tech 5 en 1',
   isSubmitting = false,
+  isCompleted = false,
   onSubmitOrder,
   hidden = false
 }) {
@@ -12,6 +13,11 @@ export default function StickyMobileBar({
 
   const handleClick = () => {
     if (isSubmitting) return;
+    if (isCompleted) {
+      const formEl = document.getElementById('orderForm') || document.getElementById('commander');
+      if (formEl) formEl.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
     if (onSubmitOrder) {
       onSubmitOrder();
     } else {
@@ -37,8 +43,8 @@ export default function StickyMobileBar({
       <div className="w-full max-w-xl pb-2 flex flex-col gap-1.5">
         {/* Quick Pricing & In-stock Indicator */}
         <div className="flex items-center justify-between px-2 text-[11px] text-secondary">
-          <span>{isAr ? 'عرض النخبة 5 في 1 الفاخر' : 'Pack High-Tech 5 en 1'}</span>
-          <span className="font-mono font-bold text-primary">{price}</span>
+          <span>{bundleName || (isAr ? 'عرض النخبة 5 في 1 الفاخر' : 'Pack High-Tech 5 en 1')}</span>
+          <span className="font-mono font-bold text-primary whitespace-nowrap">{price}</span>
         </div>
 
         {/* Black Pill Button CTA with Synchronous Loading State */}
@@ -49,13 +55,22 @@ export default function StickyMobileBar({
           tabIndex={hidden ? -1 : 0}
           onClick={handleClick}
           className={`w-full h-12 bg-primary text-on-primary rounded-full font-label-lg text-label-lg font-medium flex items-center justify-center gap-2 shadow-sm transition-all duration-150 active:scale-[0.98] cursor-pointer group ${
-            isSubmitting ? 'opacity-85 cursor-wait' : ''
+            isSubmitting
+              ? 'opacity-85 cursor-wait'
+              : isCompleted
+                ? '!bg-emerald-900 !text-white'
+                : ''
           }`}
         >
           {isSubmitting ? (
             <>
               <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
               <span>{isAr ? 'جارٍ تأكيد طلبك...' : 'Confirmation de votre commande...'}</span>
+            </>
+          ) : isCompleted ? (
+            <>
+              <span className="text-emerald-300 font-bold">✓</span>
+              <span>{isAr ? 'تم تأكيد طلبك بنجاح' : 'Commande confirmée'}</span>
             </>
           ) : (
             <>

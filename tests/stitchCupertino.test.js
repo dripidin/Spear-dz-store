@@ -136,4 +136,18 @@ describe('Stitch Cupertino Pure & Clean Video Transition Tests', () => {
         assert.equal(res.headers.get('content-type'), 'image/jpeg');
     });
 
+    it('HTTP Server serves Speaker + Mic product page routes (/speaker, /pack3, /pack-3) and speaker-mic.jpg', async () => {
+        for (const route of ['/speaker', '/pack3', '/pack-3']) {
+            const res = await fixture.fetch(route);
+            assert.equal(res.status, 200, `${route} must return 200`);
+            const html = await res.text();
+            assert.ok(html.includes('data-bundle="pack3"'), `${route} must mark data-bundle="pack3"`);
+            assert.ok(html.includes('/images/speaker-mic.jpg'), `${route} must reference /images/speaker-mic.jpg`);
+        }
+
+        const imgRes = await fixture.fetch('/images/speaker-mic.jpg');
+        assert.equal(imgRes.status, 200);
+        assert.equal(imgRes.headers.get('content-type'), 'image/jpeg');
+    });
+
 });

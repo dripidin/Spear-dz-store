@@ -304,5 +304,41 @@ describe('End-to-End API Order Flow & Security Tests', () => {
         assert.strictEqual(saved.bundleId, 'pack_sound_4in1');
         assert.strictEqual(saved.productName, 'عرض الصوت والطاقة 4 في 1 (PACK SOUND & POWER)');
     });
+
+    test('POST /api/send-order: Validates Pack 3 Speaker + Mic (speaker_mic_bs232) price enforcement at 4,500 DZD', async () => {
+        const { req, res, getStatus, getJson } = mockReqRes('POST', {
+            bundleId: 'speaker_mic_bs232',
+            fullName: 'Yacine Brahimi',
+            phone: '0771234567',
+            wilaya: '16 - Alger',
+            wilayaCode: 16,
+            commune: 'Hydra',
+            deliveryType: 'stopdesk',
+            // Attempt to forge price
+            price: 500,
+            grandTotal: 900
+        });
+
+        await sendOrderHandler(req, res);
+
+        assert.strictEqual(getStatus(), 200);
+        const json = getJson();
+        assert.ok(json);
+        assert.strictEqual(json.success, true);
+        assert.ok(json.orderId);
+
+        const expectedShippingFee = require('../config/shippingRates.json')['16']?.desk || 450;
+        const expectedTotal = 4500 + expectedShippingFee;
+        assert.strictEqual(json.subtotal, 4500);
+        assert.strictEqual(json.shippingFee, expectedShippingFee);
+        assert.strictEqual(json.totalPrice, expectedTotal);
+
+        const saved = await mockStorage.findOrderById(json.orderId);
+        assert.ok(saved);
+        assert.strictEqual(saved.unitPrice, 4500);
+        assert.strictEqual(saved.totalPrice, expectedTotal);
+        assert.strictEqual(saved.bundleId, 'speaker_mic_bs232');
+        assert.strictEqual(saved.productName, 'مكبر صوت بلوتوث BS-232A مع ميكروفون كاريوكي');
+    });
 });
 

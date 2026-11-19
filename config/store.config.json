@@ -152,6 +152,31 @@
       }
     ]
   },
+  "bundle_3": {
+    "id": "speaker_mic_bs232",
+    "title_ar": "مكبر صوت بلوتوث BS-232A مع ميكروفون كاريوكي",
+    "title_fr": "Enceinte Bluetooth BS-232A + Microphone Karaoké",
+    "badge_ar": "سبيكر + مايك • كمية محدودة",
+    "badge_fr": "Offre Spéciale • Stock Limité",
+    "price": 4500,
+    "currency": "د.ج",
+    "currency_symbol_fr": "DZD",
+    "main_image": "/images/speaker-mic.jpg",
+    "gallery": [
+      "/images/speaker-mic.jpg"
+    ],
+    "components": [
+      {
+        "id": "speaker_mic",
+        "name_ar": "مكبر صوت بلوتوث Tiba BS-232A مع ميكروفون كاريوكي",
+        "name_fr": "Enceinte Bluetooth Tiba BS-232A + Microphone Karaoké",
+        "specs_ar": "مكبر صوت مزدوج قوي مع إضاءة LED زرقاء، شاشة رقمية، ميكروفون كاريوكي سلكي مرفق، بلوتوث، مدخل USB وبطاقة TF وراديو FM وAUX.",
+        "specs_fr": "Double haut-parleur puissant avec éclairage LED bleu, écran numérique, microphone karaoké filaire inclus, Bluetooth, USB, carte TF, FM et AUX.",
+        "image": "/images/speaker-mic.jpg",
+        "verified": true
+      }
+    ]
+  },
   "shipping": {
     "default_courier": "manual",
     "supported_couriers": ["manual", "redex", "yalidine", "zrexpress"],

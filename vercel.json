@@ -18,8 +18,26 @@
       "destination": "/pack2.html"
     },
     {
+      "source": "/speaker",
+      "destination": "/pack3.html"
+    },
+    {
+      "source": "/pack3",
+      "destination": "/pack3.html"
+    },
+    {
+      "source": "/pack-3",
+      "destination": "/pack3.html"
+    },
+    {
       "source": "/",
       "destination": "/index.html"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/risk?action=health",
+      "schedule": "0 12 * * *"
     }
   ]
 }

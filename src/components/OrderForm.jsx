@@ -61,9 +61,32 @@ export default function OrderForm({
   const [errorMsg, setErrorMsg] = useState('');
   const [errorField, setErrorField] = useState('');
   const [shakeActive, setShakeActive] = useState(false);
+  const [orderPlacedInfo, setOrderPlacedInfo] = useState(null);
 
   const submitBtnRef = useRef(null);
   const hasTrackedCheckout = useRef(false);
+
+  // Sync session order to avoid duplicate submissions on page refresh
+  useEffect(() => {
+    try {
+      const saved = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(`spear_order_${bundleId}`) : null;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.orderId && (Date.now() - (parsed.timestamp || 0) < 10 * 60 * 1000)) {
+          setOrderPlacedInfo(parsed);
+        }
+      }
+    } catch (_) {}
+  }, [bundleId]);
+
+  const handleResetNewOrder = () => {
+    setOrderPlacedInfo(null);
+    try {
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.removeItem(`spear_order_${bundleId}`);
+      }
+    } catch (_) {}
+  };
 
   // Monitor form submit button position to dock/hide floatingBar seamlessly
   useEffect(() => {
@@ -112,8 +135,8 @@ export default function OrderForm({
             ? (deliveryType === 'domicile' ? rates[String(wilayaCode)].home : rates[String(wilayaCode)].desk)
             : 0;
           window.fbq('track', 'InitiateCheckout', {
-            content_name: 'PACK HIGH-TECH 5 EN 1',
-            value: BASE_BUNDLE_PRICE + (currentFee || 0),
+            content_name: bundleName,
+            value: activeBasePrice + (currentFee || 0),
             currency: 'DZD'
           });
         } catch (e) {}
@@ -210,6 +233,10 @@ export default function OrderForm({
   const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     if (isSubmitting) return; // Strictly block duplicate clicks
+    if (orderPlacedInfo) {
+      if (onOrderSuccess) onOrderSuccess(orderPlacedInfo);
+      return;
+    }
     setErrorMsg('');
     setErrorField('');
 
@@ -328,16 +355,27 @@ export default function OrderForm({
       }
 
       // 11. Transition to confirmed thank-you modal
+      const completedOrderData = data.order || {
+        orderId: data.orderId || clientOrderId,
+        fullName: payload.fullName,
+        phone: payload.phone,
+        wilaya: payload.wilaya,
+        commune: payload.commune,
+        deliveryType: payload.deliveryType,
+        totalPrice: data.totalPrice || grandTotal
+      };
+      setOrderPlacedInfo(completedOrderData);
+      try {
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.setItem(`spear_order_${bundleId}`, JSON.stringify({
+            ...completedOrderData,
+            timestamp: Date.now()
+          }));
+        }
+      } catch (_) {}
+
       if (onOrderSuccess) {
-        onOrderSuccess(data.order || {
-          orderId: data.orderId,
-          fullName: payload.fullName,
-          phone: payload.phone,
-          wilaya: payload.wilaya,
-          commune: payload.commune,
-          deliveryType: payload.deliveryType,
-          totalPrice: data.totalPrice || grandTotal
-        });
+        onOrderSuccess(completedOrderData);
       }
     } catch (err) {
       // 12. Preserve customer form values and show understandable error with retry
@@ -362,9 +400,9 @@ export default function OrderForm({
       </h3>
 
       {/* Swapped Bundle Price Div: directly bottom of the headline */}
-      <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-surface-container-low border border-outline-variant/30">
+      <div className="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl bg-surface-container-low border border-outline-variant/30">
         <span className="font-caption text-caption text-secondary font-medium">{bundleName}</span>
-        <span className="font-title-sm text-title-sm text-primary tracking-tight font-mono font-bold">{activeBasePrice.toLocaleString()} DZD</span>
+        <span className="font-title-sm text-title-sm text-primary tracking-tight font-mono font-bold whitespace-nowrap shrink-0">{activeBasePrice.toLocaleString()} DZD</span>
       </div>
 
       {/* Mode de réception / Segmented Control */}
@@ -642,23 +680,23 @@ export default function OrderForm({
 
         {/* Subtotal & Delivery tariff display */}
         <div className="p-3.5 rounded-xl bg-surface-container-low border border-outline-variant/30 flex flex-col gap-1.5 font-label-md text-label-md text-secondary">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <span className="font-semibold text-primary">
               {deliveryType
                 ? `${bundleShortName} (${activeBasePrice.toLocaleString()} د.ج + التوصيل ${shippingFee} د.ج = ${grandTotal.toLocaleString()} د.ج)`
                 : `${bundleShortName} (${activeBasePrice.toLocaleString()} د.ج + مصاريف التوصيل = الإجمالي)`}
             </span>
-            <span className="font-bold text-primary font-mono text-base">
+            <span className="font-bold text-primary font-mono text-base whitespace-nowrap shrink-0">
               {deliveryType ? `${grandTotal.toLocaleString()} DZD` : `${activeBasePrice.toLocaleString()} DZD`}
             </span>
           </div>
-          <div className="text-[11px] text-secondary flex items-center justify-between pt-1 border-t border-outline-variant/20">
+          <div className="text-[11px] text-secondary flex items-center justify-between gap-2 pt-1 border-t border-outline-variant/20">
             <span>
               {deliveryType
                 ? `ولاية ${selectedWilayaObj.name} (${selectedWilayaObj.nameAr}) • ${deliveryType === 'stopdesk' ? 'استلام من المكتب' : 'توصيل للمنزل'}`
                 : `ولاية ${selectedWilayaObj.name} (${selectedWilayaObj.nameAr}) • يرجى تحديد طريقة الاستلام أعلاه`}
             </span>
-            <span className="font-mono text-primary font-medium">
+            <span className="font-mono text-primary font-medium whitespace-nowrap shrink-0">
               {deliveryType ? `+${shippingFee} DZD` : (isStopdeskSupported ? `من +${currentRate.desk} DZD` : `+${currentRate.home} DZD`)}
             </span>
           </div>
@@ -697,6 +735,34 @@ export default function OrderForm({
           </div>
         )}
 
+        {/* Order Confirmed Banner to prevent accidental double-submits */}
+        {orderPlacedInfo && (
+          <div
+            role="status"
+            className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex flex-col gap-2 shadow-sm text-center"
+          >
+            <div className="flex items-center justify-center gap-2 font-bold text-sm sm:text-base text-emerald-800">
+              <span className="text-lg">✓</span>
+              <span>{isAr ? 'تم استلام وتأكيد طلبك مسبقاً بنجاح!' : 'Votre commande est déjà enregistrée avec succès !'}</span>
+            </div>
+            <div className="font-mono text-xs sm:text-sm font-bold text-emerald-700">
+              {isAr ? `رقم الطلب: #${orderPlacedInfo.orderId}` : `N° Commande: #${orderPlacedInfo.orderId}`}
+            </div>
+            <p className="text-xs text-emerald-700/90 leading-relaxed">
+              {isAr
+                ? 'شكراً لثقتكم. سيتصل بكم فريقنا هاتفياً قريباً لتأكيد العنوان والشحن. لا حاجة لتكرار الطلب.'
+                : 'Notre équipe vous contactera par téléphone pour valider l\'expédition. Inutile de commander à nouveau.'}
+            </p>
+            <button
+              type="button"
+              onClick={handleResetNewOrder}
+              className="mt-1 self-center text-xs font-semibold text-emerald-800 hover:text-emerald-950 underline cursor-pointer py-1"
+            >
+              {isAr ? 'هل تريد تسجيل طلب منتج آخر؟ اضغط هنا' : 'Commander un autre pack'}
+            </button>
+          </div>
+        )}
+
         {/* Primary Checkout Submit Button */}
         <button
           type="submit"
@@ -706,13 +772,20 @@ export default function OrderForm({
           className={`w-full h-12 rounded-full font-label-lg text-label-lg font-medium flex items-center justify-center gap-2 shadow-sm transition-all duration-200 cursor-pointer ${
             isSubmitting
               ? 'bg-neutral-800 text-white/90 cursor-wait'
-              : 'bg-primary text-on-primary hover:opacity-95 active:scale-[0.98]'
+              : orderPlacedInfo
+                ? 'bg-emerald-850 bg-emerald-900 text-white shadow-emerald-900/20'
+                : 'bg-primary text-on-primary hover:opacity-95 active:scale-[0.98]'
           }`}
         >
           {isSubmitting ? (
             <>
               <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
               <span>{isAr ? 'جارٍ تأكيد طلبك...' : 'Confirmation de votre commande...'}</span>
+            </>
+          ) : orderPlacedInfo ? (
+            <>
+              <span className="text-emerald-300 font-bold">✓</span>
+              <span>{isAr ? `تم تسجيل طلبك بنجاح (${orderPlacedInfo.orderId})` : `Commande enregistrée (${orderPlacedInfo.orderId})`}</span>
             </>
           ) : (
             <>

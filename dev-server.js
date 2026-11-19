@@ -160,6 +160,17 @@ function appHandler(req, res) {
         return;
     }
 
+    // Pack 3 / Speaker + Mic Landing Page (4,500 DZD)
+    if (pathname === '/speaker' || pathname === '/speaker.html' || pathname === '/pack3' || pathname === '/pack-3' || pathname === '/pack3.html') {
+        const distPack3 = path.join(DIST_DIR, 'pack3.html');
+        if (fs.existsSync(distPack3)) {
+            serveFile(req, res, distPack3);
+        } else {
+            serveFile(req, res, path.join(ROOT_DIR, 'pack3.html'));
+        }
+        return;
+    }
+
     // Check public directory for media & assets (e.g. /css/..., /js/..., /videos/..., /images/...)
     let publicPath = path.join(PUBLIC_DIR, pathname);
     if (fs.existsSync(publicPath) && fs.statSync(publicPath).isFile()) {

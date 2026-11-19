@@ -24,6 +24,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         pack2: resolve(__dirname, 'pack2.html'),
+        pack3: resolve(__dirname, 'pack3.html'),
         admin: resolve(__dirname, 'admin.html')
       },
       output: {
