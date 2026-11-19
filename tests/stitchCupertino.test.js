@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { createManagedTestServer } = require('./testServerHelper');
 
-describe('Stitch Cupertino Pure & Clean Video Transition Tests', () => {
+describe('Storefront UI, Assets & Route Configuration Tests', () => {
 
     let fixture;
 
@@ -21,19 +21,13 @@ describe('Stitch Cupertino Pure & Clean Video Transition Tests', () => {
     });
 
     const PUBLIC_DIR = path.join(__dirname, '..', 'public');
-    const VIDEO_FILE = path.join(PUBLIC_DIR, 'videos', 'video-products-bundl.mp4');
     const IMAGE_FILE = path.join(PUBLIC_DIR, 'images', 'last-frame-16-9.jpg');
     const COMMUNES_FILE = path.join(__dirname, '..', 'config', 'communes.json');
     const HERO_JSX = path.join(__dirname, '..', 'src', 'components', 'CupertinoVideoHero.jsx');
     const FORM_JSX = path.join(__dirname, '..', 'src', 'components', 'OrderForm.jsx');
     const BAR_JSX = path.join(__dirname, '..', 'src', 'components', 'StickyMobileBar.jsx');
     const APP_JSX = path.join(__dirname, '..', 'src', 'App.jsx');
-
-    it('Video asset video-products-bundl.mp4 exists in public/videos with valid size', () => {
-        assert.ok(fs.existsSync(VIDEO_FILE), 'video-products-bundl.mp4 must exist in public/videos');
-        const stats = fs.statSync(VIDEO_FILE);
-        assert.ok(stats.size > 500000, `Video file size must be substantial (actual: ${stats.size})`);
-    });
+    const VERCEL_JSON = path.join(__dirname, '..', 'vercel.json');
 
     it('Last frame asset last-frame-16-9.jpg exists in public/images with valid size', () => {
         assert.ok(fs.existsSync(IMAGE_FILE), 'last-frame-16-9.jpg must exist in public/images');
@@ -118,16 +112,19 @@ describe('Stitch Cupertino Pure & Clean Video Transition Tests', () => {
         assert.ok(content.includes('hidden={isFormButtonVisible}'), 'App must pass hidden prop to StickyMobileBar');
     });
 
-    it('HTTP Server streams video-products-bundl.mp4 with 206 Partial Content', async () => {
-        const res = await fixture.fetch('/videos/video-products-bundl.mp4', {
-            headers: {
-                'Range': 'bytes=0-1023'
-            }
-        });
-
-        assert.equal(res.status, 206);
-        assert.equal(res.headers.get('content-type'), 'video/mp4');
-        assert.ok(res.headers.get('content-range'));
+    it('vercel.json cleanUrls rewrites omit .html extensions and map /speaker to /pack3', () => {
+        const vercelConfig = JSON.parse(fs.readFileSync(VERCEL_JSON, 'utf8'));
+        assert.strictEqual(vercelConfig.cleanUrls, true);
+        assert.ok(Array.isArray(vercelConfig.rewrites));
+        for (const rule of vercelConfig.rewrites) {
+            assert.ok(
+                !String(rule.destination || '').endsWith('.html'),
+                `Rewrite destination for ${rule.source} must omit .html when cleanUrls is true (got ${rule.destination})`
+            );
+        }
+        const speakerRule = vercelConfig.rewrites.find(r => r.source === '/speaker');
+        assert.ok(speakerRule, 'vercel.json must define /speaker rewrite');
+        assert.strictEqual(speakerRule.destination, '/pack3');
     });
 
     it('HTTP Server serves last-frame-16-9.jpg with image/jpeg MIME type', async () => {

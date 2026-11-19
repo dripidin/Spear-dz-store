@@ -6,32 +6,16 @@
       "destination": "/api/$1"
     },
     {
-      "source": "/admin",
-      "destination": "/admin.html"
-    },
-    {
-      "source": "/pack2",
-      "destination": "/pack2.html"
-    },
-    {
       "source": "/pack-2",
-      "destination": "/pack2.html"
+      "destination": "/pack2"
     },
     {
       "source": "/speaker",
-      "destination": "/pack3.html"
-    },
-    {
-      "source": "/pack3",
-      "destination": "/pack3.html"
+      "destination": "/pack3"
     },
     {
       "source": "/pack-3",
-      "destination": "/pack3.html"
-    },
-    {
-      "source": "/",
-      "destination": "/index.html"
+      "destination": "/pack3"
     }
   ],
   "crons": [

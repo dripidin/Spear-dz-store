@@ -1,12 +1,10 @@
-# ── Security & Secret Exclusion ───────────────────────────────────────────────
+# Environment & Secrets
 .env
 .env.local
 .env.*.local
 *.env
-**/.env.local
 **/.env
-
-# Sensitive Keys & Credentials
+**/.env.local
 *.json.key
 *googlesheet-api*.json
 *service-account*.json
@@ -15,39 +13,19 @@
 *.cert
 *.p12
 
-# Local Database & Cache
+# Dependencies & Build Outputs
 node_modules/
-.vercel/
 dist/
+.vercel/
+supabase/.temp/
+
+# Logs & Temp Files
 *.tmp
 *.log
+Thumbs.db
+.DS_Store
+
+# Local Data Exports
 data/excel/*.xlsx
 data/json/*.json
 !data/json/.gitkeep
-
-# System & Media Temp
-Thumbs.db
-.DS_Store
-*.prproj
-*.prproj.*
-Adobe Premiere Pro Auto-Save/
-video/*.mp4
-video/*.mov
-
-.vercel
-.env*
-reference-yamahasac/
-reference-ecotrack/
-launch-ui-main/
-awesome-design-md-main/
-stitch_spear_dz_high_tech_5_in_1_store.zip
-stitch_spear_dz_high_tech_5_in_1_store/
-Spear-dz.code-workspace
-Product image bundle/
-Products Images/
-arabic font/
-Sequence 01.*
-skills-lock.json
-video/
-node.cmd
-pack 2.jpg
