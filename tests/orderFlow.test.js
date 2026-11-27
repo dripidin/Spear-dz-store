@@ -305,7 +305,7 @@ describe('End-to-End API Order Flow & Security Tests', () => {
         assert.strictEqual(saved.productName, 'عرض الصوت والطاقة 4 في 1 (PACK SOUND & POWER)');
     });
 
-    test('POST /api/send-order: Validates Pack 3 Speaker + Mic (speaker_mic_bs232) price enforcement at 4,500 DZD', async () => {
+    test('POST /api/send-order: Validates Pack 3 Speaker + Mic (speaker_mic_bs232) price enforcement at 5,600 DZD', async () => {
         const { req, res, getStatus, getJson } = mockReqRes('POST', {
             bundleId: 'speaker_mic_bs232',
             fullName: 'Yacine Brahimi',
@@ -328,14 +328,14 @@ describe('End-to-End API Order Flow & Security Tests', () => {
         assert.ok(json.orderId);
 
         const expectedShippingFee = require('../config/shippingRates.json')['16']?.desk || 450;
-        const expectedTotal = 4500 + expectedShippingFee;
-        assert.strictEqual(json.subtotal, 4500);
+        const expectedTotal = 5600 + expectedShippingFee;
+        assert.strictEqual(json.subtotal, 5600);
         assert.strictEqual(json.shippingFee, expectedShippingFee);
         assert.strictEqual(json.totalPrice, expectedTotal);
 
         const saved = await mockStorage.findOrderById(json.orderId);
         assert.ok(saved);
-        assert.strictEqual(saved.unitPrice, 4500);
+        assert.strictEqual(saved.unitPrice, 5600);
         assert.strictEqual(saved.totalPrice, expectedTotal);
         assert.strictEqual(saved.bundleId, 'speaker_mic_bs232');
         assert.strictEqual(saved.productName, 'مكبر صوت بلوتوث BS-232A مع ميكروفون كاريوكي');

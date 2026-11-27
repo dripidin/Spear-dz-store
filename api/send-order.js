@@ -108,7 +108,7 @@ module.exports = async (req, res) => {
             },
             speaker_mic_bs232: {
                 config: storeConfig && storeConfig.bundle_3,
-                defaultPrice: 4500,
+                defaultPrice: 5600,
                 defaultTitle: 'مكبر صوت بلوتوث BS-232A مع ميكروفون كاريوكي'
             }
         };

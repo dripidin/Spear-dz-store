@@ -78,10 +78,10 @@ export default function App({ initialBundle }) {
         : 'Enceinte Bluetooth BS-232A + Microphone Karaoké',
       shortName: isAr ? 'سبيكر بلوتوث + ميكروفون' : 'Enceinte + Micro BS-232A',
       headline: isAr ? 'سبيكر بلوتوث + مايك استغل الفرصة !' : 'Enceinte Bluetooth + Micro • Saisissez l\'opportunité !',
-      price: 4500,
-      priceDisplay: '4,500 DZD',
+      price: 5600,
+      priceDisplay: '5,600 DZD',
       imageSrc: '/images/speaker-mic.jpg',
-      badge: isAr ? 'سبيكر + مايك 4500 دج • كمية محدودة' : 'Offre Spéciale 4,500 DA • Stock Limité'
+      badge: isAr ? 'سبيكر + مايك 5600 دج • كمية محدودة' : 'Offre Spéciale 5,600 DA • Stock Limité'
     }
   };
 
@@ -102,7 +102,7 @@ export default function App({ initialBundle }) {
       key: 'pack3',
       href: '/speaker',
       matchPaths: ['/speaker', '/speaker.html', '/pack3', '/pack-3', '/pack3.html'],
-      label: isAr ? 'سبيكر + مايك (4,500 دج)' : 'Enceinte + Micro (4,500 DA)'
+      label: isAr ? 'سبيكر + مايك (5,600 دج)' : 'Enceinte + Micro (5,600 DA)'
     }
   ];
 
